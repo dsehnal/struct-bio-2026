@@ -1,0 +1,48 @@
+# struct-bioinf-2026: the specification
+
+The material for the Mol\* v6 talk at the EMBL-EBI Structural bioinformatics course (23 October 2026). It is one app
+with two modes:
+
+- **Slides**: interactive HTML slides for the presenter. Each example slide runs live.
+- **Playground**: a code editor (Monaco) beside a viewer, where participants run and edit the same snippets.
+
+| File                     | What it covers                                       |
+| ------------------------ | ---------------------------------------------------- |
+| [outline.md](outline.md) | the talk: audience, message, timing, parts, examples |
+
+## Decisions
+
+1. **One app, two modes.** A slide's snippet is the playground's starting point ("Open in playground" carries it), so
+   the snippets are written once. The mode is a URL parameter, so participants get the playground link and the presenter
+   gets the slides.
+2. **Snippets are data.** Each example is a file holding a title, a short text, and code in one of three kinds: MVS
+   builder code, SVS builder code, or a SeqQL query. Both modes read these files. The slides add text and diagrams
+   around them.
+3. **The code runner is ported from stories-untold** (`lib/stories/mvs-code`):
+   - The snippet runs in a sandboxed iframe (`allow-scripts`, null origin, CSP `default-src 'none'`) with a time limit.
+   - It returns an MVS tree as JSON. The page validates the tree and loads it.
+   - Monaco gets the builder's types as one generated `.d.ts` (extraLibs).
+   - To port it to v6: replace the `molstar/lib/...` imports and the vendored-Mol\* `.d.ts` emit with
+     `@molstar/mvs-builder` (and `/molql`) and its published declarations. Then add the SVS builder and SeqQL `Q`.
+4. **The examples are biological.** There are three, each tied to a session earlier in the week (outline.md): p53 for
+   sequence, variants and pLDDT; imatinib/ABL for ligand and density; the spike for cryo-EM and a story.
+5. **The assistant is for the presenter only.** Participants do not get a key, and the playground has no agent.
+   Everything else needs no account and no install.
+6. **One viewer: Prism.** Slides and playground both embed the Prism viewer, which loads MVS and takes SVS for its
+   sequence band. Then what participants see in the playground is what was shown in the talk. No example combines MVS
+   and SVS in one story yet.
+7. **Slides are reveal.js with our own parts.** Reveal does the deck: navigation, fragments, speaker notes, overview.
+   Ours are the live parts: a slide that embeds the viewer and runs a snippet, the code/MVSJ side by side, the "try it"
+   chip that opens the playground.
+8. **Built with Vite** (like `examples/minimal-prism-viewer`), so Monaco's workers load with `?worker`. It is kept out
+   of `pnpm build:apps` (`"molstar": {"builder": "vite"}`).
+9. **Hosted as a static build on GitHub Pages**, published by hand from `vite build`. No server; all data comes from
+   public services (PDBe, AFDB, the PDBe volume server).
+10. **Guided playground.** The playground starts from one-click example cards, with suggested edits next to the code
+    (outline.md §8). It is a place to try small changes, not an IDE.
+
+## Assets to prepare
+
+- A screenshot of the MolViewStories landing page (https://molstar.org/mol-view-stories/) for outline.md §6.
+- Recordings for the fallbacks: the Prism demo (§1) and the assistant's three prompts (§7).
+- A QR code and a short URL for the playground.
