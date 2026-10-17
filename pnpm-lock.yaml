@@ -1646,9 +1646,15 @@ importers:
       '@molstar/plugin-ui':
         specifier: workspace:*
         version: link:../../packages/plugin/ui
+      '@molstar/prism-assistant':
+        specifier: workspace:*
+        version: link:../../packages/prism/assistant
       '@molstar/prism-viewer':
         specifier: workspace:*
         version: link:../../packages/prism/viewer
+      '@molstar/seq-core':
+        specifier: workspace:*
+        version: link:../../packages/sequences/core
       '@molstar/viewer':
         specifier: workspace:*
         version: link:../../apps/viewer

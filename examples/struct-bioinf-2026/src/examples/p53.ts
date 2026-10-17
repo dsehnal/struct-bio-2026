@@ -118,7 +118,7 @@ structure
   .color({ color: 'lightgray' })
   .opacity({ opacity: 0.25 });
 
-// Residues of chain B with an atom within 4 Å of the DNA, as sticks.
+// Residues of chain B close to the DNA (within 4 Å; Mol*'s within adds each atom's radius), as sticks.
 const touching = structure.component({
   selector: molql(
     'chain B and polymer.protein and ' +
@@ -290,7 +290,7 @@ export const P53Example: Example = {
       id: 'p53-dna',
       kind: 'mvs',
       title: 'The core domain on DNA',
-      summary: 'The p53 copy bound to the DNA site, and the residues of it that come within 4 Å of the DNA.',
+      summary: 'The p53 copy bound to the DNA site, and the residues of it that touch the DNA.',
       code: DNA,
       edits: [
         edit(

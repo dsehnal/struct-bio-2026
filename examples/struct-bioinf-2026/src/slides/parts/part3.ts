@@ -190,7 +190,7 @@ export function part3(): string {
       part: 3,
       snippetId: 'p53-dna',
       title: 'The DNA-binding domain on DNA (1TSR)',
-      lead: 'Chain B is the copy on the consensus site. Red sticks: residues within 4 Å of the DNA.',
+      lead: 'Chain B is the copy on the consensus site. Red sticks: residues that touch the DNA.',
       notes: notes(
         '1TSR is the p53 core domain on DNA, by X-ray. Chain B is the copy bound to the consensus site; the other two copies make fewer, non-specific contacts, so they are faded.',
         'The red residues are a MolQL selection, written in PyMOL syntax: residues of chain B within 4 Å of the DNA. Say it in words, and it is a query, not a list somebody typed.',
