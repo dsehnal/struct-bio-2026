@@ -1,0 +1,37 @@
+[
+  {
+    "auth_asym_id": "A",
+    "auth_seq_id": 253,
+    "label": "Y253",
+    "color": "#f4a261",
+    "tooltip": "Y253: in the P-loop, which closes over the drug."
+  },
+  {
+    "auth_asym_id": "A",
+    "auth_seq_id": 315,
+    "label": "T315",
+    "color": "#e63946",
+    "tooltip": "T315: the gatekeeper. Its hydroxyl makes a hydrogen bond to imatinib; T315I is the resistance mutation."
+  },
+  {
+    "auth_asym_id": "A",
+    "auth_seq_id": 381,
+    "label": "D381",
+    "color": "#2a9d8f",
+    "tooltip": "D381: the D of the DFG motif (DFG-out with imatinib)."
+  },
+  {
+    "auth_asym_id": "A",
+    "auth_seq_id": 382,
+    "label": "F382",
+    "color": "#2a9d8f",
+    "tooltip": "F382: the F of the DFG motif (DFG-out with imatinib)."
+  },
+  {
+    "auth_asym_id": "A",
+    "auth_seq_id": 383,
+    "label": "G383",
+    "color": "#2a9d8f",
+    "tooltip": "G383: the G of the DFG motif (DFG-out with imatinib)."
+  }
+]

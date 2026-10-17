@@ -33,8 +33,16 @@ export interface EmbeddedViewer {
   dispose(): Promise<void>;
 }
 
-/** The spec of an embedded viewer: the default, with a layout for a host page (the rail behind a button). */
-export function embeddedViewerSpec(): PrismViewerSpec {
+/** How much of Prism's UI an embedded viewer shows: `compact` (the rail behind a button) or `full` (the viewer as the app has it). */
+export type EmbeddedLayout = 'compact' | 'full';
+
+export interface EmbeddedViewerOptions {
+  /** `compact` by default (the playground's and the code slides' small viewer). */
+  readonly layout?: EmbeddedLayout;
+}
+
+/** The spec of an embedded viewer: the default, with a layout for a host page (`compact`: the rail behind a button). */
+export function embeddedViewerSpec(layout: EmbeddedLayout = 'compact'): PrismViewerSpec {
   const base = DefaultPrismViewerSpec();
   // `load.mvs` and `load.svs` are the loaders feature's; the import also brings their types onto `viewer.api.load`.
   if (!base.extensions?.includes(LoadersFeature)) throw new Error('The default Prism spec has no loaders feature.');
@@ -42,7 +50,7 @@ export function embeddedViewerSpec(): PrismViewerSpec {
     ...base,
     // The page drives the viewer (no Home while empty); the tool rail is hidden behind a button in the canvas's corner.
     options: { ui: { homeWhenEmpty: false, splash: 'off' } },
-    ui: { layout: { compactRail: true } },
+    ...(layout === 'compact' ? { ui: { layout: { compactRail: true } } } : {}),
   };
 }
 
@@ -50,7 +58,15 @@ export function embeddedViewerSpec(): PrismViewerSpec {
  * A Prism viewer filling `container` (which needs a size). One per live slide is fine: each viewer has its own plugin
  * and `dispose()` frees it and empties the container.
  */
-export async function createEmbeddedViewer(container: HTMLElement): Promise<EmbeddedViewer> {
+export async function createEmbeddedViewer(
+  container: HTMLElement,
+  options: EmbeddedViewerOptions = {},
+): Promise<EmbeddedViewer> {
+  return createEmbeddedViewerWith(container, embeddedViewerSpec(options.layout));
+}
+
+/** As `createEmbeddedViewer`, over a spec of the caller's (the assistant slide adds the assistant to the full layout). */
+export async function createEmbeddedViewerWith(container: HTMLElement, spec: PrismViewerSpec): Promise<EmbeddedViewer> {
   // The viewer's target gets a shadow root, so a message over it is a sibling, not a child.
   container.classList.add('embedded-viewer');
   const target = document.createElement('div');
@@ -66,7 +82,7 @@ export async function createEmbeddedViewer(container: HTMLElement): Promise<Embe
   setStatus('Starting the viewer…');
   let viewer: PrismViewer;
   try {
-    viewer = await createPrismViewer({ target, spec: embeddedViewerSpec() });
+    viewer = await createPrismViewer({ target, spec });
   } catch (e) {
     setStatus(`The viewer could not start: ${e instanceof Error ? e.message : String(e)}`, 'error');
     throw e;

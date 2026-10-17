@@ -198,3 +198,43 @@ The playground is guided, for people who do not write code:
 ## Biology checks
 
 Done 2026-10-18; the facts the snippets use are in [examples.md](examples.md).
+
+## The deck as built
+
+`src/slides/` has one function per part (`parts/part0.ts` … `part8.ts`) and 40 slides in one flat row (a vertical stack
+per part would make → skip the rest of a part). Every slide has speaker notes (the S key), written from the sections
+above, and a footer with its part's tag.
+
+| Part | Slides                                                                                                                                                                                                           |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0    | title · why visualise · Mol\* v6 · the plan with the playground QR code                                                                                                                                          |
+| 1    | classic vs Prism (morph) · Prism live, full UI, 1IEP · every button is a named operation                                                                                                                         |
+| 2    | the "describe, don't click" diagram · a description is a tree of steps                                                                                                                                           |
+| 3    | opener with the map · `basics-smallest` · `basics-selectors` · `basics-annotations` · `basics-primitives` · Python or TypeScript + Colab · portability · example A · `p53-af-plddt` · `p53-dna` · `p53-hotspots` |
+| 4    | opener · SeqViewSpec shape · SeqQL · `p53-sequence` (the AlphaFold model in 3D, then the SeqViewSpec document)                                                                                                   |
+| 5    | opener · the volume server's principle · `imatinib-pocket` · `imatinib-density`                                                                                                                                  |
+| 6    | opener · MolViewStories (screenshot) · `spike-story` stepped by →                                                                                                                                                |
+| 7    | Prism with the assistant (lazy chunk), the three prompts with Copy buttons                                                                                                                                       |
+| 8    | the playground (QR code, one card per example) · links, citations, thanks                                                                                                                                        |
+
+Choices not in the sections above:
+
+- The map of the talk (part 2) is one SVG, `partsMap(current?)`; the openers of parts 3–6 show it with the part's boxes
+  lit.
+- A code slide has a second tab with what the snippet produced (MVSJ, or the SeqViewSpec document): the "a description
+  is data" point, shown on the real output.
+- Reveal's arrows are scaled down into the bottom right corner, where every slide's footer leaves room for them, so they
+  never cover a viewer. The speaker view's frames (`receiver` in the address) get no viewers.
+- The playground address in the QR codes is the page's own, so a published build shows its own link.
+- The assistant slide opens the Assistant tab (`ui.layout.start`); the key is entered there and, as the assistant keeps
+  it, stays in memory with "Until reload".
+
+Principle slides (`principles.ts`; each static, one picture or code pair): state, not steps (part 2); one selection in
+PyMOL, VMD, MolScript and the builder, then data stays outside the structure (annotation keys and the schemas'
+granularity), both after `basics-selectors`; numbering (auth, label, UniProt) before `p53-dna`; checked, not guessed, at
+the end of part 3; snapshots and transitions before the spike story (part 6). A code slide whose snippet reads
+`asset('…')` has a Data tab with the file (a table with its residue keys marked). The code column is 40% and its font
+scales with the column; a long line scrolls, it is not wrapped; ⇔ widens the column.
+
+To cut for time (each about 30 to 60 seconds): portability, example A intro, state not steps, checked not guessed,
+snapshots and transitions, the selection languages.

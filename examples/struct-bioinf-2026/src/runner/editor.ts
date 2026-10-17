@@ -10,9 +10,11 @@ import * as monaco from 'monaco-editor';
 import EditorWorker from 'monaco-editor/editor/editor.worker?worker';
 import TsWorker from 'monaco-editor/language/typescript/ts.worker?worker';
 import { MVS_TYPES } from './generated/mvs-types.js';
+import { SVS_TYPES } from './generated/svs-types.js';
+import type { SnippetKind } from './runtime/core.js';
 import type { CodeProblem } from './transpile.js';
 
-// Monaco for snippets (_spec/README.md decision 3): the builder's typings as an extra library, TypeScript strict, and the
+// Monaco for snippets (_spec/README.md decision 3): the builder's typings (MVS's or SeqViewSpec's, by the snippet's kind) as an extra library, TypeScript strict, and the
 // run's problems as markers. Imported lazily by `createCodeEditor` (index.ts): Monaco is large, and the slides do not
 // need it. Its TypeScript service runs in a worker (the `?worker` imports are Vite's).
 
@@ -30,6 +32,17 @@ const THEMES: Record<EditorTheme, string> = { light: 'vs', dark: 'vs-dark' };
 const MODULE_DETECTION_FORCE = 3;
 
 let configured = false;
+let current: SnippetKind | undefined;
+
+const TYPINGS: Record<SnippetKind, string> = { mvs: MVS_TYPES, svs: SVS_TYPES };
+
+/** The typings of a kind as the only extra library: one language service serves every model, so the kind is global. */
+function useKind(kind: SnippetKind): void {
+  if (current === kind) return;
+  current = kind;
+  // Set whole (not added by handle): nothing from an earlier configuration stays behind.
+  monaco.typescript.typescriptDefaults.setExtraLibs([{ content: TYPINGS[kind], filePath: `ts:${kind}.d.ts` }]);
+}
 
 function configure(): void {
   if (configured) return;
@@ -44,8 +57,6 @@ function configure(): void {
     allowNonTsExtensions: true,
     lib: ['es2020'],
   });
-  // Set whole (not added by handle): nothing from an earlier configuration stays behind.
-  ts.typescriptDefaults.setExtraLibs([{ content: MVS_TYPES, filePath: 'ts:mvs.d.ts' }]);
 }
 
 /**
@@ -79,8 +90,9 @@ let checks = 0;
  * Type errors in a snippet, with the builder's typings around it: Monaco's TypeScript worker on a model of its own (no
  * editor needed). Messages are TypeScript's.
  */
-export async function typeErrors(code: string): Promise<CodeProblem[]> {
+export async function typeErrors(code: string, kind: SnippetKind = 'mvs'): Promise<CodeProblem[]> {
   configure();
+  useKind(kind);
   const model = monaco.editor.createModel(
     code,
     'typescript',
@@ -100,6 +112,8 @@ export interface CodeEditorOptions {
   onRun?: () => void;
   theme?: EditorTheme;
   readOnly?: boolean;
+  /** Which builder's typings the code gets (default `mvs`); `setKind` changes it. */
+  kind?: SnippetKind;
 }
 
 export interface CodeEditor {
@@ -107,6 +121,8 @@ export interface CodeEditor {
   /** Replaces the code (the change event fires only when it differs). */
   setValue(value: string): void;
   setTheme(theme: EditorTheme): void;
+  /** Switches the typings (the builder the code is written against). The editor shows one kind at a time. */
+  setKind(kind: SnippetKind): void;
   /** Shows problems from a run (syntax, run time, validation) as markers; lines of 0 or none are not shown. */
   setProblems(problems: readonly { message: string; line?: number }[]): void;
   /** TypeScript's errors for the code now in the editor, through Monaco's worker. */
@@ -117,6 +133,7 @@ export interface CodeEditor {
 
 export function createEditor(el: HTMLElement, options: CodeEditorOptions): CodeEditor {
   configure();
+  useKind(options.kind ?? 'mvs');
   const editor = monaco.editor.create(el, {
     theme: THEMES[options.theme ?? 'light'],
     readOnly: options.readOnly ?? false,
@@ -138,6 +155,9 @@ export function createEditor(el: HTMLElement, options: CodeEditorOptions): CodeE
     padding: { top: 10, bottom: 10 },
     scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8, useShadows: false },
     tabSize: 2,
+    wordWrap: 'on',
+    links: false,
+    wrappingIndent: 'indent',
   });
   const model = editor.getModel() as monaco.editor.ITextModel;
   const run = () => options.onRun?.();
@@ -150,6 +170,7 @@ export function createEditor(el: HTMLElement, options: CodeEditorOptions): CodeE
       if (editor.getValue() !== value) editor.setValue(value);
     },
     setTheme: (theme) => monaco.editor.setTheme(THEMES[theme]),
+    setKind: useKind,
     setProblems: (problems) =>
       monaco.editor.setModelMarkers(
         model,

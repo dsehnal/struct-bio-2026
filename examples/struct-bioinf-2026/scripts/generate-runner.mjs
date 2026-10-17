@@ -7,10 +7,11 @@
  */
 
 // Generates src/runner/generated/ (run: `pnpm generate:runner` in this folder, or `node scripts/generate-runner.mjs`):
-// - mvs-types.ts: the typings Monaco gets for snippets, as one .d.ts string (_spec/README.md decision 3). The published
-//   declarations of @molstar/mvs-builder (and what they import) become `declare module '<specifier>' { ... }` blocks of
-//   one script file, and the globals the snippet sees (`builder`, `molql()`, ...) are declared on top of them.
-// - runtime.ts: the iframe's runtime (src/runner/runtime/entry.ts with the builder), bundled by Vite, as a string.
+// - mvs-types.ts and svs-types.ts: the typings Monaco gets for MVS and SVS snippets, each as one .d.ts string
+//   (_spec/README.md decision 3). The published declarations of @molstar/mvs-builder (or @molstar/seq-core's builder) and
+//   what they import become `declare module '<specifier>' { ... }` blocks of one script file, and the globals the snippet
+//   sees (`builder`, `molql()`, `seq`, `asset()`, ...) are declared on top of them.
+// - runtime.ts: the iframe's runtime (src/runner/runtime/entry.ts with both builders), bundled by Vite, as a string.
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
@@ -22,6 +23,7 @@ const root = join(import.meta.dirname, '..');
 const repo = join(root, '..', '..');
 const out = join(root, 'src', 'runner', 'generated');
 const builderDir = realpathSync(join(root, 'node_modules', '@molstar', 'mvs-builder'));
+const seqDir = realpathSync(join(root, 'node_modules', '@molstar', 'seq-core'));
 
 const HEADER = `/**
  * Copyright (c) 2026 mol* contributors, licensed under MIT, See LICENSE file for more info.
@@ -34,15 +36,25 @@ const HEADER = `/**
  */
 `;
 
-/** The builder's declarations are emitted by its build (\`tsc -b\`); do that when \`lib/\` is missing. */
-function ensureBuilderDeclarations() {
-  if (existsSync(join(builderDir, 'lib', 'mvs-data.d.ts'))) return;
-  console.log('Building @molstar/mvs-builder (lib/ is missing).');
-  execFileSync('pnpm', ['exec', 'tsc', '-b', builderDir], { cwd: repo, stdio: 'inherit' });
+/** A builder's declarations are emitted by its build (\`tsc -b\`); do that when \`lib/\` is missing. */
+function ensureDeclarations(dir, file) {
+  if (existsSync(join(dir, 'lib', file))) return;
+  console.log(`Building ${dir} (lib/ is missing).`);
+  execFileSync('pnpm', ['exec', 'tsc', '-b', dir], { cwd: repo, stdio: 'inherit' });
 }
 
-/** What the typings start from; the globals below refer to these modules. */
-const ENTRY = `
+/** The globals of every snippet kind. */
+const COMMON_GLOBALS = `
+/**
+ * The address of a data file of this page (the files of public/data), for color_from_uri and the like:
+ * asset('p53-hotspots.json'). The code runs without a page address of its own, so this is how to name them.
+ */
+declare function asset(name: string): string;
+declare const console: { log(...args: unknown[]): void; warn(...args: unknown[]): void; error(...args: unknown[]): void };
+`;
+
+/** What the MVS typings start from; the globals below refer to these modules. */
+const MVS_ENTRY = `
 export type { Root } from '@molstar/mvs-builder/tree/mvs/mvs-builder';
 export type { SnapshotMetadata } from '@molstar/mvs-builder/mvs-data';
 export { MolScriptBuilder } from '@molstar/mvs-builder/molql';
@@ -53,8 +65,8 @@ const BUNDLED_EXTERNAL = new Set(['io-ts']);
 
 const BUILDER = `import('@molstar/mvs-builder/tree/mvs/mvs-builder').Root`;
 
-/** The globals of a snippet (runtime/core.ts provides them) and readable names for the builder's types. */
-const GLOBALS = `
+/** The globals of an MVS snippet (runtime/core.ts provides them) and readable names for the builder's types. */
+const MVS_GLOBALS = `
 /** The MVS builder: describes the scene. Start with \`builder.download(...)\`. */
 declare const builder: ${BUILDER};
 /**
@@ -69,7 +81,7 @@ declare const MolScriptBuilder: typeof import('@molstar/mvs-builder/molql').MolS
  * (then \`builder\` is not used), or not at all.
  */
 declare function snapshot(metadata?: import('@molstar/mvs-builder/mvs-data').SnapshotMetadata): ${BUILDER};
-declare const console: { log(...args: unknown[]): void; warn(...args: unknown[]): void; error(...args: unknown[]): void };
+${COMMON_GLOBALS}
 
 /** The MVS builder: \`builder\` in a snippet. */
 type MVSBuilder = ${BUILDER};
@@ -85,6 +97,21 @@ type MVSExpression = Extract<MVSSelector, readonly unknown[]>[number];
 type MVSColor = Parameters<MVSRepresentation['color']>[0]['color'];
 /** A position for primitives: a point, or an expression. */
 type MVSPosition = Parameters<MVSPrimitives['tube']>[0]['start'];
+`;
+
+/** What the SVS typings start from. */
+const SVS_ENTRY = `
+export type { SeqViewSpecBuilder } from '@molstar/seq-core/builder';
+`;
+
+/** The globals of an SVS snippet (runtime/core.ts provides them). */
+const SVS_GLOBALS = `
+/**
+ * The SeqViewSpec builder: describes the sequence view. Start with seq.data (the structure, the annotations) and
+ * seq.view (the section, its tracks).
+ */
+declare const seq: import('@molstar/seq-core/builder').SeqViewSpecBuilder;
+${COMMON_GLOBALS}
 `;
 
 /** A string module (a template literal), so Monaco and the tests get the text without a file read. */
@@ -113,7 +140,7 @@ function moduleName(file) {
     .join('/')
     .replace(/\.d\.ts$/, '');
   if (file.includes(`${sep}node_modules${sep}`)) return rel === 'lib/index' ? name : `${name}/${rel}`;
-  return `${name}/${rel.replace(/^lib\//, '')}`;
+  return `${name}/${rel.replace(/^lib\//, '')}`.replace(/\/index$/, '');
 }
 
 function isBundled(file) {
@@ -122,8 +149,9 @@ function isBundled(file) {
   return BUNDLED_EXTERNAL.has(packageOf(file).name);
 }
 
-function typings() {
-  ensureBuilderDeclarations();
+/** One typings module: the declarations under \`entry\` (resolved from \`dir\`), then \`globals\`. */
+function typings({ dir, probe, entry: entryText, globals, file, name, doc, intro }) {
+  ensureDeclarations(dir, probe);
   const options = {
     module: ts.ModuleKind.NodeNext,
     moduleResolution: ts.ModuleResolutionKind.NodeNext,
@@ -132,15 +160,15 @@ function typings() {
     skipLibCheck: true,
     types: [],
   };
-  const entry = join(builderDir, '__runner-entry.d.ts');
+  const entry = join(dir, '__runner-entry.d.ts');
   const host = ts.createCompilerHost(options);
   const { getSourceFile, fileExists, readFile } = host;
   host.getSourceFile = (name, ...rest) =>
     name === entry
-      ? ts.createSourceFile(name, ENTRY, ts.ScriptTarget.ES2022, true)
+      ? ts.createSourceFile(name, entryText, ts.ScriptTarget.ES2022, true)
       : getSourceFile.call(host, name, ...rest);
   host.fileExists = (name) => name === entry || fileExists.call(host, name);
-  host.readFile = (name) => (name === entry ? ENTRY : readFile.call(host, name));
+  host.readFile = (name) => (name === entry ? entryText : readFile.call(host, name));
   const program = ts.createProgram([entry], options, host);
 
   const files = program.getSourceFiles().filter((f) => f.fileName !== entry && isBundled(f.fileName));
@@ -191,17 +219,9 @@ function typings() {
     return `declare module '${names.get(sf.fileName)}' {\n${rewrite(sf)}\n}`;
   });
   const shorthand = [...stubs].sort().map((name) => `declare module '${name}';`);
-  const text = [
-    '// The declarations of @molstar/mvs-builder (and of what they import), one ambient module each, then the snippet globals.',
-    ...shorthand,
-    ...blocks,
-    GLOBALS,
-  ].join('\n');
-  writeFileSync(
-    join(out, 'mvs-types.ts'),
-    asStringModule('MVS_TYPES', 'The typings for snippets: Monaco gets them as an extra library.', text),
-  );
-  console.log(`mvs-types.ts: ${files.length} modules, ${(text.length / 1024).toFixed(0)} KB`);
+  const text = [intro, ...shorthand, ...blocks, globals].join('\n');
+  writeFileSync(join(out, `${file}.ts`), asStringModule(name, doc, text));
+  console.log(`${file}.ts: ${files.length} modules, ${(text.length / 1024).toFixed(0)} KB`);
 }
 
 // --- Runtime ------------------------------------------------------------------------------------------------------
@@ -231,5 +251,26 @@ async function runtime() {
 }
 
 mkdirSync(out, { recursive: true });
-typings();
+typings({
+  dir: builderDir,
+  probe: 'mvs-data.d.ts',
+  entry: MVS_ENTRY,
+  globals: MVS_GLOBALS,
+  file: 'mvs-types',
+  name: 'MVS_TYPES',
+  doc: 'The typings for MVS snippets: Monaco gets them as an extra library.',
+  intro:
+    '// The declarations of @molstar/mvs-builder (and of what they import), one ambient module each, then the snippet globals.',
+});
+typings({
+  dir: seqDir,
+  probe: 'builder/index.d.ts',
+  entry: SVS_ENTRY,
+  globals: SVS_GLOBALS,
+  file: 'svs-types',
+  name: 'SVS_TYPES',
+  doc: 'The typings for SeqViewSpec snippets: Monaco gets them as an extra library.',
+  intro:
+    "// The declarations of @molstar/seq-core's builder (and of what they import), one ambient module each, then the snippet globals.",
+});
 await runtime();

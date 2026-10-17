@@ -34,7 +34,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px 24px;
+  gap: 8px 20px;
   padding: 8px 16px;
   border-bottom: 1px solid #d1d5db;
 }
@@ -48,30 +48,48 @@ body {
 .playground-title h1 {
   margin: 0;
   font-size: 18px;
+  white-space: nowrap;
 }
 
 .cards {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
 }
 
 .card {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
-  padding: 6px 12px;
+  gap: 1px;
+  padding: 5px 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   background: #fff;
   color: inherit;
   font: inherit;
   text-align: left;
+  cursor: pointer;
 }
 
-.card:disabled {
-  opacity: 0.7;
+.card:hover {
+  border-color: #2563eb;
+}
+
+.card[aria-current="true"] {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.card strong,
+.card span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .card span {
@@ -83,15 +101,151 @@ body {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(230px, 16.5rem) minmax(0, 1.1fr) minmax(0, 1fr);
 }
 
+/* The guide: what the open snippet shows, and the changes to try. */
+.guide {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 14px;
+  border-right: 1px solid #d1d5db;
+  background: #f9fafb;
+}
+
+.guide h2 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.guide h3 {
+  margin: 16px 0 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.guide p {
+  margin: 0 0 6px;
+  line-height: 1.45;
+}
+
+.guide .summary {
+  color: #374151;
+}
+
+.guide .none {
+  margin-top: 16px;
+  color: #6b7280;
+}
+
+.edits {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: edit;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.edits li {
+  counter-increment: edit;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.edits li.applied {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.edits li strong::before {
+  content: counter(edit) ". ";
+  color: #6b7280;
+}
+
+.edits li p {
+  margin: 4px 0 6px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.buttons button,
+.editor-toolbar .reset-all {
+  padding: 3px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.buttons .show {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+}
+
+.buttons button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* The editor, its snippets and its problems. */
 .editor-pane {
   min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
   border-right: 1px solid #d1d5db;
+}
+
+.snippets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.snippets button {
+  padding: 3px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: #4b5563;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.snippets button:hover {
+  background: #f3f4f6;
+}
+
+.snippets button[aria-current="true"] {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.snippets em {
+  font-size: 11px;
+  font-style: normal;
+  color: #6b7280;
 }
 
 .editor-toolbar {
@@ -115,9 +269,43 @@ body {
   cursor: pointer;
 }
 
+.editor-toolbar .reset-all {
+  margin-left: auto;
+}
+
 #editor {
   flex: 1;
   min-height: 0;
+}
+
+.problems {
+  max-height: 32%;
+  overflow-y: auto;
+  padding: 8px 14px 10px;
+  border-top: 2px solid #dc2626;
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+.problems[hidden] {
+  display: none;
+}
+
+.problems ul {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+
+.problems li {
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+
+.problems p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #991b1b;
 }
 
 #viewer {
@@ -130,9 +318,27 @@ body {
   border-radius: 0;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 1100px) {
+  .playground-body {
+    grid-template-columns: minmax(200px, 14rem) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .guide {
+    grid-row: 1 / span 2;
+  }
+}
+
+@media (max-width: 700px) {
   .playground-body {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .guide {
+    grid-row: auto;
+    max-height: 30vh;
+    border-right: 0;
+    border-bottom: 1px solid #d1d5db;
   }
 }

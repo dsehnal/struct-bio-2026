@@ -9,10 +9,11 @@
 import { MVSData } from '@molstar/mvs-builder';
 import { compileScript, MolScriptBuilder } from '@molstar/mvs-builder/molql';
 import type { Root } from '@molstar/mvs-builder/tree/mvs/mvs-builder';
+import { createSeqViewSpec } from '@molstar/seq-core/builder';
 
 // What the sandbox runs (bundled into generated/runtime.ts by scripts/generate-runner.mjs); the tests import it directly.
-// It runs a program made by `snippetProgram` (program.ts) with the globals the typings declare, and returns the MVS data
-// the snippet built.
+// It runs a program made by `snippetProgram` (program.ts) with the globals the typings declare, and returns what the
+// snippet built: MVS data, or a SeqViewSpec document (`kind`).
 
 export type MolQLLanguage = 'pymol' | 'vmd' | 'jmol' | 'mol-script';
 
@@ -29,13 +30,29 @@ export function molql(text: string, language: MolQLLanguage = 'pymol'): { molql:
 }
 
 /** The names of the program's parameters, in order (program.ts declares the same). */
-export const GLOBAL_NAMES = ['builder', 'molql', 'MolScriptBuilder', 'snapshot'] as const;
+export const GLOBAL_NAMES = ['builder', 'molql', 'MolScriptBuilder', 'snapshot', 'seq', 'asset'] as const;
+
+/** What a snippet builds: an MVS tree (`builder`) or a SeqViewSpec document (`seq`). */
+export type SnippetKind = 'mvs' | 'svs';
+
+export interface ProgramOptions {
+  /** The result: the state of `builder` (or of its snapshots), or the document of `seq`. Default `mvs`. */
+  kind?: SnippetKind;
+  /** The page's address, which `asset(name)` resolves the files of its `data/` folder against. */
+  base?: string;
+}
+
+/** The address of a data file of the page: `data/<name>` under the page's own. */
+export function assetUrl(name: string, base: string | undefined): string {
+  if (!base) throw new Error(`asset("${name}") needs the address of the page, which this run has none of.`);
+  return new URL(`data/${name}`, base).href;
+}
 
 /**
- * Runs the program and returns the MVS data it built, as plain data: the state of `builder`, or, when the code asked
- * for snapshots, the multi-state data of those.
+ * Runs the program and returns what it built, as plain data: the state of `builder` (or, when the code asked for
+ * snapshots, the multi-state data of those), or the document of `seq`.
  */
-export async function runProgram(program: string): Promise<unknown> {
+export async function runProgram(program: string, options: ProgramOptions = {}): Promise<unknown> {
   const builder = MVSData.createBuilder();
   const snapshots: { builder: Root; metadata: Record<string, unknown> }[] = [];
   const snapshot = (metadata: Record<string, unknown> = {}): Root => {
@@ -43,12 +60,17 @@ export async function runProgram(program: string): Promise<unknown> {
     snapshots.push({ builder: next, metadata });
     return next;
   };
+  const seq = createSeqViewSpec({ title: 'SeqViewSpec' });
+  const asset = (name: string) => assetUrl(name, options.base);
   // biome-ignore lint/nursery/noImpliedEval: running the snippet is the sandbox's job (iframe with a null origin, no network).
   const run = new Function(...GLOBAL_NAMES, program) as (...args: unknown[]) => Promise<void>;
-  await run(builder, molql, MolScriptBuilder, snapshot);
-  const data = snapshots.length
-    ? MVSData.createMultistate(snapshots.map((s) => s.builder.getSnapshot(s.metadata)))
-    : builder.getState();
+  await run(builder, molql, MolScriptBuilder, snapshot, seq, asset);
+  const data =
+    options.kind === 'svs'
+      ? seq.getDocument()
+      : snapshots.length
+        ? MVSData.createMultistate(snapshots.map((s) => s.builder.getSnapshot(s.metadata)))
+        : builder.getState();
   // Only data leaves the sandbox: functions and class instances are dropped here, not cloned.
   return JSON.parse(JSON.stringify(data));
 }

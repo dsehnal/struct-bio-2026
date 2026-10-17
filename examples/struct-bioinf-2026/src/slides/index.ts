@@ -7,6 +7,7 @@
  */
 
 import Reveal from 'reveal.js';
+import RevealNotes from 'reveal.js/plugin/notes';
 import 'reveal.js/reveal.css';
 import 'reveal.js/theme/white.css';
 import './slides.css';
@@ -28,9 +29,14 @@ export async function startSlides(root: HTMLElement): Promise<void> {
     width: '100%',
     height: '100%',
     margin: 0,
+    // The speaker view (S): notes, the next slide and a timer.
+    plugins: [RevealNotes],
   });
-  const live = new LiveSlides();
-  const sync = () => live.show(deck.getCurrentSlide() ?? undefined);
+  // The speaker view shows the current and the next slide in frames of the same page (`receiver` in the address): those
+  // frames are pictures of the deck, so they get no viewers (the presenter's own window has them).
+  const preview = /[?&]receiver\b/.test(location.search);
+  const live = new LiveSlides(deck);
+  const sync = () => live.show(preview ? undefined : (deck.getCurrentSlide() ?? undefined));
   deck.on('ready', sync);
   deck.on('slidechanged', sync);
   await deck.initialize();

@@ -6,15 +6,17 @@
  * @author David Sehnal <david.sehnal@gmail.com>
  */
 
-import { createEmbeddedViewer } from '../viewer/index.js';
-import { showScene, smallestScene } from '../viewer/scenes.js';
+import type { RevealApi } from 'reveal.js';
+import { assistantScene, prismDemoScene } from './demo.js';
 import { morphScene } from './morph.js';
+import { snippetScene } from './snippet.js';
+import { storyScene } from './story.js';
 
 // Live slides (_spec/README.md decision 7): a section with `data-live` gets its live parts when it is shown and loses
 // them when it is left. A slide's scene function gets the slide, mounts what it needs (one viewer, or several: the
 // morph slide has two) and returns one dispose. One live slide at a time, so a deck of many holds the WebGL contexts
-// of one slide only. Viewers are made without a `persist.key`, so there is no key to clash between a slide being
-// disposed and the next.
+// of one slide only (the morph slide's two are the exception, outline.md §1). Viewers are made without a `persist.key`,
+// so there is no key to clash between a slide being disposed and the next.
 
 /** Frees everything a live slide mounted. */
 export type DisposeLiveScene = () => void | Promise<void>;
@@ -24,18 +26,18 @@ export type DisposeLiveScene = () => void | Promise<void>;
  * wait for a download, so loading goes on in the background and stops with the dispose). If it throws, it has freed
  * what it made.
  */
-export type LiveScene = (slide: HTMLElement) => Promise<DisposeLiveScene>;
+export type LiveScene = (slide: HTMLElement, deck: RevealApi) => Promise<DisposeLiveScene>;
 
+/**
+ * The scenes by the `data-live` of a slide: the morph slide, the full Prism viewer (part 1), a snippet beside a viewer
+ * (`snippet.ts`, parts 3–5), a story (part 6) and the assistant (part 7).
+ */
 const LiveScenes: Readonly<Record<string, LiveScene>> = {
-  'scene-1cbs': async (slide) => {
-    const container = slide.querySelector<HTMLElement>('.live-viewer');
-    if (!container) throw new Error('The slide has no .live-viewer.');
-    const viewer = await createEmbeddedViewer(container);
-    // Not awaited (showScene reports its own failures).
-    void showScene(viewer, smallestScene());
-    return () => viewer.dispose();
-  },
   'morph-1iep': morphScene,
+  prism: prismDemoScene,
+  snippet: snippetScene,
+  story: storyScene,
+  assistant: assistantScene,
 };
 
 interface Mounted {
@@ -49,6 +51,8 @@ export class LiveSlides {
   /** Bumped on every change of slide, so a scene that finishes after its slide was left is disposed. */
   #generation = 0;
   #queue: Promise<void> = Promise.resolve();
+
+  constructor(private readonly deck: RevealApi) {}
 
   /** The slide now shown (`undefined`: none); the previous live slide is disposed first. */
   show(slide: HTMLElement | undefined): void {
@@ -80,7 +84,7 @@ export class LiveSlides {
       console.warn(`The live slide '${id}' has no scene.`);
       return;
     }
-    const dispose = scene(slide).then(
+    const dispose = scene(slide, this.deck).then(
       async (dispose) => {
         if (generation !== this.#generation) {
           await dispose();

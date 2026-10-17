@@ -20,9 +20,9 @@ s.component({ selector: molql('resn REA') }).representation({ type: 'ball_and_st
 
 /** A runner without the iframe: the sandbox's own runtime, in this process (the iframe is not tested here). */
 export const inProcessRunner: Runner = {
-  async run(program) {
+  async run(program, options) {
     try {
-      return { ok: true, mvs: await runProgram(program) };
+      return { ok: true, data: await runProgram(program, { base: 'http://localhost:5181/', ...options }) };
     } catch (e) {
       const error = e instanceof Error ? e : new Error(String(e));
       return { ok: false, error: `${error.name}: ${error.message}`, stack: error.stack ?? '' };

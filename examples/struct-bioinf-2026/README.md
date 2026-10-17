@@ -14,7 +14,7 @@ pnpm -C examples/struct-bioinf-2026 typecheck
 | URL                   | Mode                                                                                  |
 | --------------------- | ------------------------------------------------------------------------------------- |
 | `/` or `?mode=slides` | the slides (reveal.js; a live slide makes a viewer when shown, disposes it when left) |
-| `?mode=playground`    | the playground (header with example cards, `#editor` left, the viewer right)          |
+| `?mode=playground`    | the playground (`&snippet=<id>` opens a snippet: the slides' "try it" links)          |
 
 `build/` can be served from any sub-path (`base: './'` in `vite.config.ts`), e.g. GitHub Pages. It is a Vite app
 (`"molstar": { "builder": "vite" }` keeps it out of `pnpm build:apps`); workspace packages resolve to their sources
@@ -22,12 +22,16 @@ through the `molstar-src` export condition, so nothing needs building first.
 
 ## Layout
 
-| Path              | What                                                                                                                             |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `src/main.ts`     | reads `?mode=` (`src/mode.ts`) and loads the mode's chunk                                                                        |
-| `src/viewer/`     | the shared embedded Prism viewer: `createEmbeddedViewer(el)` with `loadMvs` and `loadSvs`; `classic.ts`: the classic Mol* viewer |
-| `src/slides/`     | the reveal.js deck (`deck.ts`), the live-slide lifecycle (`live.ts`), the classic-to-Prism morph (`morph.ts`), our CSS           |
-| `src/playground/` | the playground layout                                                                                                            |
+| Path              | What                                                                                                                              |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `src/main.ts`     | reads `?mode=` (`src/mode.ts`) and loads the mode's chunk                                                                         |
+| `src/viewer/`     | the shared embedded Prism viewer: `createEmbeddedViewer(el)` with `loadMvs` and `loadSvs`; `classic.ts`: the classic Mol* viewer  |
+| `src/slides/`     | the reveal.js deck (`deck.ts`), the live-slide lifecycle (`live.ts`), the classic-to-Prism morph (`morph.ts`), our CSS            |
+| `src/playground/` | the guided playground: example cards, snippet list, suggested edits, the editor, plain-word errors, deep links                    |
+| `src/examples/`   | the snippets both modes read (`basics`, `p53`, `imatinib`, `spike`): code, summary, suggested edits; facts in `_spec/examples.md` |
+| `src/runner/`     | the code runner: Monaco with generated typings, the sandboxed iframe, validation of the MVS or SeqViewSpec a snippet builds       |
+| `public/data/`    | the annotation files snippets read through `asset('<name>')`                                                                      |
+| `scripts/`        | `generate-runner.mjs` (`pnpm generate:runner`): the typings and the iframe runtime in `src/runner/generated/`                     |
 
 ## The viewer
 

@@ -18,7 +18,9 @@
   "dependencies": {
     "@molstar/mvs-builder": "workspace:*",
     "@molstar/plugin-ui": "workspace:*",
+    "@molstar/prism-assistant": "workspace:*",
     "@molstar/prism-viewer": "workspace:*",
+    "@molstar/seq-core": "workspace:*",
     "@molstar/viewer": "workspace:*",
     "@typescript/typescript6": "catalog:",
     "monaco-editor": "0.57.0",

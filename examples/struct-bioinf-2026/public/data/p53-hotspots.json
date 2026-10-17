@@ -1,0 +1,44 @@
+[
+  {
+    "auth_asym_id": "B",
+    "auth_seq_id": 175,
+    "class": "structural",
+    "label": "R175",
+    "tooltip": "R175: structural hotspot. Holds the fold near the zinc site and the L2/L3 loops."
+  },
+  {
+    "auth_asym_id": "B",
+    "auth_seq_id": 245,
+    "class": "structural",
+    "label": "G245",
+    "tooltip": "G245: structural hotspot. Holds the fold near the zinc site and the L2/L3 loops."
+  },
+  {
+    "auth_asym_id": "B",
+    "auth_seq_id": 248,
+    "class": "contact",
+    "label": "R248",
+    "tooltip": "R248: contact hotspot. Its side chain touches the DNA."
+  },
+  {
+    "auth_asym_id": "B",
+    "auth_seq_id": 249,
+    "class": "structural",
+    "label": "R249",
+    "tooltip": "R249: structural hotspot. Sits in the L3 loop and holds it in place."
+  },
+  {
+    "auth_asym_id": "B",
+    "auth_seq_id": 273,
+    "class": "contact",
+    "label": "R273",
+    "tooltip": "R273: contact hotspot. Its side chain touches the DNA."
+  },
+  {
+    "auth_asym_id": "B",
+    "auth_seq_id": 282,
+    "class": "structural",
+    "label": "R282",
+    "tooltip": "R282: structural hotspot. Sits in the H2 helix and holds the fold."
+  }
+]

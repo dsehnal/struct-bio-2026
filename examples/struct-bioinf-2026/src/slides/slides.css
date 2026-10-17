@@ -12,6 +12,12 @@
   --slide-ink: #1f2937;
   --slide-muted: #6b7280;
   --slide-accent: #2f6fb8;
+  --slide-accent-soft: #e8f0fa;
+  --slide-line: #d8dee8;
+  --slide-soft: #f3f4f6;
+  --slide-contact: #d1495b;
+  --slide-structural: #00798c;
+  --slide-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --r-main-font: system-ui, -apple-system, "Segoe UI", sans-serif;
   --r-heading-font: system-ui, -apple-system, "Segoe UI", sans-serif;
   --r-heading-text-transform: none;
@@ -33,8 +39,9 @@ body {
   height: 100%;
 }
 
+/* Big enough for the back of a Zoom call: 21.6px at 1280 x 720. */
 .reveal {
-  font-size: clamp(16px, 2.2vmin, 30px);
+  font-size: clamp(18px, 3vmin, 44px);
 }
 
 .reveal .slides {
@@ -47,10 +54,10 @@ body {
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  padding: 4vmin 6vmin;
+  padding: 3.4vmin 5vmin 1.6vmin;
   display: flex !important;
   flex-direction: column;
-  gap: 1.2vmin;
+  gap: 1.4vmin;
 }
 
 .reveal .slides > section:not(.present) {
@@ -58,7 +65,8 @@ body {
 }
 
 .reveal h1,
-.reveal h2 {
+.reveal h2,
+.reveal h3 {
   margin: 0;
   line-height: 1.15;
 }
@@ -68,7 +76,11 @@ body {
 }
 
 .reveal h2 {
-  font-size: 1.8em;
+  font-size: 1.7em;
+}
+
+.reveal h3 {
+  font-size: 1.1em;
 }
 
 .reveal p {
@@ -77,7 +89,51 @@ body {
 
 .reveal .lead {
   color: var(--slide-muted);
+  font-size: 0.9em;
 }
+
+.reveal a {
+  text-decoration: none;
+}
+
+/* Reveal's arrows: small, in the corner, where each slide's footer leaves room for them (never over a viewer). */
+.reveal .controls {
+  right: 8px;
+  bottom: 8px;
+  transform: scale(0.55);
+  transform-origin: bottom right;
+}
+
+.reveal .progress {
+  height: 3px;
+}
+
+/* --- the footer: the part's tag, and what belongs to the slide (the "try it" chip) ------------------------------------ */
+
+.reveal .slide-foot {
+  display: flex;
+  align-items: center;
+  gap: 1.2em;
+  margin-top: auto;
+  min-height: 2.1em;
+  padding-right: 6em;
+  flex: none;
+}
+
+.reveal .part-tag {
+  color: var(--slide-muted);
+  font-size: 0.6em;
+  letter-spacing: 0.04em;
+}
+
+.reveal .slide-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  flex: none;
+}
+
+/* --- the title slide --------------------------------------------------------------------------------------------------- */
 
 .reveal .title-slide {
   justify-content: center;
@@ -95,11 +151,13 @@ body {
 
 .reveal .chip {
   display: inline-block;
-  padding: 0.3em 0.9em;
+  padding: 0.25em 0.9em;
   border: 1px solid var(--slide-accent);
   border-radius: 999px;
-  font-size: 0.8em;
+  font-size: 0.75em;
   text-decoration: none;
+  white-space: nowrap;
+  background: #fff;
 }
 
 .reveal .chip:hover {
@@ -107,9 +165,17 @@ body {
   color: #fff;
 }
 
+.reveal .title-slide .chip {
+  align-self: flex-start;
+  font-size: 0.9em;
+}
+
+/* --- live slides ------------------------------------------------------------------------------------------------------- */
+
 .reveal .live-viewer {
   flex: 1;
   min-height: 0;
+  min-width: 0;
 }
 
 .reveal .columns {
@@ -117,35 +183,507 @@ body {
   min-height: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 3vmin;
+  gap: 2.4vmin;
+}
+
+.reveal .code-columns {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+}
+
+.reveal .code-live.code-wide .code-columns {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+}
+
+/* The code is sized by its column (cqw), so a line of about 55 characters fits whatever the window; a longer line scrolls
+   sideways, it is never wrapped into ragged pieces. The height caps it on a wide window. */
+.reveal .code-box {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  gap: 0.4em;
+}
+
+.reveal .code-box .code {
+  font-size: clamp(13px, 2.2cqw, 2.6vmin);
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow: auto;
+}
+
+.reveal .code-box .code.wrap {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: clamp(13px, 2.2cqw, 2.4vmin);
+}
+
+.reveal .code-tabs .widen {
+  margin-left: auto;
+}
+
+.reveal .data-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 0.4em;
+}
+
+.reveal .data-pane[hidden] {
+  display: none;
+}
+
+.reveal .data-note {
+  font-size: 0.6em;
+  color: var(--slide-muted);
+}
+
+.reveal .tk-key {
+  background: var(--slide-accent-soft);
+  border-radius: 3px;
+  box-shadow: 0 0 0 2px var(--slide-accent-soft);
+  font-weight: 600;
+}
+
+.reveal .code-tabs {
+  display: flex;
+  gap: 0.3em;
+  flex: none;
+}
+
+.reveal .code-tabs button {
+  font: inherit;
+  font-size: 0.6em;
+  padding: 0.2em 0.9em;
+  border: 1px solid var(--slide-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--slide-muted);
+  cursor: pointer;
+}
+
+.reveal .code-tabs button.active {
+  background: var(--slide-accent-soft);
+  border-color: var(--slide-accent);
+  color: var(--slide-accent);
+}
+
+.reveal .code-tabs button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .reveal .code {
   margin: 0;
   width: auto;
   box-shadow: none;
-  font-size: 0.6em;
+  font-family: var(--slide-mono);
+  font-size: 0.8em;
+  line-height: 1.4;
   overflow: auto;
-  background: #f3f4f6;
+  background: var(--slide-soft);
   border-radius: 8px;
-  padding: 1em;
+  padding: 0.8em 1em;
+  flex: 0 1 auto;
+  min-height: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.reveal .code[hidden] {
+  display: none;
 }
 
 .reveal .code code {
   max-height: none;
   padding: 0;
   background: none;
+  overflow: visible;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: inherit;
 }
 
-.reveal .viewer-placeholder {
+.reveal .code.plain {
+  flex: none;
+}
+
+/* The highlighter's tokens (`highlight.ts`). */
+.reveal .tk-c {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.reveal .tk-s {
+  color: #0f766e;
+}
+
+.reveal .tk-k {
+  color: #7c3aed;
+}
+
+.reveal .tk-n {
+  color: #b45309;
+}
+
+.reveal .tk-f {
+  color: #1d4ed8;
+}
+
+.reveal .tk-m {
+  color: #2f6fb8;
+}
+
+.reveal .tk-p {
+  color: #9d174d;
+}
+
+/* --- text slides ------------------------------------------------------------------------------------------------------- */
+
+.reveal .points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+  font-size: 1.2em;
+}
+
+.reveal .points li {
+  display: block;
+  position: relative;
+  padding-left: 1.1em;
+  line-height: 1.3;
+}
+
+.reveal .points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.45em;
+  height: 0.45em;
+  border-radius: 50%;
+  background: var(--slide-accent);
+}
+
+.reveal .points.small {
+  font-size: 0.95em;
+  gap: 0.5em;
+}
+
+.reveal .points code,
+.reveal .inline-code {
+  font-family: var(--slide-mono);
+  font-size: 0.85em;
+  background: var(--slide-soft);
+  padding: 0.05em 0.35em;
+  border-radius: 4px;
+}
+
+.reveal .cards {
   display: grid;
-  place-items: center;
-  border: 2px dashed #cbd5e1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2vmin;
+}
+
+.reveal .cards.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.reveal .cards.four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.reveal .card {
+  border: 1px solid var(--slide-line);
+  border-radius: 12px;
+  padding: 0.8em 1em;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  min-width: 0;
+}
+
+.reveal .card h3 {
+  color: var(--slide-accent);
+  font-size: 1.2em;
+}
+
+.reveal .card p {
+  font-size: 0.95em;
+  color: var(--slide-ink);
+  line-height: 1.35;
+}
+
+.reveal a.card {
+  color: inherit;
+}
+
+.reveal a.card:hover {
+  border-color: var(--slide-accent);
+  background: var(--slide-accent-soft);
+}
+
+.reveal .card .mini-code {
+  font-family: var(--slide-mono);
+  font-size: 0.65em;
+  background: var(--slide-soft);
+  border-radius: 6px;
+  padding: 0.5em 0.7em;
+  overflow-wrap: anywhere;
+}
+
+.reveal .big-statement {
+  font-size: 1.4em;
+  line-height: 1.3;
+}
+
+.reveal .big-statement strong {
+  color: var(--slide-accent);
+}
+
+.reveal .resources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+
+.reveal .resources span {
+  padding: 0.15em 0.8em;
+  border-radius: 999px;
+  background: var(--slide-soft);
+  font-size: 0.9em;
+}
+
+.reveal .two-col {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3vmin;
+  align-items: start;
+}
+
+.reveal .two-col.wide-right {
+  grid-template-columns: minmax(0, 4fr) minmax(0, 6fr);
+  align-items: center;
+}
+
+.reveal .two-col.center {
+  align-items: center;
+}
+
+.reveal .stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2vmin;
+  min-width: 0;
+}
+
+.reveal .timeline {
+  border-collapse: collapse;
+  font-size: 0.8em;
+  width: 100%;
+}
+
+.reveal .timeline td {
+  padding: 0.25em 0.6em 0.25em 0;
+  border-bottom: 1px solid var(--slide-line);
+}
+
+.reveal .timeline td:first-child {
+  color: var(--slide-muted);
+  white-space: nowrap;
+  width: 4.5em;
+}
+
+/* --- the QR code ------------------------------------------------------------------------------------------------------- */
+
+.reveal .qr-box {
+  background: #fff;
+  border: 1px solid var(--slide-line);
+  border-radius: 12px;
+  padding: 0.3em;
+  width: min(34vmin, 100%);
+  flex: none;
+}
+
+.reveal .qr-box.big {
+  width: min(52vmin, 100%);
+}
+
+.reveal .qr {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.reveal .url {
+  font-family: var(--slide-mono);
+  font-size: 0.7em;
+  overflow-wrap: anywhere;
+  color: var(--slide-accent);
+}
+
+/* --- the diagrams (`diagrams.ts`) -------------------------------------------------------------------------------------- */
+
+.reveal .dg {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  min-height: 0;
+  display: block;
+}
+
+.reveal .dg-box {
+  fill: #fff;
+  stroke: var(--slide-line);
+  stroke-width: 2;
+}
+
+.reveal .dg-title {
+  font-size: 21px;
+  font-weight: 600;
+  fill: var(--slide-ink);
+}
+
+.reveal .dg-sub {
+  font-size: 15px;
+  fill: var(--slide-muted);
+}
+
+.reveal .dg-faint {
+  opacity: 0.8;
+}
+
+.reveal .dg-head {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  fill: var(--slide-muted);
+}
+
+.reveal .dg-label {
+  font-size: 15px;
+  fill: var(--slide-muted);
+}
+
+.reveal .dg-code {
+  font-family: var(--slide-mono);
+  font-size: 18px;
+  fill: var(--slide-accent);
+}
+
+.reveal .dg-line {
+  fill: none;
+  stroke: #94a3b8;
+  stroke-width: 2;
+}
+
+.reveal .dg-arrow {
+  fill: #94a3b8;
+  fill: context-stroke;
+}
+
+.reveal .dg-core .dg-box {
+  fill: var(--slide-accent-soft);
+  stroke: var(--slide-accent);
+}
+
+/* The map of the talk: in parts 3–6 the boxes of the part are lit and the rest fades. */
+.reveal .parts-map[data-current] .node {
+  opacity: 0.3;
+  transition: opacity 0.2s;
+}
+
+.reveal .parts-map[data-current="3"] .node[data-parts~="3"],
+.reveal .parts-map[data-current="4"] .node[data-parts~="4"],
+.reveal .parts-map[data-current="5"] .node[data-parts~="5"],
+.reveal .parts-map[data-current="6"] .node[data-parts~="6"] {
+  opacity: 1;
+}
+
+.reveal .parts-map[data-current="3"] .node[data-parts~="3"] .dg-box,
+.reveal .parts-map[data-current="4"] .node[data-parts~="4"] .dg-box,
+.reveal .parts-map[data-current="5"] .node[data-parts~="5"] .dg-box,
+.reveal .parts-map[data-current="6"] .node[data-parts~="6"] .dg-box {
+  fill: var(--slide-accent-soft);
+  stroke: var(--slide-accent);
+  stroke-width: 2.5;
+}
+
+.reveal .dg-grid {
+  fill: none;
+  stroke: #e5e7eb;
+  stroke-width: 1;
+}
+
+.reveal .dg-density {
+  fill: rgba(47, 111, 184, 0.18);
+}
+
+.reveal .dg-ask {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-dasharray: 7 4;
+}
+
+.reveal .dg-ask-s {
+  stroke: var(--slide-contact);
+}
+
+.reveal .dg-ask-m {
+  stroke: #d99a00;
+}
+
+.reveal .dg-ask-l {
+  stroke: var(--slide-accent);
+}
+
+.reveal .dg-dots circle {
+  fill: var(--slide-accent);
+  opacity: 0.55;
+}
+
+/* The chain of a description (outline.md §2). */
+.reveal .chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 1.15em;
+}
+
+.reveal .chain span {
+  padding: 0.25em 0.8em;
   border-radius: 8px;
+  background: var(--slide-accent-soft);
+  color: var(--slide-accent);
+  font-family: var(--slide-mono);
+  font-size: 0.85em;
+}
+
+.reveal .chain i {
+  font-style: normal;
   color: var(--slide-muted);
 }
 
-/* The morph slide: two live viewers stacked in one box, only their opacity changes (`morph.ts`). */
+/* --- the part opener: the part's words beside the map ------------------------------------------------------------------ */
+
+.reveal .opener h2 {
+  font-size: 2.2em;
+}
+
+.reveal .opener .time {
+  color: var(--slide-muted);
+  font-size: 0.8em;
+}
+
+/* --- the morph slide: two live viewers stacked in one box, only their opacity changes (`morph.ts`) ------------------------ */
 
 .reveal .morph-head {
   display: flex;
@@ -187,6 +725,394 @@ body {
 }
 
 /* The fragment is only a step marker for reveal; it takes no space. */
-.reveal .morph-step {
+.reveal .morph-step,
+.reveal .story-step {
   display: none;
+}
+
+/* What the slide says changes with the step: the classic viewer's line, then Prism's four differences. */
+.reveal .morph-slide .on-prism {
+  display: none;
+}
+
+.reveal .morph-slide:has(.morph-step.visible) .on-classic {
+  display: none;
+}
+
+.reveal .morph-slide:has(.morph-step.visible) .on-prism {
+  display: block;
+}
+
+/* --- the story slide --------------------------------------------------------------------------------------------------- */
+
+.reveal .story-columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22em;
+  gap: 2.4vmin;
+}
+
+.reveal .story-panel {
+  min-height: 0;
+  overflow: auto;
+  font-size: 0.8em;
+}
+
+.reveal .story-hint {
+  color: var(--slide-muted);
+}
+
+.reveal .story-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.reveal .story-steps li {
+  display: block;
+  border-left: 4px solid var(--slide-line);
+  padding: 0.3em 0.6em;
+  color: var(--slide-muted);
+}
+
+.reveal .story-steps li.past {
+  border-left-color: var(--slide-accent);
+}
+
+.reveal .story-steps li.current {
+  border-left-color: var(--slide-accent);
+  background: var(--slide-accent-soft);
+  color: var(--slide-ink);
+  border-radius: 0 8px 8px 0;
+}
+
+.reveal .story-title {
+  font-weight: 600;
+}
+
+.reveal .story-text {
+  margin-top: 0.3em;
+  font-size: 0.9em;
+  line-height: 1.35;
+}
+
+.reveal .story-text p + p {
+  margin-top: 0.4em;
+}
+
+.reveal .story-steps li:not(.current) .story-text {
+  display: none;
+}
+
+/* --- the screenshot slide ---------------------------------------------------------------------------------------------- */
+
+.reveal .shot {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+
+.reveal .shot img {
+  margin: 0;
+  max-width: 100%;
+  max-height: 100%;
+  min-height: 0;
+  object-fit: contain;
+  object-position: top left;
+  border: 1px solid var(--slide-line);
+  border-radius: 10px;
+  box-shadow: none;
+  background: #fff;
+}
+
+.reveal .shot-placeholder {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 2em;
+  aspect-ratio: 16 / 10;
+  border: 2px dashed var(--slide-line);
+  border-radius: 10px;
+  color: var(--slide-muted);
+  background: var(--slide-soft);
+  font-size: 0.8em;
+}
+
+.reveal .shot-placeholder[hidden] {
+  display: none;
+}
+
+.reveal .cite {
+  font-size: 0.7em;
+  color: var(--slide-muted);
+  line-height: 1.35;
+}
+
+/* --- the assistant slide ----------------------------------------------------------------------------------------------- */
+
+.reveal .assistant-columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 19em;
+  gap: 2.4vmin;
+}
+
+.reveal .assistant-side {
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  font-size: 0.75em;
+}
+
+.reveal .prompt {
+  border: 1px solid var(--slide-line);
+  border-radius: 10px;
+  padding: 0.5em 0.7em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  align-items: flex-start;
+}
+
+.reveal .prompt q {
+  quotes: none;
+  line-height: 1.3;
+}
+
+.reveal .prompt button {
+  font: inherit;
+  font-size: 0.8em;
+  padding: 0.1em 0.8em;
+  border: 1px solid var(--slide-accent);
+  background: #fff;
+  color: var(--slide-accent);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.reveal .prompt button:hover {
+  background: var(--slide-accent);
+  color: #fff;
+}
+
+.reveal .side-note {
+  color: var(--slide-muted);
+  line-height: 1.35;
+}
+
+/* --- the python slide, links ------------------------------------------------------------------------------------------- */
+
+.reveal .code-pair {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2.4vmin;
+}
+
+.reveal .code-label {
+  font-size: 0.65em;
+  color: var(--slide-muted);
+  letter-spacing: 0.06em;
+}
+
+.reveal .links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.4em 1.2em;
+  font-size: 0.95em;
+}
+
+.reveal .links li {
+  display: contents;
+}
+
+.reveal .links .what {
+  color: var(--slide-muted);
+}
+
+.reveal .links a {
+  overflow-wrap: anywhere;
+}
+
+.reveal .code.big {
+  font-size: 1.05em;
+}
+
+.reveal .code-pair .stack {
+  min-height: 0;
+}
+
+.reveal .stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2.4vmin;
+}
+
+.reveal .code.nowrap {
+  white-space: pre;
+  overflow-wrap: normal;
+  font-size: 0.62em;
+}
+
+.reveal .code-pair .code {
+  font-size: 0.9em;
+}
+
+/* --- the principle slides (`principles.ts`) ---------------------------------------------------------------------------- */
+
+.reveal .panel {
+  min-height: 0;
+  min-width: 0;
+}
+
+.reveal .code.plain {
+  flex: 0 1 auto;
+  font-size: 0.95em;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.reveal .grid2 {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 1.6vmin 2.4vmin;
+}
+
+.reveal .grid2 .code.plain {
+  font-size: clamp(12px, 3cqw, 2.8vmin);
+  flex: 1;
+}
+
+.reveal .clicks {
+  columns: 2;
+  column-gap: 1.2em;
+  margin: 0;
+  padding: 0 0 0 1.8em;
+  font-size: 0.8em;
+  line-height: 1.35;
+  color: var(--slide-muted);
+}
+
+.reveal .clicks li {
+  break-inside: avoid;
+}
+
+.reveal table.schema {
+  border-collapse: collapse;
+  font-size: 0.85em;
+  width: 100%;
+}
+
+.reveal table.schema td,
+.reveal table.schema th {
+  padding: 0.3em 0.6em 0.3em 0;
+  border-bottom: 1px solid var(--slide-line);
+  text-align: left;
+  font-weight: 400;
+  vertical-align: top;
+}
+
+.reveal table.schema code {
+  font-family: var(--slide-mono);
+  color: var(--slide-accent);
+  font-size: 0.95em;
+}
+
+.reveal table.chains td.id {
+  font-family: var(--slide-mono);
+  font-size: 1.3em;
+  color: var(--slide-ink);
+}
+
+.reveal .code.error-box {
+  border-left: 4px solid var(--slide-contact);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.reveal .snaps {
+  display: flex;
+  align-items: stretch;
+  gap: 0.4em;
+}
+
+.reveal .snap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  border: 1px solid var(--slide-line);
+  border-radius: 10px;
+  padding: 0.6em 0.7em;
+  font-size: 0.7em;
+  line-height: 1.25;
+}
+
+.reveal .snap .snap-n {
+  color: var(--slide-accent);
+  font-weight: 700;
+}
+
+.reveal .snap span:last-child {
+  color: var(--slide-muted);
+}
+
+.reveal .snap-arrow {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--slide-accent);
+  font-size: 1.1em;
+}
+
+.reveal .snap-arrow small {
+  font-size: 0.45em;
+  color: var(--slide-muted);
+  text-align: center;
+}
+
+.reveal .grid2 > .panel {
+  container-type: inline-size;
+}
+
+.reveal .stage > .two-col {
+  flex: 0 1 auto;
+}
+
+.reveal .panel {
+  container-type: inline-size;
+}
+
+.reveal .panel .code.plain {
+  font-size: clamp(12px, 2.9cqw, 2.6vmin);
+}
+
+.reveal .panel .code.error-box {
+  font-size: clamp(11px, 2.5cqw, 2.4vmin);
+  white-space: pre;
+}
+
+.reveal .snap {
+  font-size: 0.85em;
 }

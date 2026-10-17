@@ -17,7 +17,13 @@
       "path": "../../packages/mvs/builder"
     },
     {
+      "path": "../../packages/prism/assistant"
+    },
+    {
       "path": "../../packages/prism/viewer"
+    },
+    {
+      "path": "../../packages/sequences/core"
     }
   ]
 }

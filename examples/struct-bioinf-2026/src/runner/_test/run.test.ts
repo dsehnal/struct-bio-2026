@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { runSnippetWith } from '../run.js';
+import { runSnippetWith, runSvsSnippetWith } from '../run.js';
 import { inProcessRunner, SAMPLE } from './samples.js';
 
 const run = (code: string) => runSnippetWith(inProcessRunner, code);
@@ -85,5 +85,56 @@ describe('runSnippet (the sandbox runtime in process)', () => {
   it('rejects a misspelled parameter (noExtra)', async () => {
     const r = await run(`builder.canvas({ background_colour: 'white' } as any);`);
     expect(r.ok).toBe(false);
+  });
+
+  it('resolves asset() against the address of the page', async () => {
+    const code = `builder.download({ url: asset('x.json') });`;
+    const ok = await runSnippetWith(inProcessRunner, code, { base: 'https://example.org/talk/?mode=playground' });
+    expect(JSON.stringify(ok)).toContain('"url":"https://example.org/talk/data/x.json"');
+    const none = await runSnippetWith(inProcessRunner, code, { base: '' });
+    expect(none.ok).toBe(false);
+    if (!none.ok) expect(none.error).toMatchObject({ line: 1, message: expect.stringMatching(/needs the address/) });
+  });
+});
+
+describe('runSvsSnippet (the sandbox runtime in process)', () => {
+  const sequence = `
+    const model = seq.data.complex({
+      ref: 'model',
+      provider: 'molstar:structure',
+      source: { service: 'afdb', resource: 'structure', id: 'AF-P04637-F1' },
+    });
+    const regions = seq.data.annotation({
+      ref: 'regions',
+      geometry: 'ranges',
+      target: model.unit('A'),
+      numbering: 'label',
+      value: [{ beg: 102, end: 292, label: 'DNA-binding' }],
+    });
+    const section = seq.view({ label: 'p53' }).section({});
+    section.track({}).ruler();
+    section.track({ label: 'Regions' }).ranges({ data: regions, labels: true });`;
+
+  it('builds a SeqViewSpec document over a structure', async () => {
+    const r = await runSvsSnippetWith(inProcessRunner, sequence);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.svs.format).toBe('seq_view_spec');
+    expect(JSON.stringify(r.svs)).toContain('"provider":"molstar:structure"');
+  });
+
+  it('reports a run-time error at its line, as for MVS', async () => {
+    const r = await runSvsSnippetWith(inProcessRunner, `const x = 1;\nseq.nonsense();`);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error.line).toBe(2);
+  });
+
+  it('rejects a document Seq* does not accept, naming the problem', async () => {
+    const r = await runSvsSnippetWith(
+      inProcessRunner,
+      `${sequence}\nsection.track({ label: 'Bad' }).ranges({ data: 'nowhere' });`,
+    );
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error.message).toMatch(/nowhere/);
   });
 });

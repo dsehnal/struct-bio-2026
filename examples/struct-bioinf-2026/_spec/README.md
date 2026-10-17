@@ -23,8 +23,12 @@ with two modes:
    - The snippet runs in a sandboxed iframe (`allow-scripts`, null origin, CSP `default-src 'none'`) with a time limit.
    - It returns an MVS tree as JSON. The page validates the tree and loads it.
    - Monaco gets the builder's types as one generated `.d.ts` (extraLibs).
-   - To port it to v6: replace the `molstar/lib/...` imports and the vendored-Mol\* `.d.ts` emit with
-     `@molstar/mvs-builder` (and `/molql`) and its published declarations. Then add the SVS builder and SeqQL `Q`.
+   - It builds from `@molstar/mvs-builder` (and `/molql`) and its published declarations. The SVS builder
+     (`@molstar/seq-core/builder`) is the global `seq`, with its own generated typings (the editor switches typings by
+     the snippet's kind); the result is validated with Seq\*'s `validate` (kernel and Mol\* registries). SeqQL's `Q` is
+     not in the runner yet.
+   - `asset(name)` is a global for the files of `public/data`: the sandbox has no address of its own, so the page passes
+     its own and `asset` resolves `data/<name>` against it.
 4. **The examples are biological.** There are three, each tied to a session earlier in the week (outline.md): p53 for
    sequence, variants and pLDDT; imatinib/ABL for ligand and density; the spike for cryo-EM and a story.
 5. **The assistant is for the presenter only.** Participants do not get a key, and the playground has no agent.
