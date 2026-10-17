@@ -187,6 +187,12 @@
       "private": true
     },
     {
+      "name": "@molstar/struct-bioinf-2026-example",
+      "path": "examples/struct-bioinf-2026",
+      "kind": "example",
+      "private": true
+    },
+    {
       "name": "@molstar/volume-tools-example",
       "path": "examples/volume-tools",
       "kind": "example",

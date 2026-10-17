@@ -1,0 +1,35 @@
+{
+  "name": "@molstar/struct-bioinf-2026-example",
+  "version": "6.0.0-dev.0",
+  "private": true,
+  "type": "module",
+  "description": "Mol* v6 at the EMBL-EBI Structural bioinformatics course 2026: interactive slides (reveal.js) and a guided playground, one Vite app embedding the Prism viewer",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc -b",
+    "dev": "vite",
+    "preview": "vite preview",
+    "generate:runner": "node scripts/generate-runner.mjs"
+  },
+  "dependencies": {
+    "@molstar/mvs-builder": "workspace:*",
+    "@molstar/prism-viewer": "workspace:*",
+    "@typescript/typescript6": "catalog:",
+    "monaco-editor": "0.57.0",
+    "reveal.js": "6.0.2",
+    "tslib": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/webxr": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  },
+  "molstar": {
+    "builder": "vite"
+  }
+}

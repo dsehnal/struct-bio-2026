@@ -92,6 +92,9 @@
       "path": "./examples/standalone"
     },
     {
+      "path": "./examples/struct-bioinf-2026"
+    },
+    {
       "path": "./examples/volume-tools"
     },
     {

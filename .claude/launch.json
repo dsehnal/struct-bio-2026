@@ -32,6 +32,12 @@
       "port": 5180
     },
     {
+      "name": "struct-bioinf-2026",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["-C", "examples/struct-bioinf-2026", "dev", "--port", "5181", "--strictPort"],
+      "port": 5181
+    },
+    {
       "name": "distribution",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "1350", "--directory", "distributions/molstar/build"],

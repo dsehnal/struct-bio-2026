@@ -1,0 +1,146 @@
+/**
+ * Copyright (c) 2026 mol* contributors, licensed under MIT, See LICENSE file for more info.
+ *
+ * Developed in collaboration with Anyfold <https://anyfold.ai/>
+ *
+ * @author David Sehnal <david.sehnal@gmail.com>
+ */
+
+/* Our styling on top of reveal's white theme. Reveal's layout is off (`disableLayout`), so a slide fills the window. */
+
+:root {
+  --slide-ink: #1f2937;
+  --slide-muted: #6b7280;
+  --slide-accent: #2f6fb8;
+  --r-main-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r-heading-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r-heading-text-transform: none;
+  --r-main-color: var(--slide-ink);
+  --r-heading-color: var(--slide-ink);
+  --r-link-color: var(--slide-accent);
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+#app,
+.reveal {
+  width: 100%;
+  height: 100%;
+}
+
+.reveal {
+  font-size: clamp(16px, 2.2vmin, 30px);
+}
+
+.reveal .slides {
+  width: 100%;
+  height: 100%;
+  text-align: left;
+}
+
+.reveal .slides > section {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 4vmin 6vmin;
+  display: flex !important;
+  flex-direction: column;
+  gap: 1.2vmin;
+}
+
+.reveal .slides > section:not(.present) {
+  display: none !important;
+}
+
+.reveal h1,
+.reveal h2 {
+  margin: 0;
+  line-height: 1.15;
+}
+
+.reveal h1 {
+  font-size: 3.2em;
+}
+
+.reveal h2 {
+  font-size: 1.8em;
+}
+
+.reveal p {
+  margin: 0;
+}
+
+.reveal .lead {
+  color: var(--slide-muted);
+}
+
+.reveal .title-slide {
+  justify-content: center;
+  gap: 2vmin;
+}
+
+.reveal .title-slide .subtitle {
+  font-size: 1.4em;
+  color: var(--slide-accent);
+}
+
+.reveal .title-slide .event {
+  color: var(--slide-muted);
+}
+
+.reveal .chip {
+  display: inline-block;
+  padding: 0.3em 0.9em;
+  border: 1px solid var(--slide-accent);
+  border-radius: 999px;
+  font-size: 0.8em;
+  text-decoration: none;
+}
+
+.reveal .chip:hover {
+  background: var(--slide-accent);
+  color: #fff;
+}
+
+.reveal .live-viewer {
+  flex: 1;
+  min-height: 0;
+}
+
+.reveal .columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3vmin;
+}
+
+.reveal .code {
+  margin: 0;
+  width: auto;
+  box-shadow: none;
+  font-size: 0.6em;
+  overflow: auto;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 1em;
+}
+
+.reveal .code code {
+  max-height: none;
+  padding: 0;
+  background: none;
+}
+
+.reveal .viewer-placeholder {
+  display: grid;
+  place-items: center;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  color: var(--slide-muted);
+}

@@ -1,0 +1,138 @@
+/**
+ * Copyright (c) 2026 mol* contributors, licensed under MIT, See LICENSE file for more info.
+ *
+ * Developed in collaboration with Anyfold <https://anyfold.ai/>
+ *
+ * @author David Sehnal <david.sehnal@gmail.com>
+ */
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  color-scheme: light;
+  background: #fff;
+  font:
+    14px system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  color: #1f2937;
+}
+
+#app,
+.playground {
+  height: 100%;
+}
+
+.playground {
+  display: flex;
+  flex-direction: column;
+}
+
+.playground-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.playground-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.playground-title h1 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.card:disabled {
+  opacity: 0.7;
+}
+
+.card span {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.playground-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.editor-pane {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #d1d5db;
+}
+
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.editor-toolbar .run {
+  padding: 4px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: #2563eb;
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#editor {
+  flex: 1;
+  min-height: 0;
+}
+
+#viewer {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+#viewer.embedded-viewer {
+  border-radius: 0;
+}
+
+@media (max-width: 800px) {
+  .playground-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+}

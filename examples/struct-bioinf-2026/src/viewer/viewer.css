@@ -1,0 +1,40 @@
+/**
+ * Copyright (c) 2026 mol* contributors, licensed under MIT, See LICENSE file for more info.
+ *
+ * Developed in collaboration with Anyfold <https://anyfold.ai/>
+ *
+ * @author David Sehnal <david.sehnal@gmail.com>
+ */
+
+/* The element an embedded Prism viewer fills (it gets the shadow root); it needs a size of its own. */
+.embedded-viewer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #f3f4f6;
+}
+
+.embedded-viewer .viewer-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  color: #6b7280;
+  font:
+    14px system-ui,
+    sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+
+.embedded-viewer .viewer-status[data-kind="error"] {
+  color: #b91c1c;
+}
+
+.embedded-viewer .viewer-status[hidden] {
+  display: none;
+}
