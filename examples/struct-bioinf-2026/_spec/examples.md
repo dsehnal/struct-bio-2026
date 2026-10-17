@@ -18,13 +18,11 @@ them with `label_asym_id`.
 - **1TSR** (p53 core domain + DNA, X-ray):
   - Protein chains A, B and C (label C, D, E), residues about 94–289. DNA chains E and F (label A, B). One Zn per
     protein chain.
-  - **Chain B** is the copy bound to the consensus site. Residues of B within 4 Å of DNA: K120, S241, R248, R273, A276,
-    C277, R280, R283, plus A119, N239, S240, M243, V274, C275.
+  - **Chain B** is the copy bound to the consensus site. Residues of B within 4 Å of DNA (nucleotide atoms, centre to
+    centre): A119, K120, N239, S241, M243, R248, R273, C275, A276, C277, R280, R283. Mol\*'s
+    `byres ((chain B and polymer.protein) within 4 of polymer.nucleic)` selects exactly these (checked 2026-10-18, after
+    the `within` fix).
   - Chains A and C make fewer, non-specific contacts.
-  - Mol\*'s `within` (and so `molql('… within 4 of …')`) adds each atom's radius to the cutoff (`filters.ts`
-    `withinMaxRadiusLookup`). The live "4 Å" selection therefore also picks T118, S121, N247 and D281, which are
-    4.45–4.96 Å away centre to centre. The list above is strict centre-to-centre distance; the slide says "close to the
-    DNA", not an exact distance.
 - **Hotspots**, all present in chain B:
   - **Contact mutants**: R248 and R273 touch DNA in chain B.
   - **Structural mutants**: R175, G245, R249 and R282 do not touch DNA in chain B. They hold the fold: R175 and G245

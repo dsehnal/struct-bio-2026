@@ -4,6 +4,7 @@
  * @author Alexander Rose <alexander.rose@weirdbyte.de>
  * @author Panagiotis Tourlas <panagiot_tourlov@hotmail.com>
  * @author Koya Sakuma <koya.sakuma.work@gmail.com>
+ * @author David Sehnal <david.sehnal@gmail.com>
  *
  * Adapted from MolQL project
  */
@@ -103,6 +104,25 @@ export function binaryLeft(opParser: P.MonadicParser<any>, nextParser: P.Monadic
 /**
  * combine operators of decreasing binding strength
  */
+/**
+ * `parser`, failing instead of recursing when it is entered again at the position it is already parsing: a rule that
+ * may start with itself (an operator whose operand is any operator) then fails where nothing matches, instead of
+ * overflowing the stack.
+ */
+export function guardLeftRecursion<T>(parser: P.MonadicParser<T>): P.MonadicParser<T> {
+  const active = new Set<number>();
+  const fail = P.MonadicParser.fail('no left recursion');
+  return new P.MonadicParser((input, i) => {
+    if (active.has(i)) return fail._(input, i);
+    active.add(i);
+    try {
+      return parser._(input, i);
+    } finally {
+      active.delete(i);
+    }
+  });
+}
+
 export function combineOperators(opList: any[], rule: P.MonadicParser<any>) {
   const x = opList.reduce((acc, level) => {
     const map = level.isUnsupported ? makeError(`operator '${level.name}' not supported`) : level.map;

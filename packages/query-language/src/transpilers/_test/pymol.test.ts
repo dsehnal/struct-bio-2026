@@ -24,8 +24,16 @@ const general = {
     '    name CA   ',
     'name CA   ',
     '    name CA',
+
+    // a group that starts with a group (an ordered choice used to take the inner group and overflow the stack)
+    '((chain A) within 4 of resn STI)',
+    'byres ((chain A) within 4 of resn STI)',
+    'byres ((chain A and polymer) within 4 of resn STI)',
+    'not ((chain A) and resn ALA)',
   ],
   unsupported: [
+    // fails to parse, but as a parse error, not a stack overflow
+    'bychain ((chain A) within 4 of resn STI)',
     // macros
     'pept/enz/c/3/n',
     'pept/enz///n',

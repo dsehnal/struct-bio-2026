@@ -122,7 +122,7 @@ const valueOperators: OperatorList = [
 
 const lang = P.MonadicParser.createLanguage({
   Parens: function (r: any) {
-    return P.MonadicParser.alt(r.Parens, r.Operator, r.Expression).wrap(
+    return P.MonadicParser.alt(r.Operator, r.Parens, r.Expression).wrap(
       P.MonadicParser.string('('),
       P.MonadicParser.string(')'),
     );
@@ -206,7 +206,7 @@ const lang = P.MonadicParser.createLanguage({
   },
 
   ValueParens: function (r: any) {
-    return P.MonadicParser.alt(r.ValueParens, r.ValueOperator, r.ValueExpressions).wrap(
+    return P.MonadicParser.alt(r.ValueOperator, r.ValueParens, r.ValueExpressions).wrap(
       P.MonadicParser.string('('),
       P.MonadicParser.string(')'),
     );

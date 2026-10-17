@@ -122,7 +122,7 @@ structure
 const touching = structure.component({
   selector: molql(
     'chain B and polymer.protein and ' +
-      'byres (chain B within 4 of polymer.nucleic)',
+      'byres ((chain B and polymer.protein) within 4 of polymer.nucleic)',
   ),
 });
 touching

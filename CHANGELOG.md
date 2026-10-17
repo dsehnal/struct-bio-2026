@@ -10,6 +10,11 @@ here.
 
 ## [Unreleased]
 
+- Fix MolScript `within` (and PyMOL's `within`, `around`, `near_to`, `beyond`) without a `min-radius`: it added each
+  atom's van der Waals radius to `max-radius`, so `within 4` selected atoms up to ~5.7 Å away; it now measures centre to
+  centre as documented, and an `atom-radius` (PyMOL's `gap`) is applied on that path too
+- Fix the PyMOL, VMD and Jmol transpilers on a group that starts with a group, e.g.
+  `byres ((chain A) within 4 of resn STI)`: PyMOL overflowed the stack, VMD and Jmol reported a parse error
 - Fix the help panel's click-toggle binding (`clickToggle`), the Kinemage extension's registration of controls on
   nonexistent registries, and the Zenodo import extension's display name
 - Fix `murmurHash3_128`, which was not MurmurHash3_x86_128 (one lane rotated by 13 instead of 18), and hash strings as

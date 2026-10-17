@@ -16,6 +16,9 @@ import { operators } from '../jmol/operators.js';
 
 const general = {
   supported: [
+    // a group that starts with a group
+    '((:A) and ala)',
+    'within(4, ((:A) and ala))',
     // atom expressions
     '123',
     '-42',

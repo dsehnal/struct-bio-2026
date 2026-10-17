@@ -19,6 +19,11 @@ const general = {
     '    name CA   ',
     'name CA   ',
     '    name CA',
+
+    // a group that starts with a group
+    '((chain A) and resname ALA)',
+    'same residue as ((chain A) and within 4 of resname STI)',
+    'mass > ((1 + 2) * 3)',
   ],
   unsupported: [
     // variables

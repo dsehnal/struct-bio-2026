@@ -52,7 +52,9 @@ function atomSelectionQuery(x: any) {
 
 const lang = P.MonadicParser.createLanguage({
   Parens: function (r: any) {
-    return P.MonadicParser.alt(r.Parens, r.Operator, r.Expression).wrap(
+    // Operator first: it also matches a bare group or expression, and an ordered choice that took the inner group
+    // of `((a) within 4 of b)` would leave the closing paren unmatched.
+    return P.MonadicParser.alt(r.Operator, r.Parens, r.Expression).wrap(
       P.MonadicParser.string('('),
       P.MonadicParser.string(')'),
     );
@@ -170,7 +172,12 @@ const lang = P.MonadicParser.createLanguage({
   },
 
   Operator: function (r: any) {
-    return h.combineOperators(operators, P.MonadicParser.alt(r.Parens, r.Expression, r.Operator));
+    // An operand may be any operator (`byres BOUND_TO resn CYS`: a prefix taking an operator of a looser level), so
+    // the rule starts with itself; the guard makes a dead end fail instead of overflowing the stack.
+    return h.combineOperators(
+      operators,
+      P.MonadicParser.alt(r.Parens, r.Expression, h.guardLeftRecursion(P.MonadicParser.lazy(() => r.Operator))),
+    );
   },
 
   Query: function (r: any) {

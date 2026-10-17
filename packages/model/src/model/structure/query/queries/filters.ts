@@ -140,6 +140,8 @@ export interface WithinParams {
   invert?: boolean;
 }
 
+const zeroRadius: QueryFn<number> = () => 0;
+
 export function within(params: WithinParams): StructureQuery {
   return (queryCtx) => {
     const ctx: WithinContext = {
@@ -148,11 +150,13 @@ export function within(params: WithinParams): StructureQuery {
       target: params.target(queryCtx),
       maxRadius: params.maxRadius,
       minRadius: params.minRadius ? Math.max(0, params.minRadius) : 0,
-      elementRadius: params.elementRadius!,
+      elementRadius: params.elementRadius ?? zeroRadius,
       invert: !!params.invert,
     };
 
-    if (ctx.minRadius === 0 && typeof params.minRadius === 'undefined') {
+    // The lookup measures centre to centre; an atom radius (MolScript `atom-radius`, e.g. PyMOL's `gap`) needs the
+    // distance checks that add it.
+    if (ctx.minRadius === 0 && typeof params.minRadius === 'undefined' && !params.elementRadius) {
       return withinMaxRadiusLookup(ctx);
     } else if (ctx.minRadius === 0) {
       return withinMaxRadius(ctx);
@@ -186,7 +190,7 @@ function withinMaxRadiusLookup({ queryCtx, selection, target, maxRadius, invert 
       for (let i = 0, _i = elements.length; i < _i; i++) {
         const e = elements[i];
         c.position(e, pos);
-        if (targetLookup.check(pos[0], pos[1], pos[2], maxRadius + c.r(e))) {
+        if (targetLookup.check(pos[0], pos[1], pos[2], maxRadius)) {
           withinRadius = true;
           break;
         }
