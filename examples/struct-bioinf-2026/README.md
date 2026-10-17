@@ -22,12 +22,12 @@ through the `molstar-src` export condition, so nothing needs building first.
 
 ## Layout
 
-| Path              | What                                                                                              |
-| ----------------- | ------------------------------------------------------------------------------------------------- |
-| `src/main.ts`     | reads `?mode=` (`src/mode.ts`) and loads the mode's chunk                                         |
-| `src/viewer/`     | the shared embedded Prism viewer: `createEmbeddedViewer(el)` with `loadMvs` and `loadSvs`         |
-| `src/slides/`     | the reveal.js deck (`deck.ts`), the live-slide lifecycle (`live.ts`), our CSS over reveal's theme |
-| `src/playground/` | the playground layout                                                                             |
+| Path              | What                                                                                                                             |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `src/main.ts`     | reads `?mode=` (`src/mode.ts`) and loads the mode's chunk                                                                        |
+| `src/viewer/`     | the shared embedded Prism viewer: `createEmbeddedViewer(el)` with `loadMvs` and `loadSvs`; `classic.ts`: the classic Mol* viewer |
+| `src/slides/`     | the reveal.js deck (`deck.ts`), the live-slide lifecycle (`live.ts`), the classic-to-Prism morph (`morph.ts`), our CSS           |
+| `src/playground/` | the playground layout                                                                                                            |
 
 ## The viewer
 

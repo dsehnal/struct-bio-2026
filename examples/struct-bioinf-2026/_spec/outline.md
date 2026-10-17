@@ -62,7 +62,8 @@ The participants know the classic Mol\* UI. Show what changes, not every feature
 The idea to land: every button is an operation with a name and parameters. That is what makes parts 2 and 7 possible.
 The UI, scripts and the assistant all call the same operations.
 
-Slide: classic UI vs Prism, side by side, with 3–4 differences named. Fallback: a 60 s recording of the demo.
+Slide: classic UI vs Prism, one live box with both viewers cross-faded (a step and a slider), with 3–4 differences
+named. Fallback: a 60 s recording of the demo.
 
 ## 2. Describe, don't click (2 min)
 
@@ -194,10 +195,6 @@ The playground is guided, for people who do not write code:
 - Wrap-up slide: the links (Mol\*, MolViewSpec docs, Python molviewspec, Colab, MolViewStories, the playground), how to
   cite, how to get in touch.
 
-## Biology checks before the talk
+## Biology checks
 
-- 1TSR chain ids for DNA and the protein copies; which copy to show.
-- 1IEP residue numbering for the gatekeeper (T315, ABL1a numbering) and the ligand code (STI). Volume-server density for
-  1IEP responds (checked 2026-10-17).
-- EMD-21375 is served by the PDBe volume server (checked 2026-10-17). Glycans in 6VSB, and the chain whose RBD is up.
-- AF-P04637-F1 is available (checked 2026-10-17). Domain boundaries for the tracks come from UniProt P04637.
+Done 2026-10-18; the facts the snippets use are in [examples.md](examples.md).

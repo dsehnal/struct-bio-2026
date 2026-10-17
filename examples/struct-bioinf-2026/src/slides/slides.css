@@ -144,3 +144,49 @@ body {
   border-radius: 8px;
   color: var(--slide-muted);
 }
+
+/* The morph slide: two live viewers stacked in one box, only their opacity changes (`morph.ts`). */
+
+.reveal .morph-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 3vmin;
+}
+
+.reveal .morph-slider {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.6em;
+  color: var(--slide-muted);
+  white-space: nowrap;
+}
+
+.reveal .morph-slider input {
+  width: 12em;
+  accent-color: var(--slide-accent);
+}
+
+.reveal .morph-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.reveal .morph-stage > .morph-layer {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+/* The fragment is only a step marker for reveal; it takes no space. */
+.reveal .morph-step {
+  display: none;
+}

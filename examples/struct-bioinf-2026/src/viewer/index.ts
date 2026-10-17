@@ -26,6 +26,8 @@ export interface EmbeddedViewer {
   setStatus(message: string | undefined, kind?: 'info' | 'error'): void;
   /** Replaces the scene with a MolViewSpec (`load.mvs`): an `MVSData` (the builder's `getState()`) or MVSJ text. */
   loadMvs(data: MVSData | string): Promise<void>;
+  /** Loads a database entry (`load.entry`) with the viewer's default preset: `loadEntry('pdb', '1iep')`. */
+  loadEntry(source: 'pdb' | 'afdb' | 'emdb', id: string): Promise<void>;
   /** Shows a SeqViewSpec document in the sequence band (`load.svs`): a document object or its JSON text. */
   loadSvs(doc: object | string): Promise<void>;
   dispose(): Promise<void>;
@@ -80,6 +82,10 @@ export async function createEmbeddedViewer(container: HTMLElement): Promise<Embe
     async loadMvs(data) {
       const mvsj = typeof data === 'string' ? data : MVSData.toMVSJ(data);
       const result = await viewer.api.load.mvs({ data: mvsj, format: 'mvsj' });
+      if (!result.ok) throw new Error(result.message);
+    },
+    async loadEntry(source, id) {
+      const result = await viewer.api.load.entry({ source, id });
       if (!result.ok) throw new Error(result.message);
     },
     async loadSvs(doc) {

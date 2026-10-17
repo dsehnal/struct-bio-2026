@@ -23,6 +23,18 @@ export function deckHtml(): string {
       <p><a class="chip" href="${modeHref('playground')}">Open the playground</a></p>
     </section>
 
+    <section class="live-slide morph-slide" data-live="morph-1iep">
+      <header class="morph-head">
+        <div>
+          <h2>Classic Mol* and Prism</h2>
+          <p class="lead">The same entry, 1IEP, in both. Press → to fade from the classic viewer to Prism.</p>
+        </div>
+        <label class="morph-slider">Classic <input type="range" min="0" max="1" step="0.01" value="0" aria-label="Classic to Prism" /> Prism</label>
+      </header>
+      <div class="morph-stage"></div>
+      <span class="fragment morph-step"></span>
+    </section>
+
     <section class="live-slide" data-live="scene-1cbs">
       <h2>A live viewer</h2>
       <p class="lead">1CBS: the protein as cartoon, retinoic acid as ball-and-stick, from one small description.</p>

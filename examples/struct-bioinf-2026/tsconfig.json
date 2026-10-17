@@ -11,6 +11,9 @@
   "exclude": ["src/**/_test/**"],
   "references": [
     {
+      "path": "../../apps/viewer"
+    },
+    {
       "path": "../../packages/mvs/builder"
     },
     {

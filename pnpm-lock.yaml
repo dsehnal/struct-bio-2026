@@ -1643,15 +1643,27 @@ importers:
       '@molstar/mvs-builder':
         specifier: workspace:*
         version: link:../../packages/mvs/builder
+      '@molstar/plugin-ui':
+        specifier: workspace:*
+        version: link:../../packages/plugin/ui
       '@molstar/prism-viewer':
         specifier: workspace:*
         version: link:../../packages/prism/viewer
+      '@molstar/viewer':
+        specifier: workspace:*
+        version: link:../../apps/viewer
       '@typescript/typescript6':
         specifier: 'catalog:'
         version: 6.0.2
       monaco-editor:
         specifier: 0.57.0
         version: 0.57.0
+      react:
+        specifier: 'catalog:'
+        version: 18.3.1
+      react-dom:
+        specifier: 'catalog:'
+        version: 18.3.1(react@18.3.1)
       reveal.js:
         specifier: 6.0.2
         version: 6.0.2
@@ -1662,9 +1674,18 @@ importers:
       '@types/node':
         specifier: 22.20.1
         version: 22.20.1
+      '@types/react':
+        specifier: 'catalog:'
+        version: 18.3.31
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 18.3.7(@types/react@18.3.31)
       '@types/webxr':
         specifier: 'catalog:'
         version: 0.5.24
+      sass:
+        specifier: 'catalog:'
+        version: 1.105.1
       typescript:
         specifier: 'catalog:'
         version: 7.0.2

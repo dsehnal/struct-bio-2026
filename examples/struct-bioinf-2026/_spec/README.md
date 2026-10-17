@@ -6,9 +6,10 @@ with two modes:
 - **Slides**: interactive HTML slides for the presenter. Each example slide runs live.
 - **Playground**: a code editor (Monaco) beside a viewer, where participants run and edit the same snippets.
 
-| File                     | What it covers                                       |
-| ------------------------ | ---------------------------------------------------- |
-| [outline.md](outline.md) | the talk: audience, message, timing, parts, examples |
+| File                       | What it covers                                                              |
+| -------------------------- | --------------------------------------------------------------------------- |
+| [examples.md](examples.md) | the three examples: entries, chains, residues, checked against PDBe/UniProt |
+| [outline.md](outline.md)   | the talk: audience, message, timing, parts, examples                        |
 
 ## Decisions
 
@@ -40,6 +41,11 @@ with two modes:
    public services (PDBe, AFDB, the PDBe volume server).
 10. **Guided playground.** The playground starts from one-click example cards, with suggested edits next to the code
     (outline.md §8). It is a place to try small changes, not an IDE.
+11. **Live slides hold one scene, which may hold several viewers.** A scene function gets its slide, mounts what it
+    needs and returns one dispose; one live slide at a time keeps the WebGL contexts to that slide's. The
+    classic-vs-Prism slide (outline.md §1) stacks the classic `Viewer` (`@molstar/viewer`, loaded lazily with its SCSS)
+    under Prism in one box and cross-fades their opacity (a fragment step, a slider). It is the one place the classic
+    viewer is used, so its styles are imported next to it and every rule is under `.msp-*`.
 
 ## Assets to prepare
 

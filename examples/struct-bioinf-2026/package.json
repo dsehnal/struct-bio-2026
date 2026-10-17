@@ -17,15 +17,22 @@
   },
   "dependencies": {
     "@molstar/mvs-builder": "workspace:*",
+    "@molstar/plugin-ui": "workspace:*",
     "@molstar/prism-viewer": "workspace:*",
+    "@molstar/viewer": "workspace:*",
     "@typescript/typescript6": "catalog:",
     "monaco-editor": "0.57.0",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "reveal.js": "6.0.2",
     "tslib": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "@types/webxr": "catalog:",
+    "sass": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:"
   },
