@@ -19,6 +19,8 @@ export const Links = {
   viewStories: 'https://molstar.org/mol-view-stories/',
   viewStoriesPaper: 'https://doi.org/10.1002/pro.70540',
   molstarPaper: 'https://doi.org/10.1093/nar/gkab314',
+  prismPreview: 'https://molstar.org/prism-preview/',
+  uiStorybook: 'https://molstar.org/ui-storybook/',
 } as const;
 
 /** The playground's absolute address, from the page's own (the QR code and the short text need one that works anywhere). */

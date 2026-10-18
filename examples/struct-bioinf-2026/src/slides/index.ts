@@ -39,6 +39,7 @@ export async function startSlides(root: HTMLElement): Promise<void> {
   // The speaker view shows the current and the next slide in frames of the same page (`receiver` in the address): those
   // frames are pictures of the deck, so they get no viewers (the presenter's own window has them).
   const preview = /[?&]receiver\b/.test(location.search);
+  if (preview) document.documentElement.classList.add('deck-preview');
   const live = new LiveSlides(deck);
   const sync = () => live.show(preview ? undefined : (deck.getCurrentSlide() ?? undefined));
   deck.on('ready', sync);

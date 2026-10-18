@@ -137,6 +137,8 @@ export async function createEmbeddedViewerWith(container: HTMLElement, spec: Pri
       clearTimeout(fallback);
       await viewer.dispose();
       container.replaceChildren();
+      // Not a viewer any more: a code slide's code waits for the next one (slides.css).
+      container.classList.remove('embedded-viewer', 'is-loading');
     },
   };
 }

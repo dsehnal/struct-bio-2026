@@ -80,10 +80,10 @@ export function partsMap(current?: number): string {
       .map((n, i) => {
         const cx = x + (panelW - cardW) / 2;
         const cy = cardsY + i * (cardH + gap);
-        return `<g class="node" data-parts="${n.parts}"><rect class="dg-box" x="${cx}" y="${cy}" width="${cardW}" height="${cardH}" rx="10"/><text class="dg-title" x="${cx + 14}" y="${cy + 26}">${escapeHtml(n.title)}</text><text class="dg-sub" x="${cx + 14}" y="${cy + 47}">${escapeHtml(n.sub)}</text></g>`;
+        return `<g class="node" data-parts="${n.parts}"><rect class="dg-box" x="${cx}" y="${cy}" width="${cardW}" height="${cardH}" rx="4"/><text class="dg-title" x="${cx + 14}" y="${cy + 26}">${escapeHtml(n.title)}</text><text class="dg-sub" x="${cx + 14}" y="${cy + 47}">${escapeHtml(n.sub)}</text></g>`;
       })
       .join('');
-    return `<g><rect class="dg-col dg-col-${c}" x="${x}" y="${panelY}" width="${panelW}" height="${panelH}" rx="14"/><text class="dg-head" x="${x + 16}" y="${panelY + 30}">${col.head}</text><text class="dg-note" x="${x + 16}" y="${panelY + 52}">${escapeHtml(col.note ?? '')}</text>${cards}</g>`;
+    return `<g><rect class="dg-col dg-col-${c}" x="${x}" y="${panelY}" width="${panelW}" height="${panelH}" rx="3"/><text class="dg-head" x="${x + 16}" y="${panelY + 30}">${col.head}</text><text class="dg-note" x="${x + 16}" y="${panelY + 52}">${escapeHtml(col.note ?? '')}</text>${cards}</g>`;
   }).join('');
   // One arrow in each gap, at the middle of the cards.
   const midY = cardsY + (3 * cardH + 2 * gap) / 2;
@@ -116,21 +116,21 @@ export function volumeServerDiagram(): string {
         dots.push(
           `<circle cx="${565 + c * step + step / 2}" cy="${y + 14 + r * step + step / 2}" r="${Math.max(1.6, step / 5)}"/>`,
         );
-    return `<g class="node"><rect class="dg-box" x="540" y="${y}" width="400" height="92" rx="10"/><g class="dg-dots">${dots.join('')}</g><text class="dg-title" x="715" y="${y + 36}">${title}</text><text class="dg-sub" x="715" y="${y + 60}">${sub}</text><text class="dg-sub dg-faint" x="715" y="${y + 80}">${size}</text></g>`;
+    return `<g class="node"><rect class="dg-box" x="540" y="${y}" width="400" height="92" rx="4"/><g class="dg-dots">${dots.join('')}</g><text class="dg-title" x="715" y="${y + 36}">${title}</text><text class="dg-sub" x="715" y="${y + 60}">${sub}</text><text class="dg-sub dg-faint" x="715" y="${y + 80}">${size}</text></g>`;
   };
   return `<svg class="volume-diagram dg" viewBox="0 0 960 440" role="img" aria-label="A large map, the box you ask for, and its levels of detail">
     ${arrowDefs(arrow)}
-    <rect class="dg-col dg-col-0" x="6" y="4" width="388" height="432" rx="14"/>
-    <rect class="dg-col dg-col-2" x="528" y="4" width="426" height="432" rx="14"/>
+    <rect class="dg-col dg-col-0" x="6" y="4" width="388" height="432" rx="3"/>
+    <rect class="dg-col dg-col-2" x="528" y="4" width="426" height="432" rx="3"/>
     <text class="dg-head" x="20" y="28">THE MAP, STORED ONCE</text>
     <text class="dg-head" x="540" y="28">LEVELS OF DETAIL, PRECOMPUTED</text>
-    <rect class="dg-box" x="20" y="50" width="360" height="360" rx="10"/>
+    <rect class="dg-box" x="20" y="50" width="360" height="360" rx="4"/>
     <path class="dg-grid" d="${gridLines.join(' ')}"/>
     <ellipse class="dg-density" cx="205" cy="235" rx="95" ry="75"/>
     <ellipse class="dg-density" cx="170" cy="215" rx="40" ry="34"/>
     <rect class="dg-ask dg-ask-s" x="148" y="192" width="64" height="52" rx="3"/>
     <rect class="dg-ask dg-ask-m" x="108" y="152" width="170" height="140" rx="3"/>
-    <rect class="dg-ask dg-ask-l" x="28" y="58" width="344" height="344" rx="6"/>
+    <rect class="dg-ask dg-ask-l" x="28" y="58" width="344" height="344" rx="3"/>
     <text class="dg-label" x="30" y="428">the box you ask for: small, medium, the whole map</text>
     ${level(50, 'Fine', 'small box, full resolution', 14, 'many voxels, a small region')}
     ${level(176, 'Medium', 'bigger box, every 2nd voxel', 26, 'fewer voxels, a larger region')}

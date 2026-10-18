@@ -157,7 +157,7 @@ body {
   display: inline-block;
   padding: 0.25em 0.9em;
   border: 1px solid var(--slide-accent);
-  border-radius: 999px;
+  border-radius: 5px;
   font-size: 0.75em;
   text-decoration: none;
   white-space: nowrap;
@@ -260,7 +260,7 @@ body {
   font-size: 0.6em;
   padding: 0.2em 0.9em;
   border: 1px solid var(--slide-line);
-  border-radius: 999px;
+  border-radius: 5px;
   background: #fff;
   color: var(--slide-muted);
   cursor: pointer;
@@ -286,7 +286,7 @@ body {
   line-height: 1.4;
   overflow: auto;
   background: var(--slide-soft);
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 0.8em 1em;
   flex: 0 1 auto;
   min-height: 0;
@@ -403,7 +403,7 @@ body {
 
 .reveal .card {
   border: 1px solid var(--slide-line);
-  border-radius: 12px;
+  border-radius: 5px;
   padding: 0.8em 1em;
   background: #fff;
   display: flex;
@@ -436,7 +436,7 @@ body {
   font-family: var(--slide-mono);
   font-size: 0.65em;
   background: var(--slide-soft);
-  border-radius: 6px;
+  border-radius: 3px;
   padding: 0.5em 0.7em;
   overflow-wrap: anywhere;
 }
@@ -458,7 +458,7 @@ body {
 
 .reveal .resources span {
   padding: 0.15em 0.8em;
-  border-radius: 999px;
+  border-radius: 5px;
   background: var(--slide-soft);
   font-size: 0.9em;
 }
@@ -516,7 +516,7 @@ body {
 .reveal .qr-box {
   background: #fff;
   border: 1px solid var(--slide-line);
-  border-radius: 12px;
+  border-radius: 5px;
   padding: 0.3em;
   width: min(34vmin, 100%);
   flex: none;
@@ -697,7 +697,7 @@ body {
 
 .reveal .chain span {
   padding: 0.25em 0.8em;
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--slide-accent-soft);
   color: var(--slide-accent);
   font-family: var(--slide-mono);
@@ -747,7 +747,7 @@ body {
   position: relative;
   flex: 1;
   min-height: 0;
-  border-radius: 8px;
+  border-radius: 4px;
   overflow: hidden;
   background: #fff;
 }
@@ -758,7 +758,7 @@ body {
   width: auto;
   height: auto;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 /* The fragment is only a step marker for reveal; it takes no space. */
@@ -824,7 +824,7 @@ body {
   border-left-color: var(--slide-accent);
   background: var(--slide-accent-soft);
   color: var(--slide-ink);
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 4px 4px 0;
 }
 
 .reveal .story-title {
@@ -863,7 +863,7 @@ body {
   object-fit: contain;
   object-position: top left;
   border: 1px solid var(--slide-line);
-  border-radius: 10px;
+  border-radius: 4px;
   box-shadow: none;
   background: #fff;
 }
@@ -875,7 +875,7 @@ body {
   padding: 2em;
   aspect-ratio: 16 / 10;
   border: 2px dashed var(--slide-line);
-  border-radius: 10px;
+  border-radius: 4px;
   color: var(--slide-muted);
   background: var(--slide-soft);
   font-size: 0.8em;
@@ -1062,7 +1062,7 @@ body {
   flex-direction: column;
   gap: 0.3em;
   border: 1px solid var(--slide-line);
-  border-radius: 10px;
+  border-radius: 4px;
   padding: 0.6em 0.7em;
   font-size: 0.7em;
   line-height: 1.25;
@@ -1155,7 +1155,7 @@ body {
 .reveal .tour-list li.current {
   border-left-color: var(--slide-accent);
   background: var(--slide-accent-soft);
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 4px 4px 0;
   color: var(--slide-ink);
 }
 
@@ -1236,8 +1236,117 @@ body {
 .reveal .callout {
   border-left: 5px solid var(--slide-accent);
   background: var(--slide-accent-soft);
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 4px 4px 0;
   padding: 0.7em 1em;
   font-size: 0.95em;
   line-height: 1.35;
+}
+
+/* --- when can I use it ----------------------------------------------------------------------------------------------- */
+
+.reveal .avail {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3vmin;
+  width: 100%;
+}
+
+.reveal .avail-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4vmin;
+  padding: 3.2vmin 3.4vmin;
+  border: 1px solid var(--slide-line);
+  border-top: 5px solid var(--avail-accent);
+  border-radius: 4px;
+  background: #fff;
+  text-align: left;
+}
+
+.reveal .avail-col.stable {
+  --avail-accent: #2f855a;
+  --avail-tint: #e6f4ea;
+}
+
+.reveal .avail-col.beta {
+  --avail-accent: #c27c0e;
+  --avail-tint: #fdf3dc;
+}
+
+.reveal .avail-col header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+}
+
+.reveal .avail-col h3 {
+  margin: 0;
+  font-size: 1.1em;
+}
+
+.reveal .avail-col .badge {
+  padding: 0.15em 0.6em;
+  border-radius: 3px;
+  background: var(--avail-tint);
+  color: var(--avail-accent);
+  font-size: 0.6em;
+  font-weight: var(--slide-weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reveal .avail-col ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2vmin;
+}
+
+.reveal .avail-col li {
+  display: grid;
+  gap: 0.15em;
+  padding: 1.2vmin 1.4vmin;
+  border-left: 3px solid var(--avail-tint);
+  font-size: 0.78em;
+  line-height: 1.3;
+}
+
+.reveal .avail-col li strong {
+  font-weight: var(--slide-weight-heavy);
+}
+
+.reveal .avail-col li span {
+  color: var(--slide-muted, #6b7280);
+}
+
+.reveal .avail-col li a {
+  font-family: var(--app-font-mono);
+  font-size: 0.85em;
+}
+
+.reveal .avail-when {
+  margin: auto 0 0;
+  padding: 1.2vmin 1.4vmin;
+  border-radius: 3px;
+  background: var(--avail-tint);
+  font-size: 0.72em;
+}
+
+/* --- a code slide's code fades in with its viewer ---------------------------------------------------------------------- */
+
+/* Hidden until the slide's viewer has drawn its first scene (src/viewer/index.ts), then the same fade as the viewer's. */
+.reveal .code-live .code-box {
+  opacity: 0;
+}
+
+.reveal .code-live:has(.embedded-viewer:not(.is-loading)) .code-box {
+  opacity: 1;
+  transition: opacity 600ms ease;
+}
+
+/* The speaker view's previews have no viewers: their code is always shown. */
+.deck-preview .reveal .code-live .code-box {
+  opacity: 1;
 }

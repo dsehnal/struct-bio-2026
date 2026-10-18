@@ -55,15 +55,29 @@ export function part7(): string {
       part: 7,
       notes: notes(
         'When can you use it? Most of what you saw works today.',
-        '- <strong>Today</strong>: MolViewSpec, in the Mol* viewer as it is on PDBe, RCSB and AlphaFold DB pages, from Python (the molviewspec package and the Colab notebook), and in MolViewStories. The volume server is what PDBe and EMDB pages already use.',
-        '- <strong>Beta now</strong>: the new viewer, Prism, and the sequence viewer, Seq*. They are part of Mol* v6. If you are fine with a beta, you can use them now, as in this talk and the playground. They should be more stable in one to two months.',
+        '- <strong>Today, stable</strong>: MolViewSpec, in the Mol* viewer as it is on PDBe, RCSB and AlphaFold DB pages, from Python (the molviewspec package and the Colab notebook), and in MolViewStories. The volume server is what PDBe and EMDB pages already use.',
+        '- <strong>Beta now</strong>: the new viewer, Prism, and the sequence viewer, Seq*, both part of Mol* v6. If you are fine with a beta, use them now: the Prism preview is on molstar.org, and the UI storybook has many more examples of Prism and Seq*. They should be more stable in one to two months.',
       ),
       body: `
         <h2>When can I use it?</h2>
-        <div class="cards two">
-          <div class="card"><h3>Today</h3><p>MolViewSpec: in the Mol* viewer, from Python and Colab, in MolViewStories. The volume server behind PDBe and EMDB.</p></div>
-          <div class="card"><h3>Beta now</h3><p>Prism and Seq* (Mol* v6): usable now if a beta is fine for you. More stable in 1–2 months.</p></div>
-        </div>`,
+        ${stage(`<div class="avail">
+          <div class="avail-col stable">
+            <header><span class="badge">Today</span><h3>Stable</h3></header>
+            <ul>
+              <li><strong>MolViewSpec</strong><span>in Mol*, from Python and Colab</span>${link(Links.viewSpecDocs, 'molstar.org/mol-view-spec-docs')}</li>
+              <li><strong>MolViewStories</strong><span>stories, no setup</span>${link(Links.viewStories, 'molstar.org/mol-view-stories')}</li>
+              <li><strong>Volume server</strong><span>density behind the PDBe and EMDB pages</span></li>
+            </ul>
+          </div>
+          <div class="avail-col beta">
+            <header><span class="badge">Beta now</span><h3>Mol* v6: Prism and Seq*</h3></header>
+            <ul>
+              <li><strong>Prism</strong><span>the new viewer</span>${link(Links.prismPreview, 'molstar.org/prism-preview')}</li>
+              <li><strong>Prism and Seq* examples</strong><span>the UI storybook</span>${link(Links.uiStorybook, 'molstar.org/ui-storybook')}</li>
+            </ul>
+            <p class="avail-when">Usable now if a beta is fine for you. <strong>More stable in 1–2 months.</strong></p>
+          </div>
+        </div>`)}`,
     }),
 
     slide({
