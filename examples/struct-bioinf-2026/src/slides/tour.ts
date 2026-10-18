@@ -77,6 +77,7 @@ export const tourScene: LiveScene = async (el) => {
 
   /** The clean state every pose starts from: nothing selected or styled, no panel, the density at its start. */
   async function base() {
+    closeCommandMenu(container as HTMLElement);
     viewer.managers.commands.cancel();
     scene.pick(undefined);
     await call('select.clear', () => api.select.clear());
@@ -152,6 +153,10 @@ export const tourScene: LiveScene = async (el) => {
       const palette = viewer.views.shell?.toolbar.value.find((i) => i.id === 'palette');
       if (palette?.run) palette.run(container);
       else console.warn('Tour: the viewer has no command menu button.');
+      // The menu takes the focus to its search field, where ← and → would stay; give it back to the page, so the
+      // arrows still step the deck. A click in the menu takes it again.
+      await sleep(100);
+      blurInside(container as HTMLElement);
     },
   ];
 
@@ -205,6 +210,27 @@ export const tourScene: LiveScene = async (el) => {
   };
 };
 
+/**
+ * Closes the command menu if it is open (step 7 leaves it so, and ← must not carry it into step 6): Escape on the menu,
+ * as a person would press it. The shell keeps the menu's open state to itself, with no public close; its root is open.
+ */
+function closeCommandMenu(container: HTMLElement) {
+  for (const host of container.querySelectorAll<HTMLElement>('*')) {
+    const menu = host.shadowRoot?.querySelector<HTMLElement>('[role="dialog"][aria-label="Commands"]');
+    menu?.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true, cancelable: true }),
+    );
+  }
+}
+
+/** Takes the focus from whatever has it inside the viewer's shadow roots. */
+function blurInside(container: HTMLElement) {
+  for (const host of container.querySelectorAll<HTMLElement>('*')) {
+    const active = host.shadowRoot?.activeElement;
+    if (active instanceof HTMLElement) active.blur();
+  }
+}
+
 const Items: readonly { title: string; text: string }[] = [
   { title: 'The structure tree', text: 'What is in the scene, in plain words.' },
   { title: 'Better selection', text: 'Build it, grow it, change it, and see it.' },
@@ -233,7 +259,7 @@ export function tourSlide(part: number): string {
     ),
     body: `
       <header class="slide-head">
-        <h2>What's better in Prism, for you</h2>
+        <h2>What's better in Prism</h2>
         <p class="lead">Press → to step through. The viewer shows each one.</p>
       </header>
       <div class="tour-columns">
