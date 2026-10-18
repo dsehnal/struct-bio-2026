@@ -10,6 +10,8 @@ here.
 
 ## [Unreleased]
 
+- Fix volume streaming's camera-target view updating its state node before the node exists ("Could not find node ''"),
+  e.g. in an MVS with streamed volumes
 - Fix MolScript `within` (and PyMOL's `within`, `around`, `near_to`, `beyond`) without a `min-radius`: it added each
   atom's van der Waals radius to `max-radius`, so `within 4` selected atoms up to ~5.7 Å away; it now measures centre to
   centre as documented, and an `atom-radius` (PyMOL's `gap`) is applied on that path too

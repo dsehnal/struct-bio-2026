@@ -370,6 +370,9 @@ export namespace VolumeStreaming {
     }
 
     private async updateParams(box: Box3D | undefined, autoIsSelection: boolean = false) {
+      // `update` subscribes to the camera before `register` gives the behavior its node, so a draw in between would
+      // update a node that is not there yet ('Could not find node'); the box `update` computed stands until then.
+      if (!this.ref) return;
       const newParams = copyParams(this.params);
       const viewType = newParams.entry.params.view.name;
       if (viewType !== 'off' && viewType !== 'cell') {
