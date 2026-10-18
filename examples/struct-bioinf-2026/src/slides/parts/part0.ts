@@ -39,7 +39,7 @@ export function part0(): string {
       </div>
       <div class="title-splash"></div>
       ${notes(
-        'Welcome. This is the last day of the course, so I will not teach you how to click in Mol*: you did that on Tuesday with PDBe and EMDB.',
+        'Welcome. I will not teach you how to click in Mol*: most of you have seen it in PDBe, EMDB or AlphaFold DB pages.',
         'The message of the hour, in one line: <strong>your figure is a description, not a set of clicks</strong>. You describe it once as a short spec, and then the same description runs in a web page, a notebook, a paper supplement or a story.',
         'Everything today runs in your browser. Nothing to install. The playground link comes on the next-but-one slide and again at the end.',
       )}
@@ -48,29 +48,29 @@ export function part0(): string {
     slide({
       part: 0,
       notes: notes(
-        '<strong>First, what this talk is not</strong>: it is about <em>visualising</em> data and results, not about computing them. The analyses, the predictions, the contacts and the scores come from the tools of the rest of the week. Mol* shows them, and lets you describe and share the view. Nothing here replaces an analysis.',
+        '<strong>First, what this talk is not</strong>: it is about <em>visualising</em> data and results, not about computing them. The analyses, the predictions, the contacts and the scores come from other tools. Mol* shows them, and lets you describe and share the view. Nothing here replaces an analysis.',
         'Why do we visualise at all? Three reasons, in the order a scientist meets them.',
         '- To <strong>check a model against its evidence</strong>: does the ligand sit in the density, is this loop confident in the AlphaFold model.',
         '- To <strong>see a mechanism</strong>: why a mutation breaks a protein, where a drug binds.',
         '- To <strong>communicate</strong> it to a colleague, a reviewer, a student.',
-        'This week you met the resources: PDBe, EMDB, PDBe-KB, AlphaFold DB, AlphaFill, Missense3D, ChEMBL. Visualisation is where they meet, because every one of them ends up as a picture of a structure with something coloured on it.',
+        'The data comes from these and other resources: PDBe, EMDB, PDBe-KB, AlphaFold DB, UniProt, AlphaFill, Missense3D, ChEMBL. Every one of them ends up as a picture of a structure with something coloured on it.',
       ),
       body: `
         <h2>Why visualise?</h2>
-        ${stage(`<p class="callout">This talk is about <strong>visualising</strong> data and results, not computing them. Analyses, predictions, contacts and scores come from the tools of the rest of the week. Mol* shows them, and lets you describe and share the view.</p>
+        ${stage(`<p class="callout">This talk is about <strong>visualising</strong> data and results, not computing them. Analyses, predictions, contacts and scores come from other tools. Mol* shows them, and lets you describe and share the view.</p>
         <div class="cards">
           <div class="card"><h3>Check a model</h3><p>Against its evidence: the density, the confidence, the validation.</p></div>
           <div class="card"><h3>See a mechanism</h3><p>Where a drug binds, why a mutation breaks the fold.</p></div>
           <div class="card"><h3>Communicate it</h3><p>To a colleague, a reviewer, a student, in a figure that others can reproduce.</p></div>
         </div>
-        <p class="big-statement">Visualisation is where this week's resources meet:</p>
+        <p class="big-statement">The data comes from these and other resources:</p>
         <div class="resources"><span>PDBe</span><span>EMDB</span><span>PDBe-KB</span><span>AlphaFold DB</span><span>UniProt</span><span>AlphaFill</span><span>Missense3D</span><span>ChEMBL</span></div>`)}`,
     }),
 
     slide({
       part: 0,
       notes: notes(
-        'Mol* is the viewer behind most of the resources you used this week. PDBe, RCSB, AlphaFold DB, EMDB, UniProt and others embed it, and you used it on Tuesday.',
+        'Mol* is the viewer behind many structural resources: PDBe, RCSB, AlphaFold DB, EMDB, UniProt and others embed it, so you have most likely used it already.',
         'Version 6 is a rebuild of what surrounds the renderer. The renderer is the same, fast and reliable. What changes is everything around it, and I will show four things.',
         '- <strong>Prism</strong>, a new UI, which you will see in a minute.',
         '- <strong>MolViewSpec</strong> and <strong>SeqViewSpec</strong>: descriptions of a 3D scene and of a sequence view.',
@@ -80,7 +80,7 @@ export function part0(): string {
       ),
       body: `
         <h2>Mol* v6: a rebuild of what surrounds the renderer</h2>
-        <p class="lead">PDBe, RCSB, AlphaFold DB, EMDB, UniProt and others embed Mol*. You used it on Tuesday.</p>
+        <p class="lead">PDBe, RCSB, AlphaFold DB, EMDB, UniProt and others embed Mol*. You have most likely used it already.</p>
         ${stage(`<div class="cards four">
           <div class="card"><h3>Prism</h3><p>A new viewer UI.</p></div>
           <div class="card"><h3>Descriptions</h3><p>MolViewSpec for 3D, SeqViewSpec for sequences.</p></div>

@@ -25,7 +25,7 @@ export function part5(): string {
         '<strong>Example B</strong>: imatinib in ABL kinase, a drug and its evidence',
       ],
       notes: notes(
-        'Volumes, five minutes. This builds on EMDB from Tuesday and on ChEMBL from this morning.',
+        'Volumes, five minutes: cryo-EM maps from EMDB and X-ray density from PDBe, and a drug from the ChEMBL world.',
         'On the map: the volume server is on the data side, and it feeds a volume node in the description, which Prism draws.',
         'First the principle of the volume server, then example B: imatinib in ABL kinase.',
       ),
@@ -63,7 +63,7 @@ export function part5(): string {
       title: 'Is the ligand supported by the data?',
       lead: '2Fo-Fc density around imatinib, streamed from the volume server.',
       notes: notes(
-        'The 2Fo-Fc density around the ligand, streamed from the PDBe volume server for just this box. The question every structural biologist asks: is the ligand supported by the data? This ties to validation and PDB-REDO from Tuesday.',
+        'The 2Fo-Fc density around the ligand, streamed from the PDBe volume server for just this box. The question every structural biologist asks: is the ligand supported by the data? This is where validation starts.',
         'The density is a volume node in the description, with an iso level in sigma. The box follows the ligand.',
         'The density follows the camera: focus on another residue and the box moves with it.',
         'Try it: change the iso level (σ), or move the box to another residue.',

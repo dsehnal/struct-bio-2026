@@ -119,7 +119,7 @@ export function part3(): string {
     slide({
       part: 3,
       notes: notes(
-        'Example A, p53: from sequence to variant. It builds on AlphaFold DB (Wednesday), Missense3D (Thursday) and the disorder talk after lunch.',
+        'Example A, p53: from sequence to variant. It brings together a predicted model, an experimental structure and variants.',
         'Three views, three slides. First the AlphaFold model coloured by confidence: a confident DNA-binding domain, a tetramerisation helix and long disordered ends. Then the DNA-binding domain on DNA in 1TSR. Then the cancer hotspots from a file: <strong>contact</strong> mutants (R248, R273) touch the DNA; <strong>structural</strong> mutants (R175, G245, R249, R282) hold the fold.',
         'The numbering of 1TSR is the UniProt numbering, so the same annotation file works on the AlphaFold model and on 1TSR.',
       ),
@@ -140,7 +140,7 @@ export function part3(): string {
       lead: 'Blue: confident. Orange: the model does not know. The ends are disordered.',
       notes: notes(
         "AF-P04637-F1, the AlphaFold model of human p53, coloured by pLDDT, the model's own confidence per residue. The colours are the four AlphaFold DB ones, read from the model file itself.",
-        'What to see: a confident DNA-binding domain in the middle (dark blue), a tetramerisation helix, and orange, very low confidence, at the termini. That is intrinsic disorder, which is exactly what the talk after lunch is about.',
+        'What to see: a confident DNA-binding domain in the middle (dark blue), a tetramerisation helix, and orange, very low confidence, at the termini. Low pLDDT there is what intrinsically disordered regions look like in a predicted model.',
         'Try it: switch the representation from cartoon to surface.',
       ),
     }),

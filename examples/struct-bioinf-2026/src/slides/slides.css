@@ -40,20 +40,20 @@
   --part-ink: var(--app-brown);
 }
 
-.reveal .slides > section[data-part="2"],
-.reveal .slides > section[data-part="3"] {
+.reveal .slides > section[data-part='2'],
+.reveal .slides > section[data-part='3'] {
   --part: var(--app-gold);
   --part-ink: var(--app-gold-text);
 }
 
-.reveal .slides > section[data-part="4"],
-.reveal .slides > section[data-part="5"] {
+.reveal .slides > section[data-part='4'],
+.reveal .slides > section[data-part='5'] {
   --part: var(--app-sage);
   --part-ink: var(--app-sage-text);
 }
 
-.reveal .slides > section[data-part="6"],
-.reveal .slides > section[data-part="7"] {
+.reveal .slides > section[data-part='6'],
+.reveal .slides > section[data-part='7'] {
   --part: var(--app-steel);
   --part-ink: var(--app-steel-text);
 }
@@ -125,7 +125,7 @@ body {
 /* The wordmark's spectrum as a thin rule under every slide title. */
 .reveal h1::after,
 .reveal h2::after {
-  content: "";
+  content: '';
   display: block;
   width: 120px;
   max-width: 40%;
@@ -176,7 +176,7 @@ body {
 }
 
 .reveal .part-tag::before {
-  content: "\2733\00a0";
+  content: '\2733\00a0';
   color: var(--part);
 }
 
@@ -315,7 +315,7 @@ body {
   font: inherit;
   font-size: 0.6em;
   padding: 0.2em 0.9em;
-  border: 1px solid var(--slide-line);
+  border: 0;
   border-radius: var(--app-radius);
   background: var(--app-panel);
   color: var(--slide-muted);
@@ -342,7 +342,7 @@ body {
   line-height: 1.4;
   overflow: auto;
   background: var(--app-paper);
-  border: 1px solid var(--slide-line);
+  border: 0;
   border-radius: var(--app-radius);
   padding: 0.8em 1em;
   flex: 0 1 auto;
@@ -415,7 +415,7 @@ body {
 }
 
 .reveal .points li::before {
-  content: "\2733";
+  content: '\2733';
   position: absolute;
   left: 0;
   top: 0.12em;
@@ -452,11 +452,9 @@ body {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-/* A row of cards is columns divided by hairlines: one across the top, one between each two; each column has a short tick in
-   the part's color above its heading. Not boxes. */
+/* A row of cards is open columns: each has a short tick in the part's color above its heading. No boxes, no rules. */
 .reveal .cards {
-  border-top: 1px solid var(--slide-line);
-  gap: 0;
+  gap: 0 2.4em;
 }
 
 .reveal .card {
@@ -464,17 +462,11 @@ body {
   flex-direction: column;
   gap: 0.4em;
   min-width: 0;
-  padding: 0.9em 1.1em 0.4em;
-  border-left: 1px solid var(--slide-line);
-}
-
-.reveal .card:first-child {
-  border-left: 0;
-  padding-left: 0;
+  padding: 0.9em 0 0.4em;
 }
 
 .reveal .card::before {
-  content: "";
+  content: '';
   width: 28px;
   height: 2px;
   margin-bottom: 0.45em;
@@ -512,7 +504,7 @@ body {
   font-family: var(--slide-mono);
   font-size: 0.65em;
   background: var(--app-paper);
-  border: 1px solid var(--slide-line);
+  border: 0;
   border-radius: 2px;
   padding: 0.5em 0.7em;
   overflow-wrap: anywhere;
@@ -592,7 +584,7 @@ body {
 
 .reveal .qr-box {
   background: #fff;
-  border: 1px solid var(--slide-line);
+  border: 0;
   border-radius: var(--app-radius);
   padding: 0.3em;
   width: min(34vmin, 100%);
@@ -708,27 +700,27 @@ body {
   opacity: 0.62;
 }
 
-.reveal .parts-map[data-current="3"] .node[data-parts~="3"],
-.reveal .parts-map[data-current="4"] .node[data-parts~="4"],
-.reveal .parts-map[data-current="5"] .node[data-parts~="5"],
-.reveal .parts-map[data-current="6"] .node[data-parts~="6"] {
+.reveal .parts-map[data-current='3'] .node[data-parts~='3'],
+.reveal .parts-map[data-current='4'] .node[data-parts~='4'],
+.reveal .parts-map[data-current='5'] .node[data-parts~='5'],
+.reveal .parts-map[data-current='6'] .node[data-parts~='6'] {
   opacity: 1;
 }
 
 /* The lit cards take the part's color (the slide's \`--part\`): its edge, and its ink on the title. */
-.reveal .parts-map[data-current="3"] .node[data-parts~="3"] .dg-box,
-.reveal .parts-map[data-current="4"] .node[data-parts~="4"] .dg-box,
-.reveal .parts-map[data-current="5"] .node[data-parts~="5"] .dg-box,
-.reveal .parts-map[data-current="6"] .node[data-parts~="6"] .dg-box {
+.reveal .parts-map[data-current='3'] .node[data-parts~='3'] .dg-box,
+.reveal .parts-map[data-current='4'] .node[data-parts~='4'] .dg-box,
+.reveal .parts-map[data-current='5'] .node[data-parts~='5'] .dg-box,
+.reveal .parts-map[data-current='6'] .node[data-parts~='6'] .dg-box {
   fill: #fff;
   stroke: var(--part);
   stroke-width: 2.5;
 }
 
-.reveal .parts-map[data-current="3"] .node[data-parts~="3"] .dg-title,
-.reveal .parts-map[data-current="4"] .node[data-parts~="4"] .dg-title,
-.reveal .parts-map[data-current="5"] .node[data-parts~="5"] .dg-title,
-.reveal .parts-map[data-current="6"] .node[data-parts~="6"] .dg-title {
+.reveal .parts-map[data-current='3'] .node[data-parts~='3'] .dg-title,
+.reveal .parts-map[data-current='4'] .node[data-parts~='4'] .dg-title,
+.reveal .parts-map[data-current='5'] .node[data-parts~='5'] .dg-title,
+.reveal .parts-map[data-current='6'] .node[data-parts~='6'] .dg-title {
   fill: var(--part-ink);
 }
 
@@ -778,7 +770,7 @@ body {
   padding: 0.25em 0.8em;
   border-radius: 2px;
   background: var(--app-paper);
-  border: 1px solid var(--slide-line);
+  border: 0;
   color: var(--app-brown);
   font-family: var(--slide-mono);
   font-size: 0.85em;
@@ -1137,7 +1129,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.3em;
-  border: 1px solid var(--slide-line);
+  background: var(--app-panel);
   border-radius: var(--app-radius);
   padding: 0.6em 0.7em;
   font-size: 0.7em;
@@ -1313,7 +1305,7 @@ body {
 }
 
 .reveal .callout::before {
-  content: "\2733";
+  content: '\2733';
   position: absolute;
   left: 0;
   top: -0.08em;
@@ -1343,11 +1335,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.4vmin;
-  padding: 3.2vmin 3.4vmin;
-  border: 1px solid var(--slide-line);
+  padding: 2.4vmin 0 0;
+  border: 0;
   border-top: 2px solid var(--avail-accent);
-  border-radius: var(--app-radius);
-  background: var(--app-canvas);
   text-align: left;
 }
 
@@ -1398,7 +1388,7 @@ body {
   display: grid;
   gap: 0.15em;
   padding: 1.2vmin 1.4vmin;
-  border-left: 2px solid var(--avail-accent);
+  padding-left: 0;
   font-size: 0.78em;
   line-height: 1.3;
 }

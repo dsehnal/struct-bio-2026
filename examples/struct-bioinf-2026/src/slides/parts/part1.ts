@@ -18,7 +18,7 @@ export function part1(): string {
       className: 'live-slide morph-slide',
       data: { live: 'morph-1iep' },
       notes: notes(
-        'You know the classic Mol* UI from Tuesday. This is the same entry, 1IEP, in the classic viewer and in Prism, in one box. Press the right arrow once and the classic viewer fades into Prism; the slider on the right does it by hand. The camera is the same, so only the UI changes.',
+        'You may know the classic Mol* UI. This is the same entry, 1IEP, in the classic viewer and in Prism, in one box. Press the right arrow once and the classic viewer fades into Prism; the slider on the right does it by hand. The camera is the same, so only the UI changes.',
         'Name three or four differences, not every feature.',
         '- <strong>Command menu</strong>: instead of searching through panels you type what you want ("color by chain", "show ligand").',
         '- <strong>Targets as text</strong>: <code>A:10-20</code>, <code>ligand</code>, a PyMOL selection. The same address language works everywhere.',
