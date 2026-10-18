@@ -233,7 +233,7 @@ export const BasicsExample: Example = {
     {
       id: 'basics-pymol',
       kind: 'mvs',
-      title: 'Selections as PyMOL text',
+      title: 'PyMOL selectors',
       summary:
         'If you know PyMOL, write the selection the way you always do: the residues within 5 Å of imatinib, as text.',
       code: PYMOL,

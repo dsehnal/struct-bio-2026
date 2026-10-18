@@ -106,12 +106,15 @@ export async function startPlayground(root: HTMLElement): Promise<void> {
 
   function renderSnippets() {
     const example = exampleOf(current.id) as Example;
-    snippetBar.innerHTML = example.snippets
-      .map(
-        (s) =>
-          `<button type="button" data-snippet="${esc(s.id)}" aria-current="${s.id === current.id}" title="${esc(s.summary)}">${esc(s.title)}${s.kind === 'svs' ? ' <em>sequence</em>' : ''}</button>`,
-      )
-      .join('');
+    // Numbered buttons behind a label, so the snippets read as steps to click through, not as a line of text.
+    snippetBar.innerHTML =
+      '<span class="snippets-label">Snippets</span>' +
+      example.snippets
+        .map(
+          (s, i) =>
+            `<button type="button" data-snippet="${esc(s.id)}" aria-current="${s.id === current.id}" title="${esc(s.summary)}"><span class="n">${i + 1}</span>${esc(s.title)}${s.kind === 'svs' ? ' <em>sequence</em>' : ''}</button>`,
+        )
+        .join('');
   }
 
   function renderGuide() {

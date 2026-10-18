@@ -75,7 +75,7 @@ body {
   border-color: #2563eb;
 }
 
-.card[aria-current="true"] {
+.card[aria-current='true'] {
   border-color: #2563eb;
   background: #eff6ff;
 }
@@ -161,7 +161,7 @@ body {
 }
 
 .edits li strong::before {
-  content: counter(edit) ". ";
+  content: counter(edit) '. ';
   color: #6b7280;
 }
 
@@ -212,36 +212,69 @@ body {
 .snippets {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  padding: 6px 8px;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
   border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.snippets-label {
+  margin-right: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7280;
 }
 
 .snippets button {
-  padding: 3px 10px;
-  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 5px;
+  border: 1px solid #d1d5db;
   border-radius: 999px;
-  background: transparent;
-  color: #4b5563;
+  background: #fff;
+  color: #1f2937;
   font: inherit;
   font-size: 13px;
   cursor: pointer;
+  box-shadow: 0 1px 1px rgb(0 0 0 / 0.04);
 }
 
 .snippets button:hover {
-  background: #f3f4f6;
+  border-color: #93c5fd;
+  background: #eff6ff;
 }
 
-.snippets button[aria-current="true"] {
+.snippets button .n {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #374151;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.snippets button[aria-current='true'] {
   border-color: #2563eb;
-  background: #eff6ff;
+  background: #2563eb;
+  color: #fff;
+}
+
+.snippets button[aria-current='true'] .n {
+  background: #fff;
   color: #1d4ed8;
 }
 
 .snippets em {
   font-size: 11px;
   font-style: normal;
-  color: #6b7280;
+  opacity: 0.75;
 }
 
 .editor-toolbar {
