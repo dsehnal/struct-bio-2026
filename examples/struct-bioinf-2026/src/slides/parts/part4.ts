@@ -13,38 +13,36 @@ import { opener } from './opener.js';
 
 // Part 4, Sequences: Seq*, SeqViewSpec (outline.md §4).
 
-/** The shape of a SeqViewSpec document (seqspec format.md), shortened: data defined once, views of it. */
-const SvsShape = `{
-  "format": "seq_view_spec",
-  "version": "1.0.0",
-  "root": {
-    "kind": "root",
-    "children": [
-      { "kind": "data", "children": [
-        { "kind": "sequence", "ref": "p53",
-          "params": { "value": "MEEPQSDPSV…" } },
-        { "kind": "annotation", "ref": "hotspots",
-          "params": { "target": "p53",
-                      "uri": "…/p53-hotspots.json",
-                      "format": "json" } }
-      ]},
-      { "kind": "view", "ref": "overview",
-        "params": { "label": "p53" },
-        "children": [
-        { "kind": "section", "ref": "main",
-          "children": [
-          { "kind": "track", "ref": "t1",
-            "children": [
-            { "kind": "layer", "ref": "l1",
-              "params": { "type": "ranges",
-                          "data": "hotspots" } }
-          ]}
-        ]}
-      ]}
-    ]
+/** A short SeqViewSpec in builder code, cut from the `p53-sequence` snippet (src/examples/p53.ts): data once, then a view. */
+const SvsBuilder = `// Data, once: the structure to link to, a table, a computed track
+const model = seq.data.complex({
+  ref: 'model',
+  provider: 'molstar:structure',
+  source: {
+    service: 'afdb', resource: 'structure', id: 'AF-P04637-F1',
   },
-  "snapshots": [ … ]
-}`;
+});
+const hotspots = seq.data.annotation({
+  ref: 'hotspots',
+  geometry: 'ranges',
+  target: model.unit('A'),
+  numbering: 'label',
+  value: [
+    { beg: 248, end: 248, label: 'R248', category: 'contact' },
+    { beg: 175, end: 175, label: 'R175', category: 'structural' },
+  ],
+});
+const plddt = seq.data.computed({
+  ref: 'plddt', provider: 'molstar:plddt', options: { of: model },
+});
+
+// Then a view of it: one row per track
+const section = seq
+  .view({ label: 'p53' })
+  .section({ style: 'compact' });
+section.track({ label: 'Sequence' }).letters();
+section.track({ label: 'Hotspots' }).points({ data: hotspots });
+section.track({ label: 'pLDDT' }).values({ data: plddt });`;
 
 export function part4(): string {
   return [
@@ -67,22 +65,28 @@ export function part4(): string {
     slide({
       part: 4,
       notes: notes(
-        'SeqViewSpec is a JSON document, like MolViewSpec: every node is <code>kind</code>, <code>ref</code>, <code>params</code> and <code>children</code>. The slide shows the shape, shortened.',
-        'Data is defined once, under <code>data</code>: sequences, alignments, annotation tables, which may come from a file with <code>uri</code> exactly as in MolViewSpec. Then <strong>views</strong> of that data: a view has sections, a section has tracks, a track has layers, and a layer says what to show: letters, ranges, points, values.',
-        'A document says <strong>what</strong> to show, never <strong>how</strong> to draw it. Snapshots are patches over the one tree, so a story of sequence views is cheap.',
-        'On the next slides the document is produced by builder code, just like the MolViewSpec one. In the playground you will see this JSON in the second tab.',
+        'Why a description for sequences too? Because sequence data comes from many places, each in its own coordinates.',
+        '- <strong>UniProt</strong>: the canonical sequence, with its features and variants in UniProt positions.',
+        '- <strong>The structure</strong>: the chains as modelled, often only part of the sequence, with gaps, tags and engineered mutations, in auth or label numbering.',
+        '- <strong>Predicted models</strong>: AlphaFold DB uses UniProt positions, and carries pLDDT per residue.',
+        '- <strong>Alignments and annotation services</strong>: their own columns and ranges.',
+        'So a sequence view has to say <strong>which</strong> sequence, in <strong>which numbering</strong>, and how it links to the 3D model. SeqViewSpec does that: data is defined once, each piece with its numbering and its link to a structure, then <strong>views</strong> of it: sections, tracks, and what each track shows. Same node shape as MolViewSpec, the same annotations from files, snapshots as patches.',
+        'The code is cut from the p53 snippet on the next slide. In the playground the second tab shows the JSON it produces.',
       ),
       body: `
         <h2>SeqViewSpec: the same idea for sequences</h2>
         <div class="two-col">
-          <pre class="code nowrap"><code>${highlight(SvsShape, 'json')}</code></pre>
-          <ul class="points small">
-            <li>The <strong>same node shape</strong> as MolViewSpec: <code>kind</code>, <code>ref</code>, <code>params</code>, <code>children</code>.</li>
-            <li><strong>Data once</strong> (sequences, alignments, tables), then <strong>views</strong> of it.</li>
-            <li>The same <code>*_from_uri</code> annotations: your own table on a sequence.</li>
-            <li>It says <strong>what</strong> to show, not how to draw it.</li>
-            <li><strong>Snapshots</strong> as patches over the tree.</li>
-          </ul>
+          <pre class="code nowrap"><code>${highlight(SvsBuilder, 'ts')}</code></pre>
+          <div class="stack">
+            <span class="code-label">WHERE SEQUENCE DATA COMES FROM</span>
+            <ul class="points small">
+              <li><strong>UniProt</strong>: the canonical sequence, features and variants, in UniProt positions.</li>
+              <li><strong>The structure</strong>: what was modelled, with gaps and tags, in auth or label numbering.</li>
+              <li><strong>Predicted models</strong>: AlphaFold DB, in UniProt positions, with pLDDT.</li>
+              <li><strong>Alignments, annotation services</strong>: their own columns and ranges.</li>
+            </ul>
+            <p class="state-note">Each source counts differently. A SeqViewSpec says <strong>which</strong> sequence, in <strong>which numbering</strong>, linked to which <strong>structure</strong>; then the views of it.</p>
+          </div>
         </div>`,
     }),
 

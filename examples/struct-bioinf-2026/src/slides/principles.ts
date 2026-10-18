@@ -6,7 +6,6 @@
  * @author David Sehnal <david.sehnal@gmail.com>
  */
 
-import { markKeys } from './data-files.js';
 import { type CodeLanguage, highlight } from './highlight.js';
 import { escapeHtml, notes, slide, stage } from './html.js';
 
@@ -71,48 +70,43 @@ export function selectionLanguages(part: number): string {
 
 // --- part 3: data stays outside the structure -------------------------------------------------------------------------------
 
-const AnnotationExample = JSON.stringify(
-  [
-    { auth_asym_id: 'B', auth_seq_id: 248, class: 'contact', color: '#d1495b', label: 'R248' },
-    { auth_asym_id: 'B', auth_seq_id: 175, class: 'structural', color: '#00798c', label: 'R175' },
-  ],
-  undefined,
-  1,
-);
-
-const Granularity: readonly { schema: string; keys: string }[] = [
-  { schema: 'auth_residue', keys: 'auth_asym_id, auth_seq_id' },
-  { schema: 'residue', keys: 'label_asym_id, label_seq_id' },
-  { schema: 'auth_residue_range', keys: 'auth_asym_id, beg_auth_seq_id, end_auth_seq_id' },
-  { schema: 'residue_range', keys: 'label_asym_id, beg_label_seq_id, end_label_seq_id' },
-  { schema: 'auth_atom', keys: 'auth_asym_id, auth_seq_id, auth_atom_id' },
-  { schema: 'atom', keys: 'label_asym_id, label_seq_id, label_atom_id' },
+/** What "chain A, 111–250" leaves open, and the MVS selector key that answers it (`ComponentExpressionT`, param-types.ts). */
+const Addressing: readonly { question: string; example: string; key: string; plain?: boolean }[] = [
+  { question: 'Whose numbering?', example: "the authors' or the file's own", key: 'auth_seq_id · label_seq_id' },
+  { question: 'Which chain name?', example: 'auth A is label C in 1TSR', key: 'auth_asym_id · label_asym_id' },
+  { question: 'Inserted residues?', example: '52, 52A, 52B', key: 'pdbx_PDB_ins_code' },
+  { question: 'Which copy?', example: 'assemblies, crystal symmetry', key: "instance_id ('ASM-X0-1', '1_555')" },
+  { question: 'Which molecule?', example: 'a ligand, a sugar, water', key: 'label_entity_id · label_comp_id' },
+  { question: 'Which atom?', example: 'the hydroxyl of T315', key: 'label_atom_id · type_symbol · atom_id' },
+  {
+    question: 'Which sequence?',
+    example: 'UniProt vs PDB positions',
+    key: 'a mapping (SIFTS); AlphaFold DB uses UniProt',
+    plain: true,
+  },
 ];
 
 export function dataOutside(part: number): string {
   return slide({
     part,
     notes: notes(
-      'Principle: <strong>data stays outside the structure</strong>. Your scores, variants or conservation do not belong in the structure file, and you should not edit it.',
-      'An annotation is a small table, JSON or CIF, in which every row has <strong>keys</strong> that say where it applies, and <strong>values</strong>: a colour, a text, a number. The highlighted columns are the keys: chain and residue number. The rest are values you choose.',
-      "The description joins the table to the structure by those keys. The <code>schema</code> says what the keys mean, and so the granularity: a whole residue, a range of residues, or a single atom, in the author's numbering (<code>auth_</code>) or the file's own (<code>label_</code>). Also available: a chain, an entity, the whole structure, and all atoms.",
-      'Next slide: the same table on a structure, with the code that reads it. Open the Data tab there to see the file.',
+      'Annotations, scores, variants, conservation: they live <strong>outside</strong> the structure file, and you should not edit the file to add them. So the real question is how to <strong>link</strong> them to the structure: an addressing scheme.',
+      'The naive address is "chain A, residues 111 to 250". It works for the simple case, and it is ambiguous everywhere else.',
+      "- <strong>Whose numbering</strong>: the authors' (<code>auth_</code>, what papers use) or the file's own regular one (<code>label_</code>). The same residue has two numbers, and the same chain two names; the next slides show 1TSR, where auth A is label C.",
+      '- <strong>Insertion codes</strong>: antibody numbering has 52, 52A, 52B. (MVS ranges do not take insertion codes yet; single residues do.)',
+      '- <strong>Which copy</strong>: an assembly or crystal symmetry makes copies of the same chain, and they share its ids. <code>instance_id</code> tells them apart.',
+      '- <strong>Which molecule</strong>: ligands, sugars and waters have no meaningful sequence position; entity and residue name address them.',
+      '- <strong>Which atom</strong>: for contacts and distances you need atoms, by name, element or id.',
+      '- <strong>Which sequence</strong>: UniProt positions are not PDB positions in general; SIFTS maps one onto the other. AlphaFold DB models use UniProt numbering, which is why the same p53 file works on the model and on 1TSR.',
+      'In MolViewSpec an annotation file is a table whose key columns are exactly these fields, and its <code>schema</code> says which ones: residues, ranges, atoms, chains, entities, in auth or label terms. Next slide: such a file, with the Data tab open.',
     ),
     body: `
-      <h2>Data stays outside the structure</h2>
-      <p class="lead">A table of rows: keys say where, values say what. The description joins them.</p>
-      ${stage(`<div class="two-col">
-        <div class="stack panel">
-          <span class="code-label">AN ANNOTATION FILE (JSON; CIF WORKS TOO)</span>
-          <pre class="code plain"><code>${markKeys(highlight(AnnotationExample, 'json'))}</code></pre>
-          <p class="lead">Highlighted: the keys. The rest: values to show.</p>
-        </div>
-        <div class="stack panel">
-          <span class="code-label">THE SCHEMA SETS THE GRANULARITY</span>
-          <table class="schema">${Granularity.map((g) => `<tr><td><code>${g.schema}</code></td><td>${g.keys}</td></tr>`).join('')}</table>
-          <p class="lead">Also: <code class="inline-code">chain</code>, <code class="inline-code">entity</code>, <code class="inline-code">whole_structure</code>, <code class="inline-code">all_atomic</code>.</p>
-        </div>
-      </div>`)}`,
+      <h2>Linking data to a structure</h2>
+      <p class="lead">Annotations live outside the structure file. Linking them needs an address, and <code class="inline-code">A 111–250</code> is only the simple case.</p>
+      ${stage(`<table class="addressing">
+        <thead><tr><th>What the simple address leaves open</th><th>For example</th><th>The key in MolViewSpec</th></tr></thead>
+        <tbody>${Addressing.map((a) => `<tr><td>${escapeHtml(a.question)}</td><td>${escapeHtml(a.example)}</td><td>${a.plain ? escapeHtml(a.key) : `<code>${escapeHtml(a.key)}</code>`}</td></tr>`).join('')}</tbody>
+      </table>`)}`,
   });
 }
 
