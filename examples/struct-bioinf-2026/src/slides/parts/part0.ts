@@ -19,7 +19,7 @@ const Plan: readonly { min: string; name: string }[] = [
   { min: '2–9', name: 'The new viewer: Prism' },
   { min: '9–11', name: "Describe, don't click" },
   { min: '11–19', name: 'MolViewSpec, example A: p53' },
-  { min: '19–25', name: 'Sequences: Seq*, SeqViewSpec, SeqQL' },
+  { min: '19–25', name: 'Sequences: Seq*, SeqViewSpec' },
   { min: '25–30', name: 'Volumes, example B: imatinib' },
   { min: '30–36', name: 'Stories, example C: the spike' },
   { min: '36–40', name: 'Your turn: the playground' },
@@ -74,7 +74,7 @@ export function part0(): string {
         'Version 6 is a rebuild of what surrounds the renderer. The renderer is the same, fast and reliable. What changes is everything around it, and I will show four things.',
         '- <strong>Prism</strong>, a new UI, which you will see in a minute.',
         '- <strong>MolViewSpec</strong> and <strong>SeqViewSpec</strong>: descriptions of a 3D scene and of a sequence view.',
-        '- <strong>MolQL</strong> and <strong>SeqQL</strong>: a language to say what you select, so that it means the same everywhere.',
+        '- <strong>MolQL</strong>: a language to say what you select, so that it means the same everywhere.',
         '- The <strong>data</strong>: the volume server and annotations.',
         'If you remember one sentence: your figure is a description, not a set of clicks.',
       ),
@@ -84,7 +84,7 @@ export function part0(): string {
         ${stage(`<div class="cards four">
           <div class="card"><h3>Prism</h3><p>A new viewer UI.</p></div>
           <div class="card"><h3>Descriptions</h3><p>MolViewSpec for 3D, SeqViewSpec for sequences.</p></div>
-          <div class="card"><h3>Selections</h3><p>MolQL and SeqQL: what to select, as a language.</p></div>
+          <div class="card"><h3>Selections</h3><p>MolQL: what to select, as a language.</p></div>
           <div class="card"><h3>Data</h3><p>The volume server and annotation files.</p></div>
         </div>
         <p class="big-statement">Your figure is <strong>a description</strong>, not a set of clicks.</p>`)}`,

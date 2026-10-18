@@ -8,10 +8,10 @@
 
 import { escapeHtml } from './html.js';
 
-// A small syntax highlighter for what the slides show (TypeScript builder code, Python, JSON, SeqQL): a few regular
+// A small syntax highlighter for what the slides show (TypeScript builder code, Python, JSON): a few regular
 // expressions per language, no parsing. Monaco (the playground's editor) is not loaded for the slides.
 
-export type CodeLanguage = 'ts' | 'py' | 'json' | 'seqql';
+export type CodeLanguage = 'ts' | 'py' | 'json';
 
 type Rule = readonly [source: string, className: string];
 
@@ -44,13 +44,6 @@ const Rules: Record<CodeLanguage, readonly Rule[]> = {
     ['"(?:[^"\\\\\\n]|\\\\.)*"', 'tk-s'],
     [Words('true false null'), 'tk-k'],
     ['-?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?', 'tk-n'],
-  ],
-  seqql: [
-    [';[^\\n]*', 'tk-c'],
-    [Str, 'tk-s'],
-    ['(?<=\\()[A-Za-z][\\w.-]*', 'tk-f'],
-    [':[A-Za-z][\\w-]*', 'tk-p'],
-    ['\\b\\d+(?:\\.\\d+)?\\b', 'tk-n'],
   ],
 };
 

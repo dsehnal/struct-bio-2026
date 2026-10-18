@@ -7,11 +7,11 @@
  */
 
 import { highlight } from '../highlight.js';
-import { notes, slide, stage } from '../html.js';
+import { notes, slide } from '../html.js';
 import { snippetSlide } from '../snippet.js';
 import { opener } from './opener.js';
 
-// Part 4, Sequences: Seq*, SeqViewSpec, SeqQL (outline.md §4, 6 min).
+// Part 4, Sequences: Seq*, SeqViewSpec (outline.md §4).
 
 /** The shape of a SeqViewSpec document (seqspec format.md), shortened: data defined once, views of it. */
 const SvsShape = `{
@@ -46,9 +46,6 @@ const SvsShape = `{
   "snapshots": [ … ]
 }`;
 
-const SeqQlQuery = `(and 1brs/A
-     (partners 1brs/D :via contacts))`;
-
 export function part4(): string {
   return [
     opener({
@@ -58,13 +55,11 @@ export function part4(): string {
       points: [
         '<strong>Seq*</strong>: a sequence viewer built for the same descriptions: alignments, tracks, many sequences, linked to 3D',
         '<strong>SeqViewSpec</strong>: what to show on a sequence',
-        '<strong>SeqQL</strong>: selections on sequences',
       ],
       notes: notes(
-        'Sequences. Three names, one map.',
+        'Sequences. Two names, one map.',
         '- <strong>Seq*</strong> is a sequence viewer built for the same descriptions. It handles alignments, tracks, many sequences, and linking to 3D.',
         '- <strong>SeqViewSpec</strong> is the sequence counterpart of MolViewSpec: the same node shape, the same <code>*_from_uri</code> annotations, and snapshots. It says what to show, not how to draw it.',
-        '- <strong>SeqQL</strong> is selection on sequences, in the style of MolQL.',
         'On the map: they are the middle and right columns for sequences. The Seq* storybook has more (alignments, tracks, streaming) for anyone who asks.',
       ),
     }),
@@ -91,26 +86,6 @@ export function part4(): string {
         </div>`,
     }),
 
-    slide({
-      part: 4,
-      notes: notes(
-        'SeqQL selects residues on sequences, in the style of MolQL. A query is an S-expression, so it reads like a sentence.',
-        'The example: <code>(and 1brs/A (partners 1brs/D :via contacts))</code>. Read it inside out. <code>1brs/A</code> is chain A of 1BRS. <code>(partners 1brs/D :via contacts)</code> is the residues that are in contact with chain D, computed from the structure. <code>and</code> keeps the residues that are both: so, the residues of A that touch D, shown in the sequence.',
-        'It has three spellings of one tree: the text here, JSON with full names for storing, and the <code>Q</code> builder for code. A query is deterministic: the same expression on the same data gives the same selection in the same order.',
-        'Your turn, later: write a SeqQL query for the residues of p53 that contact DNA in 1TSR.',
-      ),
-      body: `
-        <h2>SeqQL: selections on sequences</h2>
-        <p class="lead">In the style of MolQL. It reads like a sentence and is computed from the structure.</p>
-        ${stage(`<pre class="code plain big"><code>${highlight(SeqQlQuery, 'seqql')}</code></pre>
-        <div class="cards">
-          <div class="card"><h3><code class="inline-code">1brs/A</code></h3><p>Chain A of 1BRS: the residues we start from.</p></div>
-          <div class="card"><h3><code class="inline-code">(partners 1brs/D :via contacts)</code></h3><p>Residues in contact with chain D, computed from the structure.</p></div>
-          <div class="card"><h3><code class="inline-code">(and …)</code></h3><p>Both at once: the residues of A that touch D, shown in the sequence.</p></div>
-        </div>
-        <p class="lead">One tree, three spellings: this text, JSON for storing, and the <code class="inline-code">Q</code> builder in code.</p>`)}`,
-    }),
-
     snippetSlide({
       part: 4,
       snippetId: 'p53-sequence',
@@ -122,7 +97,6 @@ export function part4(): string {
         'The tracks are tables of ranges: the domains from UniProt (transactivation, DNA-binding, oligomerisation), the disordered regions, the six hotspots (contact vs structural, same colours as before), and the pLDDT read from the model.',
         '<strong>Linking</strong>: hover a residue in the sequence and it lights up in 3D, and the reverse. Do it on R248 and R273.',
         'Second tab: the SeqViewSpec document the builder produced.',
-        'Try it: write a SeqQL query for the residues of p53 that contact DNA in 1TSR.',
       ),
     }),
   ].join('');

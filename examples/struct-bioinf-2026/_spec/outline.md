@@ -21,17 +21,17 @@ data (volume server, annotations).
 
 ## Timing (≈45 min talk, ≈15 min questions)
 
-| Min   | Part                                    | Mode                       |
-| ----- | --------------------------------------- | -------------------------- |
-| 0–2   | 0. Opening                              | slides                     |
-| 2–9   | 1. The new viewer: Prism                | live in Prism              |
-| 9–11  | 2. Describe, don't click                | slides (one diagram)       |
-| 11–19 | 3. MolViewSpec + example A (p53)        | slides with live snippets  |
-| 19–25 | 4. Sequences: Seq\*, SeqViewSpec, SeqQL | slides with live snippets  |
-| 25–30 | 5. Volumes + example B (imatinib)       | slides with live snippets  |
-| 30–36 | 6. Stories, MolViewStories, example C   | story playback, brief UI   |
-| 36–40 | 7. Your turn: the playground            | link, one-click examples   |
-| 40–60 | Questions                               | participants in playground |
+| Min   | Part                                  | Mode                       |
+| ----- | ------------------------------------- | -------------------------- |
+| 0–2   | 0. Opening                            | slides                     |
+| 2–9   | 1. The new viewer: Prism              | live in Prism              |
+| 9–11  | 2. Describe, don't click              | slides (one diagram)       |
+| 11–19 | 3. MolViewSpec + example A (p53)      | slides with live snippets  |
+| 19–25 | 4. Sequences: Seq\*, SeqViewSpec      | slides with live snippets  |
+| 25–30 | 5. Volumes + example B (imatinib)     | slides with live snippets  |
+| 30–36 | 6. Stories, MolViewStories, example C | story playback, brief UI   |
+| 36–40 | 7. Your turn: the playground          | link, one-click examples   |
+| 40–60 | Questions                             | participants in playground |
 
 The presenter goes fast, so the parts are tight. Each example slide has a "try it" chip that opens the same snippet in
 the playground. Participants who follow along use it, and everyone else gets the playground in part 7 and during
@@ -191,16 +191,16 @@ Done 2026-10-18; the facts the snippets use are in [examples.md](examples.md).
 (a vertical stack per part would make → skip the rest of a part). Every slide has speaker notes (the S key) and a footer
 with its part's tag.
 
-| Part | Slides                                                                                                                                                                                                                                                                                                                         |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 0    | title, "Using Mol\* to visualise your data" (with Prism's quantum splash) · why visualise (this talk shows, it does not compute) · Mol\* v6 · the plan with the playground QR code                                                                                                                                             |
-| 1    | classic vs Prism (morph) · "What's better in Prism, for you": the live viewer stepped through seven things (tree, selection, selection visuals, volumes, images and animations, Seq\*, command menu)                                                                                                                           |
-| 2    | the map of the talk · state, not steps · a description is a tree of steps                                                                                                                                                                                                                                                      |
-| 3    | opener with the map · `basics-smallest` · `basics-selectors` · one selection, many languages · "Or just use PyMOL" (`basics-pymol`) · data stays outside the structure · `basics-annotations` · `basics-primitives` · portability · example A · `p53-af-plddt` · numbering · `p53-dna` · `p53-hotspots` · checked, not guessed |
-| 4    | opener · SeqViewSpec shape · SeqQL · `p53-sequence`                                                                                                                                                                                                                                                                            |
-| 5    | opener · the volume server's principle · `imatinib-pocket` · `imatinib-density`                                                                                                                                                                                                                                                |
-| 6    | opener · MolViewStories · snapshots and transitions · `spike-story` stepped by →                                                                                                                                                                                                                                               |
-| 7    | Python or TypeScript + Colab · the playground (QR code, one card per example) · when can I use it (today: MVS, Python, MolViewStories, volume server; beta: Prism and Seq\*, more stable in 1–2 months) · links, citations, thanks                                                                                             |
+| Part | Slides                                                                                                                                                                                                                                                                                                                                                                        |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0    | title, "Using Mol\* to visualise your data" (with Prism's quantum splash) · why visualise (this talk shows, it does not compute) · Mol\* v6 · the plan with the playground QR code                                                                                                                                                                                            |
+| 1    | classic vs Prism (morph) · "What's better in Prism, for you": the live viewer stepped through seven things (tree, selection, selection visuals, volumes, images and animations, Seq\*, command menu)                                                                                                                                                                          |
+| 2    | the map of the talk · state, not steps · a description is a tree of steps                                                                                                                                                                                                                                                                                                     |
+| 3    | opener with the map · `basics-smallest` · `basics-selectors` · how a selection is written (schema, MolQL, PyMOL; the P-loop of 1IEP) · "Example: PyMOL selectors" (`basics-pymol`) · data stays outside the structure · `basics-annotations` · `basics-primitives` · portability · example A · `p53-af-plddt` · numbering · `p53-dna` · `p53-hotspots` · checked, not guessed |
+| 4    | opener · SeqViewSpec shape · `p53-sequence` (SeqQL is not shown)                                                                                                                                                                                                                                                                                                              |
+| 5    | opener · the volume server's principle · `imatinib-pocket` · `imatinib-density`                                                                                                                                                                                                                                                                                               |
+| 6    | opener · MolViewStories · snapshots and transitions · `spike-story` stepped by →                                                                                                                                                                                                                                                                                              |
+| 7    | Python or TypeScript + Colab · the playground (QR code, one card per example) · when can I use it (today: MVS, Python, MolViewStories, volume server; beta: Prism and Seq\*, more stable in 1–2 months) · links, citations, thanks                                                                                                                                            |
 
 Choices not in the sections above:
 

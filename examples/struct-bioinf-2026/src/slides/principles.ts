@@ -87,55 +87,53 @@ export function stateNotSteps(part: number): string {
   });
 }
 
-// --- part 3: one selection, many languages ----------------------------------------------------------------------------------
+// --- part 3: how a selection is written --------------------------------------------------------------------------------------
 
-const SelPymol = `polymer.protein and
-  byres (chain A within 5 of
-         (chain A and resn STI))`;
-const SelVmd = `same residue as
-  (protein and chain A and
-   within 5 of
-   (chain A and resname STI))`;
-const SelMolScript = `(structure-query.modifier.intersect-by
-  :0 (structure-query.modifier.include-surroundings
-    :0 (structure-query.generator.atom-groups
-      :residue-test (core.rel.eq
-        (…label_comp_id) STI))
-    :radius 5
-    :as-whole-residues true)
-  :by (structure-query.generator.atom-groups
-    :chain-test (core.rel.eq
-      (…auth_asym_id) A)))`;
-const SelBuilder = `const MS = MolScriptBuilder;
-const ligand = MS.struct.generator.atomGroups({
-  'residue-test': MS.core.rel.eq([
-    MS.ammp('label_comp_id'), 'STI']),
-});
-const pocket = MS.struct.modifier.includeSurroundings({
-  0: ligand, radius: 5, 'as-whole-residues': true,
+// One selection, the P-loop of ABL (1IEP chain A, L248–V256), three ways; checked on 1IEP: the MolScript and the PyMOL
+// text select the same nine residues the range names.
+const SelSchema = `structure.component({
+  selector: {
+    auth_asym_id: 'A',
+    beg_auth_seq_id: 248,
+    end_auth_seq_id: 256,
+  },
+});`;
+const SelMolQL = `structure.component({
+  selector: molql(\`(sel.atom.atom-groups
+    :chain-test (= atom.auth_asym_id A)
+    :residue-test (in-range
+      atom.auth_seq_id 248 256))\`,
+    'mol-script'),
+});`;
+const SelPymol = `structure.component({
+  selector: pymol(
+    'chain A and resi 248-256',
+  ),
 });`;
 
 export function selectionLanguages(part: number): string {
   return slide({
     part,
     notes: notes(
-      'Principle: <strong>one selection, many languages</strong>. The question is the same: the residues of chain A of 1IEP within 5 Å of imatinib, the pocket.',
-      '- In <strong>PyMOL</strong> it is a line you may already have in a script.',
-      '- In <strong>VMD</strong> the same idea reads differently: <code>same residue as … within 5 of …</code>.',
-      '- The <strong>MolScript</strong> S-expression is what Mol* uses underneath: a tree of named symbols. It is verbose on purpose: it is exact, and it can be stored and checked.',
-      '- The <strong>builder</strong> writes the same tree in code.',
-      "PyMOL, VMD and Jmol text is compiled into that tree. So what you already know keeps working, and in a description the selection means the same in every viewer. In MolViewSpec you write it as <code>molql('…')</code>, as in the last component of the selectors slide.",
-      'This slide is static: the compiled forms differ in detail, such as how each language treats "protein", but they are all the same kind of thing.',
+      'How a selection is written. One selection, the P-loop of the ABL kinase in 1IEP, residues 248 to 256 of chain A, written three ways. All three select the same nine residues.',
+      '- <strong>The schema</strong>: fields of the file, no language. A chain, a residue, a range, an atom, by auth or label ids (the numbering slide later), or the words <code>ligand</code>, <code>polymer</code>, <code>water</code>. The simplest, and the same keys the annotation files use.',
+      '- <strong>MolQL</strong>: the selection language underneath, an S-expression of named symbols. Anything the schema cannot say goes here: distances, bonds, residue properties, "within 5 Å of the ligand". It is verbose on purpose: exact, stored as data, checked.',
+      "- <strong>PyMOL text</strong>: what you already know, compiled to MolQL when the description is written. VMD and Jmol work the same way, through <code>molql(text, 'vmd')</code>.",
+      'Whichever you write, the description stores the result: a schema selector, or a MolQL tree. So it means the same in every viewer.',
     ),
     body: `
-      <h2>One selection, many languages</h2>
-      <p class="lead">Residues of chain A within 5 Å of imatinib (1IEP). Each compiles to the same MolQL tree.</p>
-      <div class="grid2">
-        ${codePanel('PYMOL', SelPymol, 'plain')}
-        ${codePanel('VMD', SelVmd, 'plain')}
-        ${codePanel('MOLSCRIPT S-EXPRESSION', SelMolScript, 'plain')}
-        ${codePanel('MVS BUILDER · MOLQL IN CODE', SelBuilder, 'ts')}
-      </div>`,
+      <h2>How a selection is written</h2>
+      <p class="lead">The P-loop of ABL, residues 248–256 of chain A (1IEP): three ways, the same nine residues.</p>
+      ${stage(`<div class="grid3">
+        ${codePanel('THE SCHEMA · FIELDS OF THE FILE', SelSchema, 'ts')}
+        ${codePanel('MOLQL · THE LANGUAGE UNDERNEATH', SelMolQL, 'ts')}
+        ${codePanel('PYMOL TEXT · COMPILED TO MOLQL', SelPymol, 'ts')}
+      </div>
+      <ul class="points small">
+        <li><strong>Schema</strong>: chains, residues, ranges, atoms; <code class="inline-code">ligand</code>, <code class="inline-code">polymer</code>. The simplest.</li>
+        <li><strong>MolQL</strong>: anything: distances, bonds, properties.</li>
+        <li><strong>PyMOL</strong> (or VMD, Jmol): what you know, stored as MolQL.</li>
+      </ul>`)}`,
   });
 }
 

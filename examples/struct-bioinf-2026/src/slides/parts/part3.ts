@@ -63,8 +63,8 @@ export function part3(): string {
     snippetSlide({
       part: 3,
       snippetId: 'basics-pymol',
-      title: 'Or just use PyMOL',
-      lead: 'Write the selection the way you always do; pymol(…) compiles it to MolQL.',
+      title: 'Example: PyMOL selectors',
+      lead: "The imatinib pocket, written as you would in PyMOL: pymol('…') compiles it to MolQL.",
       notes: notes(
         'If you know PyMOL, you do not have to learn another language. <code>pymol(\'…\')</code> takes PyMOL text and compiles it to MolQL on the spot, so the component below is "the residues of chain A within 5 Å of imatinib", written as you would in PyMOL.',
         'The same exists for VMD and Jmol text. The result is the same kind of description as before: data, not a script that runs in a viewer. So it can be saved, shared and checked.',

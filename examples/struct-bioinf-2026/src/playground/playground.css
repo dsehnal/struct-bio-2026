@@ -75,7 +75,7 @@ body {
   border-color: #2563eb;
 }
 
-.card[aria-current='true'] {
+.card[aria-current="true"] {
   border-color: #2563eb;
   background: #eff6ff;
 }
@@ -161,7 +161,7 @@ body {
 }
 
 .edits li strong::before {
-  content: counter(edit) '. ';
+  content: counter(edit) ". ";
   color: #6b7280;
 }
 
@@ -260,13 +260,13 @@ body {
   font-weight: 600;
 }
 
-.snippets button[aria-current='true'] {
+.snippets button[aria-current="true"] {
   border-color: #2563eb;
   background: #2563eb;
   color: #fff;
 }
 
-.snippets button[aria-current='true'] .n {
+.snippets button[aria-current="true"] .n {
   background: #fff;
   color: #1d4ed8;
 }

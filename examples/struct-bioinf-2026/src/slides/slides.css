@@ -984,6 +984,24 @@ body {
   flex: 1;
 }
 
+.reveal .grid3 {
+  flex: 0 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.6vmin 2vmin;
+  margin-bottom: 1.2vmin;
+}
+
+.reveal .grid3 > .panel {
+  container-type: inline-size;
+}
+
+.reveal .grid3 .panel .code.plain {
+  font-size: clamp(12px, 3.7cqw, 3.2vmin);
+  flex: 1;
+}
+
 .reveal .clicks {
   columns: 2;
   column-gap: 1.2em;

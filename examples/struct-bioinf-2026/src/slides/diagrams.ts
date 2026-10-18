@@ -45,7 +45,7 @@ const Columns: readonly MapColumn[] = [
     nodes: [
       { title: 'MolViewSpec', sub: '3D scenes and stories', parts: '3 5 6' },
       { title: 'SeqViewSpec', sub: 'sequence views', parts: '4' },
-      { title: 'MolQL · SeqQL', sub: 'what to select', parts: '3 4' },
+      { title: 'MolQL', sub: 'what to select', parts: '3' },
     ],
   },
   {
