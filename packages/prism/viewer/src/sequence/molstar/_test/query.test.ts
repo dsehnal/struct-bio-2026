@@ -61,9 +61,9 @@ const summary = (text: string) => {
 };
 
 describe('molstar.select (molql)', () => {
-  it("the zinc site: Mol*'s residues within 3 Å of each zinc (C176, H179, C238, C242, and N239's backbone), on P04637 through SIFTS", () => {
+  it('the zinc site: the residues within 3 Å of each zinc (C176, H179, C238, C242), on P04637 through SIFTS', () => {
     expect(summary('(onto (molql "polymer and (resn ZN around 3)") p53)')).toBe(
-      '1 group, 5 positions: p53/unit 176, 179, 238-239, 242',
+      '1 group, 4 positions: p53/unit 176, 179, 238, 242',
     );
   });
 
@@ -71,11 +71,11 @@ describe('molstar.select (molql)', () => {
     const onP53 = summary('(onto (molql "polymer.protein and (polymer.nucleic around 4)") p53)');
     // K120 in the major groove, R248 in the minor, R273 and R280 on the backbone and the bases
     expect(onP53).toBe(
-      '1 group, 24 positions: p53/unit 101, 118-122, 165, 167-168, 239-241, 243, 247-249, 273-277, 280-281, 283',
+      '1 group, 17 positions: p53/unit 101, 119-121, 165, 167-168, 239, 241, 243, 248, 273, 275-277, 280, 283',
     );
     // and on the three p53 chains
-    expect(summary('(molql "polymer.protein and (polymer.nucleic around 4)")')).toMatch(
-      /^1 group, 39 positions: 1tup\/C 101, .*; 1tup\/D 118-122, .*; 1tup\/E 119-121, /,
+    expect(summary('(molql "polymer.protein and (polymer.nucleic around 4)")')).toBe(
+      '1 group, 20 positions: 1tup/C 101, 165, 167-168; 1tup/D 119-120, 239, 241, 243, 248, 273, 275-277, 280, 283; 1tup/E 120-121, 241, 248',
     );
   });
 
@@ -120,7 +120,7 @@ describe('the structure input and back', () => {
       const h = l.unit.model.atomicHierarchy;
       residues.add(String(h.residues.auth_seq_id.value(h.residueAtomSegments.index[l.element])));
     });
-    expect([...residues].sort()).toEqual(['176', '179', '238', '239', '242']);
+    expect([...residues].sort()).toEqual(['176', '179', '238', '242']);
   });
 });
 

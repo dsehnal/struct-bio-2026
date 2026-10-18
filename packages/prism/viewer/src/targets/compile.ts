@@ -60,13 +60,12 @@ export function compileQuery(
   try {
     molql = entry.transpile(source);
   } catch (e) {
-    // Mol*'s PyMOL parser recurses without end on an operator missing its left side ("polymer and within 5 of ...")
-    // and on a group opening with two parentheses ("((a) within 5 of b)"); say what to write instead of "Maximum call
-    // stack size".
-    if (/call stack/i.test(messageOf(e))) {
+    // The commonest mistake with distance operators: "within" or "around" with nothing on its left
+    // ("polymer and within 5 of ..."); PyMOL's operators are binary, so say what to write.
+    if (/(^|\b(and|or|not)\b|\()\s*(within|around|near_to|beyond)\b/i.test(source)) {
       return failure(
-        `${entry.name} could not read it: the parser went in circles.`,
-        'Give "within" and "around" a left side, and open no group with two parentheses; e.g. "byres (chain A and polymer) within 5 of (resn STI)".',
+        `${entry.name} could not read it: ${messageOf(e)}`,
+        'Give "within" and "around" a left side; e.g. "byres (chain A and polymer) within 5 of (resn STI)".',
       );
     }
     return failure(`${entry.name} could not read it: ${messageOf(e)}`, entry.hint);

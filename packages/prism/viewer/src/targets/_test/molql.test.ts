@@ -73,8 +73,8 @@ describe('compiling selection text to MolQL', () => {
     expect(compileQuery('   ')).toMatchObject({ ok: false, message: 'The query is empty.' });
     const lopsided = compileQuery('byres (polymer and within 5 of (chain A and resi 104))');
     expect(!lopsided.ok && lopsided.hint).toMatch(/give "within" and "around" a left side/i);
-    const doubled = compileQuery('byres ((chain A and polymer) within 4 of (chain A and resn HEM))');
-    expect(!doubled.ok && doubled.hint).toMatch(/open no group with two parentheses/);
+    // A group opening with two parentheses reads (it once sent the parser in circles).
+    expect(compileQuery('byres ((chain A and polymer) within 4 of (chain A and resn HEM))').ok).toBe(true);
     expect(checkMolQL({ head: { name: 'not.a.symbol' } })).toMatch(/Invalid MolQL|Mol\* cannot run it/);
   });
 
@@ -103,7 +103,7 @@ describe('evaluating selections (a tiny structure with a heme beside CYS 104)', 
   it("selects what the old forms cannot say: the heme's surroundings, the cysteines", () => {
     const around = residuesOf(pymol('byres polymer within 5 of resn HEM'));
     expect(around).toContain('A:104');
-    expect(around.length).toBeGreaterThan(2);
+    expect(around).toEqual(['A:103', 'A:104']);
     expect(around).not.toContain('A:500');
     expect(around).not.toContain('A:119');
     const cys = residues(selectLoci(structure, pymol('resn CYS and chain A')));
