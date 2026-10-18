@@ -22,59 +22,81 @@ interface MapNode {
   readonly parts: string;
 }
 
-const Data: readonly MapNode[] = [
-  { title: 'PDBe · AlphaFold · EMDB', sub: 'structures, models, maps', parts: '3' },
-  { title: 'Volume server', sub: 'density by region and detail', parts: '5' },
-  { title: 'Annotations', sub: 'CIF, JSON, UniProt tables', parts: '3 4' },
-];
-const Descriptions: readonly MapNode[] = [
-  { title: 'MolViewSpec', sub: '3D scenes and stories', parts: '3 5 6' },
-  { title: 'SeqViewSpec', sub: 'sequence views', parts: '4' },
-  { title: 'MolQL · SeqQL', sub: 'what to select', parts: '3 4' },
-];
-const Viewers: readonly MapNode[] = [
-  { title: 'Mol* · Prism', sub: 'in the web page', parts: '3 5' },
-  { title: 'Seq*', sub: 'sequences, tracks, alignments', parts: '4' },
-  { title: 'Notebooks', sub: 'Python molviewspec', parts: '3' },
-  { title: 'Stories · MVSX · images', sub: 'to share and publish', parts: '6' },
+interface MapColumn {
+  readonly head: string;
+  /** A line under the head. */
+  readonly note?: string;
+  readonly nodes: readonly MapNode[];
+}
+
+const Columns: readonly MapColumn[] = [
+  {
+    head: 'DATA',
+    note: 'what is shown',
+    nodes: [
+      { title: 'PDBe · AFDB · EMDB', sub: 'structures, models, maps', parts: '3' },
+      { title: 'Volume server', sub: 'density by region and detail', parts: '5' },
+      { title: 'Annotations', sub: 'CIF, JSON, UniProt tables', parts: '3 4' },
+    ],
+  },
+  {
+    head: 'DESCRIPTIONS',
+    note: 'written in TypeScript or Python',
+    nodes: [
+      { title: 'MolViewSpec', sub: '3D scenes and stories', parts: '3 5 6' },
+      { title: 'SeqViewSpec', sub: 'sequence views', parts: '4' },
+      { title: 'MolQL · SeqQL', sub: 'what to select', parts: '3 4' },
+    ],
+  },
+  {
+    head: 'VIEWERS AND OUTPUTS',
+    note: 'where it is drawn or kept',
+    nodes: [
+      { title: 'Mol* · Prism', sub: 'in the web page', parts: '3 5' },
+      { title: 'Seq*', sub: 'sequences, tracks, alignments', parts: '4' },
+      { title: 'Stories · MVSX', sub: 'files and images to share', parts: '6' },
+    ],
+  },
 ];
 
 /**
- * "Describe, don't click" (outline.md §2): data, descriptions, viewers. With `current` (3–6) the boxes that part deals
- * with are highlighted and the rest fades (the map at the start of parts 3–6); without it, all are the same.
+ * "Describe, don't click" (outline.md §2): data, descriptions (written in TypeScript or Python), viewers and outputs: three
+ * tinted columns of cards of one size, one arrow between each two. With `current` (3–6) the cards that part deals with are
+ * lit and the rest are quieter (still readable): the map at the start of parts 3–6; without it, all are the same.
  */
 export function partsMap(current?: number): string {
   const arrow = `arrow-${++arrowCount}`;
-  const colX = [18, 349, 680] as const;
-  const w = 262;
-  const column = (nodes: readonly MapNode[], x: number, h: number, gap: number) =>
-    nodes.map((n, i) => {
-      const y = 52 + i * (h + gap);
-      return {
-        cy: y + h / 2,
-        svg: `<g class="node" data-parts="${n.parts}"><rect class="dg-box" x="${x}" y="${y}" width="${w}" height="${h}" rx="10"/><text class="dg-title" x="${x + 16}" y="${y + h / 2 - 3}">${escapeHtml(n.title)}</text><text class="dg-sub" x="${x + 16}" y="${y + h / 2 + 19}">${escapeHtml(n.sub)}</text></g>`,
-      };
-    });
-  const data = column(Data, colX[0], 72, 24);
-  const descriptions = column(Descriptions, colX[1], 72, 24);
-  const viewers = column(Viewers, colX[2], 58, 14);
-  // A bus between two columns (every box on the left feeds every box on the right); each right-hand line ends in its own
-  // arrowhead, as a marker on a multi-segment path marks only its last segment.
-  const heads = (right: typeof data, x: number, to: number) =>
-    right.map((n) => `<path class="dg-line" d="M${x} ${n.cy} H${to - 3}" marker-end="url(#${arrow})"/>`).join('');
-  const bus = (left: typeof data, right: typeof data, from: number, to: number) => {
-    const x = (from + to) / 2;
-    const ys = [...left.map((n) => n.cy), ...right.map((n) => n.cy)];
-    return `<path class="dg-line" d="${left.map((n) => `M${from} ${n.cy} H${x}`).join(' ')} M${x} ${Math.min(...ys)} V${Math.max(...ys)}"/>${heads(right, x, to)}`;
-  };
-  const heading = (x: number, text: string) => `<text class="dg-head" x="${x}" y="28">${text}</text>`;
+  const panelX = [14, 349, 684] as const;
+  const panelW = 262;
+  const cardW = 230;
+  const cardH = 62;
+  const panelY = 10;
+  const panelH = 322;
+  const cardsY = 96;
+  const gap = 14;
+  const panels = Columns.map((col, c) => {
+    const x = panelX[c];
+    const cards = col.nodes
+      .map((n, i) => {
+        const cx = x + (panelW - cardW) / 2;
+        const cy = cardsY + i * (cardH + gap);
+        return `<g class="node" data-parts="${n.parts}"><rect class="dg-box" x="${cx}" y="${cy}" width="${cardW}" height="${cardH}" rx="10"/><text class="dg-title" x="${cx + 14}" y="${cy + 26}">${escapeHtml(n.title)}</text><text class="dg-sub" x="${cx + 14}" y="${cy + 47}">${escapeHtml(n.sub)}</text></g>`;
+      })
+      .join('');
+    return `<g><rect class="dg-col dg-col-${c}" x="${x}" y="${panelY}" width="${panelW}" height="${panelH}" rx="14"/><text class="dg-head" x="${x + 16}" y="${panelY + 30}">${col.head}</text><text class="dg-note" x="${x + 16}" y="${panelY + 52}">${escapeHtml(col.note ?? '')}</text>${cards}</g>`;
+  }).join('');
+  // One arrow in each gap, at the middle of the cards.
+  const midY = cardsY + (3 * cardH + 2 * gap) / 2;
+  const arrows = [0, 1]
+    .map((i) => {
+      const from = panelX[i] + panelW + 6;
+      const to = panelX[i + 1] - 6;
+      return `<path class="dg-line" d="M${from} ${midY} H${to}" marker-end="url(#${arrow})"/>`;
+    })
+    .join('');
   const parts = current === undefined ? '' : ` data-current="${current}"`;
-  return `<svg class="parts-map dg"${parts} viewBox="0 0 960 350" role="img" aria-label="Data, descriptions and viewers: descriptions turn data into views">
-    ${arrowDefs(arrow)}
-    ${heading(colX[0], 'DATA')}${heading(colX[1], 'DESCRIPTIONS')}${heading(colX[2], 'VIEWERS')}
-    ${bus(data, descriptions, colX[0] + w, colX[1])}
-    ${bus(descriptions, viewers, colX[1] + w, colX[2])}
-    ${data.map((n) => n.svg).join('')}${descriptions.map((n) => n.svg).join('')}${viewers.map((n) => n.svg).join('')}
+  return `<svg class="parts-map dg"${parts} viewBox="0 0 960 342" role="img" aria-label="Data, descriptions and viewers: descriptions turn data into views">
+    ${arrowDefs(arrow)}${panels}${arrows}
   </svg>`;
 }
 
@@ -98,6 +120,8 @@ export function volumeServerDiagram(): string {
   };
   return `<svg class="volume-diagram dg" viewBox="0 0 960 440" role="img" aria-label="A large map, the box you ask for, and its levels of detail">
     ${arrowDefs(arrow)}
+    <rect class="dg-col dg-col-0" x="6" y="4" width="388" height="432" rx="14"/>
+    <rect class="dg-col dg-col-2" x="528" y="4" width="426" height="432" rx="14"/>
     <text class="dg-head" x="20" y="28">THE MAP, STORED ONCE</text>
     <text class="dg-head" x="540" y="28">LEVELS OF DETAIL, PRECOMPUTED</text>
     <rect class="dg-box" x="20" y="50" width="360" height="360" rx="10"/>
@@ -114,29 +138,5 @@ export function volumeServerDiagram(): string {
     <path class="dg-line dg-ask-s" d="M214 218 C380 150 420 130 536 96" marker-end="url(#${arrow})"/>
     <path class="dg-line dg-ask-m" d="M278 222 C400 230 430 230 536 222" marker-end="url(#${arrow})"/>
     <path class="dg-line dg-ask-l" d="M372 330 C440 340 480 348 536 348" marker-end="url(#${arrow})"/>
-  </svg>`;
-}
-
-/** Every button is an operation (outline.md §1): three ways in, one set of named operations, one scene and history. */
-export function operationsDiagram(): string {
-  const arrow = `arrow-${++arrowCount}`;
-  const caller = (y: number, title: string, sub: string) =>
-    `<g class="node"><rect class="dg-box" x="20" y="${y}" width="270" height="72" rx="10"/><text class="dg-title" x="38" y="${y + 33}">${title}</text><text class="dg-sub" x="38" y="${y + 56}">${sub}</text></g>`;
-  const line = (y: number) => `<path class="dg-line" d="M290 ${y} H370" marker-end="url(#${arrow})"/>`;
-  return `<svg class="operations-diagram dg" viewBox="0 0 960 300" role="img" aria-label="The UI, scripts and the assistant call the same named operations">
-    ${arrowDefs(arrow)}
-    ${caller(24, 'The UI', 'buttons, menus, commands')}
-    ${caller(114, 'Scripts and pages', 'viewer.api.load.mvs(…)')}
-    ${caller(204, 'The assistant', 'asks for the same operations')}
-    ${line(60)}${line(150)}${line(240)}
-    <g class="node dg-core"><rect class="dg-box" x="375" y="24" width="270" height="252" rx="10"/>
-      <text class="dg-title" x="395" y="66">Named operations</text>
-      <text class="dg-code" x="395" y="108">load.entry</text><text class="dg-code" x="395" y="138">structure.show</text>
-      <text class="dg-code" x="395" y="168">style.color</text><text class="dg-code" x="395" y="198">snapshot.add</text>
-      <text class="dg-sub" x="395" y="248">a name and parameters each</text></g>
-    <path class="dg-line" d="M645 150 H700" marker-end="url(#${arrow})"/>
-    <g class="node"><rect class="dg-box" x="705" y="24" width="235" height="252" rx="10"/>
-      <text class="dg-title" x="723" y="66">The scene</text><text class="dg-sub" x="723" y="96">what is on screen</text>
-      <text class="dg-title" x="723" y="160">The history</text><text class="dg-sub" x="723" y="190">every step, undoable</text></g>
   </svg>`;
 }

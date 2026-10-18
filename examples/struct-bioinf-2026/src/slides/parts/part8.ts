@@ -10,6 +10,7 @@ import { modeHref } from '../../mode.js';
 import { escapeHtml, link, notes, slide, stage } from '../html.js';
 import { Links, playgroundUrl } from '../links.js';
 import { qrSvg } from '../qr.js';
+import { pythonSlide } from './python.js';
 
 // Part 8, Your turn: the playground (outline.md §8, 3 min, then questions).
 
@@ -23,6 +24,8 @@ const Cards: readonly { id: string; title: string; text: string }[] = [
 export function part8(): string {
   const url = playgroundUrl();
   return [
+    pythonSlide(8),
+
     slide({
       part: 8,
       notes: notes(

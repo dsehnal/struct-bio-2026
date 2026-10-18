@@ -1649,12 +1649,18 @@ importers:
       '@molstar/prism-assistant':
         specifier: workspace:*
         version: link:../../packages/prism/assistant
+      '@molstar/prism-ui':
+        specifier: workspace:*
+        version: link:../../packages/prism/ui
       '@molstar/prism-viewer':
         specifier: workspace:*
         version: link:../../packages/prism/viewer
       '@molstar/seq-core':
         specifier: workspace:*
         version: link:../../packages/sequences/core
+      '@molstar/video-export-extension':
+        specifier: workspace:*
+        version: link:../../extensions/video-export
       '@molstar/viewer':
         specifier: workspace:*
         version: link:../../apps/viewer

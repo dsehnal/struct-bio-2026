@@ -42,9 +42,8 @@ imatinib.focus({ radius_factor: 1.8 });
 // G383) get colours of their own.
 structure
   .component({
-    selector: molql(
-      'polymer.protein and ' +
-        'byres (chain A within 5 of (chain A and resn STI))',
+    selector: pymol(
+      'byres ((chain A and polymer) within 5 of resn STI)',
     ),
   })
   .representation({ type: 'ball_and_stick', size_factor: 0.6 })
@@ -91,13 +90,10 @@ const structure = builder
       molstar_volume_streaming: {
         view: 'camera-target',
         channel_params: {
-          // The density as a mesh, at 1.5 sigma (1.5 standard
-          // deviations above the mean)
+          // The density, at 1.5 sigma (1.5 standard deviations above
+          // the mean). Mol*'s own look: a see-through surface.
           '2fo-fc': {
             isoValue: { kind: 'relative', relativeValue: 1.5 },
-            color: '#3a86ff',
-            wireframe: true,
-            opacity: 0.9,
           },
           // The difference maps are not drawn
           'fo-fc(+ve)': { opacity: 0 },
@@ -124,17 +120,12 @@ imatinib.focus({ radius_factor: 0.7 });
 // The residues around it, as thin lines
 structure
   .component({
-    selector: molql(
-      'polymer.protein and ' +
-        'byres (chain A within 5 of (chain A and resn STI))',
+    selector: pymol(
+      'byres ((chain A and polymer) within 5 of resn STI)',
     ),
   })
   .representation({ type: 'line' })
   .color({ color: 'gray' });
-
-structure
-  .component({ selector: { auth_asym_id: 'A', auth_seq_id: 315 } })
-  .label({ text: 'T315 gatekeeper' });
 `;
 
 export const ImatinibExample: Example = {
@@ -165,10 +156,10 @@ export const ImatinibExample: Example = {
           ['relativeValue: 1.5', 'relativeValue: 2.5'],
         ),
         edit(
-          'A solid surface',
-          'Replace the mesh by a see-through surface: set wireframe to false and lower the opacity.',
+          'A mesh instead of a surface',
+          'Draw the density as a mesh, as many programs do: add wireframe: true next to the iso level.',
           DENSITY,
-          ['wireframe: true,\n            opacity: 0.9', 'wireframe: false,\n            opacity: 0.4'],
+          ['relativeValue: 1.5 },\n', 'relativeValue: 1.5 },\n            wireframe: true,\n'],
         ),
         edit(
           'Look at another residue',

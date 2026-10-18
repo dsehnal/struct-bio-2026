@@ -19,8 +19,8 @@ export function part2(): string {
       notes: notes(
         'One diagram, and we will use it again as the map for the rest of the talk.',
         'On the left, <strong>data</strong>: structures and maps from PDBe, AlphaFold DB and EMDB, the volume server for density, and annotation tables such as CIF or JSON, or UniProt.',
-        'In the middle, <strong>descriptions</strong>: MolViewSpec for a 3D scene, SeqViewSpec for a sequence view, and the query languages MolQL and SeqQL that say what to select.',
-        'On the right, <strong>viewers</strong>: Mol* and Prism in the web, Seq* for sequences, notebooks through the Python package, and static outputs: stories, MVSX files, images.',
+        'In the middle, <strong>descriptions</strong>: MolViewSpec for a 3D scene, SeqViewSpec for a sequence view, and the query languages MolQL and SeqQL that say what to select. You write them in TypeScript or in Python, or by hand as JSON; I come back to Python at the end.',
+        'On the right, <strong>viewers and outputs</strong>: Mol* and Prism in the web page, Seq* for sequences, and what you share or publish: stories, MVSX files, images.',
         'The point: the description in the middle is independent of what is on either side. Same description, different data, different viewer.',
       ),
       body: `

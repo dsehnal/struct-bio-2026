@@ -29,8 +29,21 @@ export function molql(text: string, language: MolQLLanguage = 'pymol'): { molql:
   }
 }
 
+/**
+ * A PyMOL selection as an MVS selector value: shorthand for `molql(text, 'pymol')`, compiled at once (a text Mol* cannot
+ * read fails here, at the line of the call).
+ */
+export function pymol(text: string): { molql: unknown } {
+  try {
+    return { molql: JSON.parse(JSON.stringify(compileScript('pymol', text))) };
+  } catch (e) {
+    const why = (e instanceof Error ? e.message : String(e)).split('\n')[0];
+    throw new Error(`pymol("${text}") is not a PyMOL selection Mol* reads: ${why}`);
+  }
+}
+
 /** The names of the program's parameters, in order (program.ts declares the same). */
-export const GLOBAL_NAMES = ['builder', 'molql', 'MolScriptBuilder', 'snapshot', 'seq', 'asset'] as const;
+export const GLOBAL_NAMES = ['builder', 'molql', 'pymol', 'MolScriptBuilder', 'snapshot', 'seq', 'asset'] as const;
 
 /** What a snippet builds: an MVS tree (`builder`) or a SeqViewSpec document (`seq`). */
 export type SnippetKind = 'mvs' | 'svs';
@@ -64,7 +77,7 @@ export async function runProgram(program: string, options: ProgramOptions = {}):
   const asset = (name: string) => assetUrl(name, options.base);
   // biome-ignore lint/nursery/noImpliedEval: running the snippet is the sandbox's job (iframe with a null origin, no network).
   const run = new Function(...GLOBAL_NAMES, program) as (...args: unknown[]) => Promise<void>;
-  await run(builder, molql, MolScriptBuilder, snapshot, seq, asset);
+  await run(builder, molql, pymol, MolScriptBuilder, snapshot, seq, asset);
   const data =
     options.kind === 'svs'
       ? seq.getDocument()

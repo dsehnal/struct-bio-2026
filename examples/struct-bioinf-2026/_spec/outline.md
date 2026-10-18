@@ -201,40 +201,45 @@ Done 2026-10-18; the facts the snippets use are in [examples.md](examples.md).
 
 ## The deck as built
 
-`src/slides/` has one function per part (`parts/part0.ts` … `part8.ts`) and 40 slides in one flat row (a vertical stack
-per part would make → skip the rest of a part). Every slide has speaker notes (the S key), written from the sections
-above, and a footer with its part's tag.
+`src/slides/` has one function per part (`parts/part0.ts` … `part8.ts`, `parts/python.ts`) and 40 slides in one flat row
+(a vertical stack per part would make → skip the rest of a part). Every slide has speaker notes (the S key) and a footer
+with its part's tag.
 
-| Part | Slides                                                                                                                                                                                                           |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0    | title · why visualise · Mol\* v6 · the plan with the playground QR code                                                                                                                                          |
-| 1    | classic vs Prism (morph) · Prism live, full UI, 1IEP · every button is a named operation                                                                                                                         |
-| 2    | the "describe, don't click" diagram · a description is a tree of steps                                                                                                                                           |
-| 3    | opener with the map · `basics-smallest` · `basics-selectors` · `basics-annotations` · `basics-primitives` · Python or TypeScript + Colab · portability · example A · `p53-af-plddt` · `p53-dna` · `p53-hotspots` |
-| 4    | opener · SeqViewSpec shape · SeqQL · `p53-sequence` (the AlphaFold model in 3D, then the SeqViewSpec document)                                                                                                   |
-| 5    | opener · the volume server's principle · `imatinib-pocket` · `imatinib-density`                                                                                                                                  |
-| 6    | opener · MolViewStories (screenshot) · `spike-story` stepped by →                                                                                                                                                |
-| 7    | Prism with the assistant (lazy chunk), the three prompts with Copy buttons                                                                                                                                       |
-| 8    | the playground (QR code, one card per example) · links, citations, thanks                                                                                                                                        |
+| Part | Slides                                                                                                                                                                                                                                                                                                                         |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 0    | title (with Prism's quantum splash) · why visualise (this talk shows, it does not compute) · Mol\* v6 · the plan with the playground QR code                                                                                                                                                                                   |
+| 1    | classic vs Prism (morph) · "What's better in Prism, for you": the live viewer stepped through eight things (tree, selection, selection visuals, volumes, images and animations, Seq\*, command menu, assistant)                                                                                                                |
+| 2    | the map of the talk · state, not steps · a description is a tree of steps                                                                                                                                                                                                                                                      |
+| 3    | opener with the map · `basics-smallest` · `basics-selectors` · one selection, many languages · "Or just use PyMOL" (`basics-pymol`) · data stays outside the structure · `basics-annotations` · `basics-primitives` · portability · example A · `p53-af-plddt` · numbering · `p53-dna` · `p53-hotspots` · checked, not guessed |
+| 4    | opener · SeqViewSpec shape · SeqQL · `p53-sequence`                                                                                                                                                                                                                                                                            |
+| 5    | opener · the volume server's principle · `imatinib-pocket` · `imatinib-density`                                                                                                                                                                                                                                                |
+| 6    | opener · MolViewStories · snapshots and transitions · `spike-story` stepped by →                                                                                                                                                                                                                                               |
+| 7    | Prism with the assistant (lazy chunk), the three prompts with Copy buttons                                                                                                                                                                                                                                                     |
+| 8    | Python or TypeScript + Colab · the playground (QR code, one card per example) · links, citations, thanks                                                                                                                                                                                                                       |
 
 Choices not in the sections above:
 
-- The map of the talk (part 2) is one SVG, `partsMap(current?)`; the openers of parts 3–6 show it with the part's boxes
-  lit.
-- A code slide has a second tab with what the snippet produced (MVSJ, or the SeqViewSpec document): the "a description
-  is data" point, shown on the real output.
-- Reveal's arrows are scaled down into the bottom right corner, where every slide's footer leaves room for them, so they
-  never cover a viewer. The speaker view's frames (`receiver` in the address) get no viewers.
-- The playground address in the QR codes is the page's own, so a published build shows its own link.
-- The assistant slide opens the Assistant tab (`ui.layout.start`); the key is entered there and, as the assistant keeps
-  it, stays in memory with "Until reload".
+- The map (part 2, `partsMap(current?)`) is one SVG: data, descriptions (written in TypeScript or Python), viewers and
+  outputs, three tinted columns of equal cards and one arrow between each two. The openers of parts 3–6 show it with the
+  part's cards lit.
+- The Prism tour (`tour.ts`, `viewer/tour.ts`) puts the viewer (full UI, 1IEP, its density by volume streaming, the
+  animation export as the app has it) in a pose per step, set whole from a clean base through the public API, the scene
+  tree's own pick and expand state and the command menu button, so each step leaves the UI as a click would. A reveal
+  fragment per item after the first.
+- A code slide has a second tab with what the snippet produced (MVSJ, or the SeqViewSpec document) and, when it reads
+  `asset('…')`, a Data tab with the file (a table with its residue keys marked). The code column is 40% and its font
+  scales with the column; a long line scrolls, it is not wrapped; ⇔ widens the column.
+- Principle slides (`principles.ts`; static, one picture or code pair): state not steps (2); one selection in PyMOL,
+  VMD, MolScript and the builder, data stays outside, numbering (auth, label, UniProt), checked not guessed (3);
+  snapshots and transitions (6).
+- The title slide's splash mounts when the slide is current and is disposed when it is left (no frame callback, canvas,
+  observer or listener remains), and pauses while the page is hidden.
+- Weights: `--slide-weight-heavy` for titles (slides, cards, list items), `--slide-weight-medium` for emphasis and
+  labels.
+- Reveal's arrows are scaled into the bottom right corner, where every slide's footer leaves room for them. The speaker
+  view's frames (`receiver` in the address) get no viewers.
+- The playground address in the QR codes is the page's own. The assistant slide opens the Assistant tab; the key is
+  entered there with "Until reload".
 
-Principle slides (`principles.ts`; each static, one picture or code pair): state, not steps (part 2); one selection in
-PyMOL, VMD, MolScript and the builder, then data stays outside the structure (annotation keys and the schemas'
-granularity), both after `basics-selectors`; numbering (auth, label, UniProt) before `p53-dna`; checked, not guessed, at
-the end of part 3; snapshots and transitions before the spike story (part 6). A code slide whose snippet reads
-`asset('…')` has a Data tab with the file (a table with its residue keys marked). The code column is 40% and its font
-scales with the column; a long line scrolls, it is not wrapped; ⇔ widens the column.
-
-To cut for time (each about 30 to 60 seconds): portability, example A intro, state not steps, checked not guessed,
-snapshots and transitions, the selection languages.
+To cut for time (30 to 60 seconds each): portability, example A intro, state not steps, checked not guessed, snapshots
+and transitions, the selection languages, numbering.

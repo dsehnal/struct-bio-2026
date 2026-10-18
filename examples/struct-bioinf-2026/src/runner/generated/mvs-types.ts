@@ -4831,6 +4831,11 @@ declare const builder: import('@molstar/mvs-builder/tree/mvs/mvs-builder').Root;
  * PyMOL by default, e.g. \`molql('byres polymer within 5 of resn STI')\`; VMD, Jmol and MolScript text also work.
  */
 declare function molql(text: string, language?: 'pymol' | 'vmd' | 'jmol' | 'mol-script'): { molql: unknown };
+/**
+ * A PyMOL selection as a selector, the shorthand for molql(text, 'pymol'): pymol('byres (chain A within 5 of resn STI)').
+ * The text is read at once, so a mistake in it is reported at this line.
+ */
+declare function pymol(text: string): { molql: unknown };
 /** Mol*'s MolScript builder, for selections that text cannot say: \`{ molql: MolScriptBuilder.struct... }\`. */
 declare const MolScriptBuilder: typeof import('@molstar/mvs-builder/molql').MolScriptBuilder;
 /**

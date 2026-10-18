@@ -53,7 +53,7 @@ export function part5(): string {
       notes: notes(
         'Example B: imatinib (Gleevec) in ABL kinase, a drug and its evidence. The structure is 1IEP, the c-Abl kinase domain with STI-571, which is imatinib.',
         'First the pocket: the residues within 5 Å of the ligand, and the hydrogen bonds. The kinase is in the DFG-out conformation: imatinib binds the inactive form. Y253 is in the P-loop.',
-        "Find the gatekeeper, T315: the next slide labels it. T315I is the clinical resistance mutation, and the threonine's hydroxyl forms a hydrogen bond to imatinib, so the isoleucine breaks it and adds bulk.",
+        "Find the gatekeeper, T315, labelled on this slide. T315I is the clinical resistance mutation, and the threonine's hydroxyl forms a hydrogen bond to imatinib, so the isoleucine breaks it and adds bulk.",
       ),
     }),
 
@@ -61,11 +61,11 @@ export function part5(): string {
       part: 5,
       snippetId: 'imatinib-density',
       title: 'Is the ligand supported by the data?',
-      lead: '2Fo-Fc density around imatinib, from the volume server. T315, the gatekeeper, labelled.',
+      lead: '2Fo-Fc density around imatinib, streamed from the volume server.',
       notes: notes(
         'The 2Fo-Fc density around the ligand, streamed from the PDBe volume server for just this box. The question every structural biologist asks: is the ligand supported by the data? This ties to validation and PDB-REDO from Tuesday.',
         'The density is a volume node in the description, with an iso level in sigma. The box follows the ligand.',
-        'The gatekeeper T315 is labelled.',
+        'The density follows the camera: focus on another residue and the box moves with it.',
         'Try it: change the iso level (σ), or move the box to another residue.',
       ),
     }),

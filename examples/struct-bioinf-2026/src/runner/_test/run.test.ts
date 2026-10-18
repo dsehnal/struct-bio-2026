@@ -87,6 +87,21 @@ describe('runSnippet (the sandbox runtime in process)', () => {
     expect(r.ok).toBe(false);
   });
 
+  it('pymol(text) is molql(text, "pymol"), compiled at once', async () => {
+    const part = (selector: string) =>
+      `builder.download({ url: 'x.cif' }).parse({ format: 'mmcif' }).modelStructure().component({ selector: ${selector} }).representation();`;
+    const a = await run(part("pymol('byres ((chain A and polymer) within 5 of resn STI)')"));
+    const b = await run(part("molql('byres ((chain A and polymer) within 5 of resn STI)', 'pymol')"));
+    expect(a.ok).toBe(true);
+    expect(a.ok && b.ok && JSON.stringify(a.mvs.root)).toBe(b.ok ? JSON.stringify(b.mvs.root) : '');
+    const bad = await run(`const x = 1;\npymol('this is (not a selection');`);
+    expect(bad.ok).toBe(false);
+    if (!bad.ok) {
+      expect(bad.error.line).toBe(2);
+      expect(bad.error.message).toMatch(/pymol\("this is \(not a selection"\) is not a PyMOL selection/);
+    }
+  });
+
   it('resolves asset() against the address of the page', async () => {
     const code = `builder.download({ url: asset('x.json') });`;
     const ok = await runSnippetWith(inProcessRunner, code, { base: 'https://example.org/talk/?mode=playground' });

@@ -47,6 +47,15 @@ describe('the generated typings', () => {
     expect(found.length).toBeGreaterThan(0);
   });
 
+  it('check pymol(), which takes text only', () => {
+    expect(
+      errors(
+        "builder.download({ url: 'x' }).parse({ format: 'bcif' }).modelStructure().component({ selector: pymol('resn STI') });",
+      ),
+    ).toEqual([]);
+    expect(errors('pymol(3);')).toHaveLength(1);
+  });
+
   it('report an unknown name', () => {
     expect(errors('buildr.canvas({});')).toEqual([expect.stringContaining("Cannot find name 'buildr'")]);
   });

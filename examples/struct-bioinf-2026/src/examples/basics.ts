@@ -81,6 +81,37 @@ structure
   .color({ color: 'purple' });
 `;
 
+const PYMOL = `// The pocket of imatinib in the ABL kinase (1IEP, chain A) as PyMOL
+// text: pymol('...') turns a PyMOL selection into a selector.
+const structure = builder
+  .download({
+    url: 'https://www.ebi.ac.uk/pdbe/entry-files/download/1iep.bcif',
+  })
+  .parse({ format: 'bcif' })
+  .modelStructure();
+
+structure
+  .component({ selector: { auth_asym_id: 'A' } })
+  .representation({ type: 'cartoon' })
+  .color({ color: 'lightgray' })
+  .opacity({ opacity: 0.4 });
+
+// Residues of the protein with an atom within 5 Å of imatinib (STI)
+const pocket = structure.component({
+  selector: pymol('byres ((chain A and polymer) within 5 of resn STI)'),
+});
+pocket
+  .representation({ type: 'ball_and_stick', size_factor: 0.6 })
+  .color({ color: 'steelblue' });
+
+// Imatinib itself
+const drug = structure.component({
+  selector: pymol('chain A and resn STI'),
+});
+drug.representation({ type: 'ball_and_stick' }).color({ color: 'orange' });
+drug.focus({ radius_factor: 1.8 });
+`;
+
 const ANNOTATIONS = `// Imatinib's kinase (1IEP). The colours and the tooltips come from a
 // small table in a file, not from this code. asset(...) is the address
 // of a file of this page; the address of your own file works as well.
@@ -196,6 +227,29 @@ export const BasicsExample: Example = {
           'The text selection can say much more. Replace resn ZN with resn ZN or resn CYS to draw the zinc together with all the cysteines of chain B.',
           SELECTORS,
           ["molql('chain B and resn ZN')", "molql('chain B and (resn ZN or resn CYS)')"],
+        ),
+      ],
+    },
+    {
+      id: 'basics-pymol',
+      kind: 'mvs',
+      title: 'Selections as PyMOL text',
+      summary:
+        'If you know PyMOL, write the selection the way you always do: the residues within 5 Å of imatinib, as text.',
+      code: PYMOL,
+      edits: [
+        edit('A wider pocket', 'Change the distance from 5 to 8 Å to see what lies a little further out.', PYMOL, [
+          'within 5 of',
+          'within 8 of',
+        ]),
+        edit(
+          'Only some residues',
+          'PyMOL text can filter by residue name. Keep just the hydrophobic residues leucine, isoleucine, valine and phenylalanine of the pocket.',
+          PYMOL,
+          [
+            "pymol('byres ((chain A and polymer) within 5 of resn STI)')",
+            "pymol('byres ((chain A and polymer) within 5 of resn STI) and resn LEU+ILE+VAL+PHE')",
+          ],
         ),
       ],
     },

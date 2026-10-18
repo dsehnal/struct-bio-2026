@@ -14,10 +14,16 @@
       "path": "../../apps/viewer"
     },
     {
+      "path": "../../extensions/video-export"
+    },
+    {
       "path": "../../packages/mvs/builder"
     },
     {
       "path": "../../packages/prism/assistant"
+    },
+    {
+      "path": "../../packages/prism/ui"
     },
     {
       "path": "../../packages/prism/viewer"

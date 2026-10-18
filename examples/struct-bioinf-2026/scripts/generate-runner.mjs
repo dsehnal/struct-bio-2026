@@ -10,7 +10,7 @@
 // - mvs-types.ts and svs-types.ts: the typings Monaco gets for MVS and SVS snippets, each as one .d.ts string
 //   (_spec/README.md decision 3). The published declarations of @molstar/mvs-builder (or @molstar/seq-core's builder) and
 //   what they import become `declare module '<specifier>' { ... }` blocks of one script file, and the globals the snippet
-//   sees (`builder`, `molql()`, `seq`, `asset()`, ...) are declared on top of them.
+//   sees (`builder`, `molql()`, `pymol()`, `seq`, `asset()`, ...) are declared on top of them.
 // - runtime.ts: the iframe's runtime (src/runner/runtime/entry.ts with both builders), bundled by Vite, as a string.
 
 import { execFileSync } from 'node:child_process';
@@ -74,6 +74,11 @@ declare const builder: ${BUILDER};
  * PyMOL by default, e.g. \`molql('byres polymer within 5 of resn STI')\`; VMD, Jmol and MolScript text also work.
  */
 declare function molql(text: string, language?: 'pymol' | 'vmd' | 'jmol' | 'mol-script'): { molql: unknown };
+/**
+ * A PyMOL selection as a selector, the shorthand for molql(text, 'pymol'): pymol('byres (chain A within 5 of resn STI)').
+ * The text is read at once, so a mistake in it is reported at this line.
+ */
+declare function pymol(text: string): { molql: unknown };
 /** Mol*'s MolScript builder, for selections that text cannot say: \`{ molql: MolScriptBuilder.struct... }\`. */
 declare const MolScriptBuilder: typeof import('@molstar/mvs-builder/molql').MolScriptBuilder;
 /**

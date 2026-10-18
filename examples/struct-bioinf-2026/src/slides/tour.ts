@@ -1,0 +1,253 @@
+/**
+ * Copyright (c) 2026 mol* contributors, licensed under MIT, See LICENSE file for more info.
+ *
+ * Developed in collaboration with Anyfold <https://anyfold.ai/>
+ *
+ * @author David Sehnal <david.sehnal@gmail.com>
+ */
+
+// Bring the `canvas.lighting` and `export` areas' types onto `viewer.api` (as `viewer/index.ts` does for the loaders).
+import '@molstar/prism-viewer/features/canvas-settings';
+import type { SceneNode } from '@molstar/prism-viewer/model/scene';
+import type { EmbeddedViewer } from '../viewer/index.js';
+import { createTourViewer, VideoSection } from '../viewer/tour.js';
+import { escapeHtml, notes, slide } from './html.js';
+import type { LiveScene } from './live.js';
+
+// The Prism tour (outline.md §1): the full viewer with 1IEP and its density (volume streaming, around the ligand) beside a list
+// of what is better in Prism. A reveal fragment per item after the first (→ and ←): each step puts the viewer in the state
+// that shows the item, through the public API (`viewer.api`, the command manager), then the list highlights it. A step is a
+// pose, set whole from a clean base, so stepping back and forth lands in the same place. If a step cannot be driven the
+// panel is shown and the notes say what to click.
+
+type Api = EmbeddedViewer['viewer']['api'];
+
+/** The ligand's density: 2Fo-Fc at this level (σ) in the tour's first poses, and in the volume step moved up and back. */
+const IsoStart = 1.5;
+const IsoHigh = 3;
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/** Calls an operation and says on the console when it does not work (a step must not stop the tour). */
+async function call(what: string, run: () => Promise<{ ok: boolean; message?: string }> | undefined) {
+  try {
+    const r = await run();
+    if (r && !r.ok) console.warn(`Tour: ${what}: ${r.message}`);
+  } catch (e) {
+    console.warn(`Tour: ${what} failed.`, e);
+  }
+}
+
+export const tourScene: LiveScene = async (el) => {
+  const container = el.querySelector<HTMLElement>('.live-viewer');
+  const items = [...el.querySelectorAll<HTMLElement>('.tour-list li')];
+  const steps = [...el.querySelectorAll<HTMLElement>('.tour-step')];
+  const deckRoot = el.closest<HTMLElement>('.reveal');
+  if (!container || !deckRoot) throw new Error('The tour slide is missing a part.');
+  const embedded = await createTourViewer(container);
+  const { viewer } = embedded;
+  const api: Api = viewer.api;
+  const scene = viewer.views.scene;
+  let disposed = false;
+  let ready = false;
+  /** Bumped by every pose; a pose that finds itself outdated stops. */
+  let turn = 0;
+  let shown = 0;
+
+  const paint = () => items.forEach((li, i) => li.classList.toggle('current', i === shown));
+
+  /** A row of the scene tree (by its label), picked the way a click picks it: its inspector opens, its ancestors expanded. */
+  const pickRow = (label: string, expand = false) => {
+    const find = (list: readonly SceneNode[]): SceneNode | undefined => {
+      for (const n of list) {
+        if (n.label.value === label) return n;
+        const below = find(n.children.value);
+        if (below) return below;
+      }
+      return undefined;
+    };
+    const node = find(scene.roots.value);
+    if (!node || !scene.reveal?.(node.id)) {
+      console.warn(`Tour: there is no '${label}' row in the scene tree.`);
+      return;
+    }
+    // Opened as a click on its arrow opens it (a lazy row computes its children then).
+    if (expand && !node.isExpanded.value) node.toggleExpanded();
+  };
+
+  /** The clean state every pose starts from: nothing selected or styled, no panel, the density at its start. */
+  async function base() {
+    viewer.managers.commands.cancel();
+    scene.pick(undefined);
+    await call('select.clear', () => api.select.clear());
+    await call('reset layers', () => api.representation.reset({ layer: 'all' }));
+    await call('lighting', () => api.canvas.lighting({ occlusion: { name: 'off' }, outline: { name: 'off' } }));
+    await call('iso', () => api.volume.streamingView({ channels: { '2fo-fc': { isoValue: IsoStart } } }));
+    // The right dock and any card only: `view.close` closes every dock, the sequence band's (the top one) too.
+    viewer.managers.navigation.setCard(undefined);
+    viewer.managers.navigation.setDock('right', { collapsed: true });
+  }
+
+  const poses: readonly ((alive: () => boolean) => Promise<void>)[] = [
+    // 1. The structure tree.
+    async () => {
+      await call('camera', () => api.camera.reset({}));
+      await call('open Structure', () => api.view.open({ tab: 'structure' }));
+      pickRow('Contents', true);
+    },
+    // 2. Better selection: build it (the ligand), grow it (5 Å), change it (add the gatekeeper).
+    async (alive) => {
+      await call('camera', () => api.camera.frame({ target: 'ligand' }));
+      await call('open Selection', () => api.view.open({ tab: 'selection' }));
+      await call('select ligand', () => api.select.set({ target: 'ligand' }));
+      await sleep(1300);
+      if (!alive()) return;
+      await call('grow', () => api.select.around({ radius: 5 }));
+      await sleep(1300);
+      if (!alive()) return;
+      await call('add T315', () => api.select.set({ target: 'A:315', mode: 'add' }));
+    },
+    // 3. Selection visuals: the selection's style section, with a color and a glow on it.
+    async () => {
+      await call('camera', () => api.camera.frame({ target: 'ligand' }));
+      await call('select pocket', () => api.select.set({ target: 'ligand' }));
+      await call('grow', () => api.select.around({ radius: 5 }));
+      await call('open style', () => api.view.open({ tab: 'selection', section: 'selection-style' }));
+      await call('color', () => api.representation.color({ target: 'selection', color: '#e76f51' }));
+      await call('glow', () => api.representation.emissive({ target: 'selection', strength: 0.4 }));
+    },
+    // 4. Volumes: the iso value moves up and back, in σ.
+    async (alive) => {
+      await call('camera', () => api.camera.frame({ target: 'ligand' }));
+      await call('open Structure', () => api.view.open({ tab: 'structure' }));
+      pickRow('Volume streaming');
+      for (const level of [2, IsoHigh, 2, IsoStart]) {
+        await sleep(900);
+        if (!alive()) return;
+        await call('iso', () => api.volume.streamingView({ channels: { '2fo-fc': { isoValue: level } } }));
+      }
+    },
+    // 5. Nicer screenshots: lighting (occlusion, outline) on, the Export card at its Image section, then its Animation section
+    // (MP4 or WebM): the extension is loaded when the section is asked for.
+    async (alive) => {
+      await call('camera', () => api.camera.frame({ target: 'ligand' }));
+      await call('lighting', () => api.canvas.lighting({ occlusion: { name: 'on' }, outline: { name: 'on' } }));
+      await call('open export', () =>
+        api.view.open({ card: 'core.overlay.export', section: 'export-image.section.image' }),
+      );
+      await sleep(3200);
+      if (!alive()) return;
+      await call('open animation', () =>
+        api.view.open({ card: 'core.overlay.export', section: `export-image.section.image/${VideoSection}` }),
+      );
+    },
+    // 6. The sequence viewer: a residue range selected in 3D is lit in the sequence (and the reverse).
+    async () => {
+      await call('camera', () => api.camera.reset({}));
+      await call('select DFG', () => api.select.set({ target: 'A:380-385' }));
+    },
+    // 7. The command menu, on its first screen (Browse, then Data, …): the palette button's own action, as a click on it.
+    async () => {
+      await call('camera', () => api.camera.reset({}));
+      const palette = viewer.views.shell?.toolbar.value.find((i) => i.id === 'palette');
+      if (palette?.run) palette.run(container);
+      else console.warn('Tour: the viewer has no command menu button.');
+    },
+    // 8. The assistant: named here, shown live in part 7.
+    async () => {
+      await call('camera', () => api.camera.reset({}));
+    },
+  ];
+
+  const pose = async (n: number) => {
+    const mine = ++turn;
+    const alive = () => !disposed && mine === turn;
+    await base();
+    if (!alive()) return;
+    await poses[n](alive);
+  };
+
+  const onFragment = () => {
+    const n = steps.filter((f) => f.classList.contains('visible')).length;
+    if (n === shown) return;
+    shown = n;
+    paint();
+    if (ready) void pose(n);
+  };
+  deckRoot.addEventListener('fragmentshown', onFragment);
+  deckRoot.addEventListener('fragmenthidden', onFragment);
+  shown = steps.filter((f) => f.classList.contains('visible')).length;
+  paint();
+
+  // The scene: 1IEP and its density, then the first pose.
+  void (async () => {
+    embedded.setStatus('Loading 1IEP…');
+    try {
+      await embedded.loadEntry('pdb', '1iep');
+      if (disposed) return;
+      await call('streaming', () => api.volume.streaming({ on: true }));
+      // The density around the gatekeeper, a residue next to the ligand: a focus on a protein residue keeps the sequence band
+      // (a focus on the ligand would take it from the protein).
+      await call('streaming view', () => api.volume.streamingView({ view: 'selection-box', radius: 10 }));
+      await call('focus', () => api.focus.set({ target: 'A:315' }));
+      await call('reset camera', () => api.camera.reset({ animate: false }));
+      embedded.setStatus(undefined);
+    } catch (e) {
+      console.error(e);
+      if (!disposed) embedded.setStatus(`Could not load 1IEP: ${e instanceof Error ? e.message : String(e)}`, 'error');
+      return;
+    }
+    ready = true;
+    await pose(shown);
+  })();
+
+  return async () => {
+    disposed = true;
+    deckRoot.removeEventListener('fragmentshown', onFragment);
+    deckRoot.removeEventListener('fragmenthidden', onFragment);
+    await embedded.dispose();
+  };
+};
+
+const Items: readonly { title: string; text: string }[] = [
+  { title: 'The structure tree', text: 'What is in the scene, in plain words.' },
+  { title: 'Better selection', text: 'Build it, grow it, change it, and see it.' },
+  { title: 'Selection visuals', text: 'How a selection is shown, and how to change that.' },
+  { title: 'Volumes', text: 'Density, with its iso value under your hand.' },
+  { title: 'Images and animations', text: 'Lighting, outlines, a preview; animations as MP4 or WebM.' },
+  { title: 'Sequence viewer (Seq*)', text: 'Linked to the 3D view, both ways.' },
+  { title: 'The command menu', text: 'Type what you want.' },
+  { title: 'Experimental: the assistant', text: 'An agent over the same operations. Live in part 7.' },
+];
+
+export function tourSlide(part: number): string {
+  return slide({
+    part,
+    className: 'live-slide tour-live',
+    data: { live: 'tour' },
+    notes: notes(
+      'What is better in Prism, for you: eight things, one per step. Press the right arrow: each step puts the viewer in the state that shows the item, and the list highlights it. The viewer is 1IEP, c-Abl kinase with imatinib, with its 2Fo-Fc density streamed around the pocket. Every step goes through the same named operations as a click, so you can also do each one by hand, and ← goes back to the step before.',
+      '- <strong>1. The structure tree</strong>: the Structure tab says what is in the scene in plain words. The Contents row is expanded and picked, as if you had clicked it: the structure has four entities, and they have their real names from the file (the ABL kinase polymer, a chloride ion, imatinib with its long chemical name, water). Click any row to see its inspector.',
+      '- <strong>2. Better selection</strong>: the Selection tab. The ligand is selected (built), then grown by 5 Å, then the gatekeeper T315 is added (changed). The summary at the top says what is selected, in words, and the selection is shown in 3D and in the sequence. By hand: the Selection field takes <code>ligand</code>, <code>A:315</code>, a PyMOL selection; the buttons grow it, expand it to residues or chains, invert it.',
+      '- <strong>3. Selection visuals</strong>: how a selection is shown, and how to change that. The "Color, transparency, glow" section of the Selection tab is open, and the pocket has a colour and a glow on it; the list under it shows the applied layers, each removable, with Clear all. The colours of the selection and the highlight are in Settings, Appearance.',
+      '- <strong>4. Volumes</strong>: the Volume streaming row is picked, and its inspector shows the 2Fo-Fc and Fo-Fc channels with the histogram and the iso value. The iso value moves from 1.5 to 3 σ and back, and the density follows. By hand: drag the iso handle on the histogram. The density comes from the volume server around what the view looks at.',
+      '- <strong>5. Images and animations</strong>: the Export card. Lighting is on (occlusion and an outline) for a nicer picture. First the Image part: a preview with a crop, the resolution, PNG, Copy or Download. Then the Animation part of the same card: the animation (camera spin, rock, snapshots), its length and frame rate, and the <strong>format: MP4 or WebM</strong>, with a quality choice. The animation export is a lazy extension: its code loads when this part is first opened.',
+      "- <strong>6. The sequence viewer (Seq*)</strong>: the band at the top. Six residues around the DFG motif are selected, and they light up in the sequence as well as in 3D. By hand: hover a residue in the band and it lights in 3D, click or drag to select, and the reverse. Tracks, colours and the rail are in the Sequence button's menu.",
+      '- <strong>7. The command menu</strong> (Ctrl or ⌘ + K): the first screen is open, with Browse (Preset, Styles, Select…), then Data (Open files…), and the rest. Type what you want and it filters. A next click: open Select, type <code>ligand</code> and press Enter.',
+      '- <strong>8. Experimental: the assistant</strong>: an agent over the same named operations, in the Assistant tab. It is not on this slide; it is part 7, live, with a key.',
+      'Press → once more to leave the tour. The earlier steps are not undone by leaving: the next slide has its own viewer.',
+    ),
+    body: `
+      <header class="slide-head">
+        <h2>What's better in Prism, for you</h2>
+        <p class="lead">Press → to step through. The viewer shows each one.</p>
+      </header>
+      <div class="tour-columns">
+        <div class="live-viewer"></div>
+        <ol class="tour-list">${Items.map((i, n) => `<li data-step="${n}"><strong>${escapeHtml(i.title)}</strong><span>${escapeHtml(i.text)}</span></li>`).join('')}</ol>
+      </div>
+      ${Items.slice(1)
+        .map((_, n) => `<span class="fragment tour-step" data-fragment-index="${n + 1}"></span>`)
+        .join('')}`,
+  });
+}

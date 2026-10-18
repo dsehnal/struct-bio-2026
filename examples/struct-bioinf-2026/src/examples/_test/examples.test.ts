@@ -29,6 +29,7 @@ describe('the examples', () => {
     for (const id of [
       'basics-smallest',
       'basics-selectors',
+      'basics-pymol',
       'basics-annotations',
       'basics-primitives',
       'p53-af-plddt',
@@ -65,6 +66,11 @@ describe('the examples', () => {
 
   it.each(everything)('$name type-checks against the typings', ({ kind, code }) => {
     expect(typeErrors(code, kind)).toEqual([]);
+  });
+
+  it('keeps the snippets in the order of the talk: pymol follows selectors', () => {
+    const ids = Examples[0].snippets.map((s) => s.id);
+    expect(ids.indexOf('basics-pymol')).toBe(ids.indexOf('basics-selectors') + 1);
   });
 
   it('reads the annotation files from the address the page gives (asset)', async () => {

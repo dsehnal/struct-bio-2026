@@ -6,45 +6,14 @@
  * @author David Sehnal <david.sehnal@gmail.com>
  */
 
-import { getSnippet } from '../../examples/index.js';
-import { highlight } from '../highlight.js';
-import { link, notes, slide, stage } from '../html.js';
-import { Links } from '../links.js';
+import { notes, slide, stage } from '../html.js';
 import { checkedNotGuessed, dataOutside, numbering, selectionLanguages } from '../principles.js';
 import { snippetSlide } from '../snippet.js';
 import { opener } from './opener.js';
 
 // Part 3, MolViewSpec, with example A: p53 (outline.md §3, 8 min).
 
-const PythonCode = `from molviewspec import create_builder
-
-url = "https://www.ebi.ac.uk/pdbe/entry-files/download/1cbs.bcif"
-builder = create_builder()
-(
-    builder.download(url=url)
-    .parse(format="bcif")
-    .model_structure()
-    .component(selector="polymer")
-    .representation(type="cartoon")
-    .color(color="teal")
-)
-state = builder.get_state()  # the same tree`;
-
-const FallbackTypeScript = `builder
-  .download({ url: 'https://www.ebi.ac.uk/pdbe/entry-files/download/1cbs.bcif' })
-  .parse({ format: 'bcif' })
-  .modelStructure()
-  .component({ selector: 'polymer' })
-  .representation({ type: 'cartoon' })
-  .color({ color: 'teal' });`;
-
 export function part3(): string {
-  // The TypeScript side is the first snippet of the deck, without its comment line.
-  const typescript = (getSnippet('basics-smallest')?.code ?? FallbackTypeScript)
-    .split('\n')
-    .filter((line) => !line.startsWith('//'))
-    .join('\n')
-    .trim();
   return [
     opener({
       part: 3,
@@ -55,11 +24,11 @@ export function part3(): string {
         '<strong>Selectors</strong>: chains, ranges, MolQL',
         '<strong>Annotations from a file</strong>: your data on a structure',
         '<strong>Primitives</strong>: labels, arrows, distances, boxes',
-        '<strong>Python or TypeScript</strong>, and <strong>portability</strong>',
+        '<strong>Portability</strong>: a file, a page, an image',
       ],
       notes: notes(
         'MolViewSpec, in about eight minutes. Principles, one slide each, each with a snippet that runs beside the code. After the principles, example A: p53.',
-        'On the map: MolViewSpec is the 3D description in the middle. It takes data from PDBe, AlphaFold DB and annotation files, and it is drawn by Mol* and Prism, or a notebook.',
+        'On the map: MolViewSpec is the 3D description in the middle. It takes data from PDBe, AlphaFold DB and annotation files, and it is drawn by Mol* and Prism.',
         'The slides are live: the code is on the left, the viewer on the right runs it, and the "Try it" chip opens the same snippet in the playground.',
       ),
     }),
@@ -91,6 +60,18 @@ export function part3(): string {
 
     selectionLanguages(3),
 
+    snippetSlide({
+      part: 3,
+      snippetId: 'basics-pymol',
+      title: 'Or just use PyMOL',
+      lead: 'Write the selection the way you always do; pymol(…) compiles it to MolQL.',
+      notes: notes(
+        'If you know PyMOL, you do not have to learn another language. <code>pymol(\'…\')</code> takes PyMOL text and compiles it to MolQL on the spot, so the component below is "the residues of chain A within 5 Å of imatinib", written as you would in PyMOL.',
+        'The same exists for VMD and Jmol text. The result is the same kind of description as before: data, not a script that runs in a viewer. So it can be saved, shared and checked.',
+        'Try it: change 5 to 8 Å, in the playground, with the suggested edits.',
+      ),
+    }),
+
     dataOutside(3),
 
     snippetSlide({
@@ -119,27 +100,7 @@ export function part3(): string {
     slide({
       part: 3,
       notes: notes(
-        'Principle 5, Python or TypeScript. The same builder exists in Python as <code>molviewspec</code>, so you can build a scene in a notebook from your own analysis, say a table of scores from your pipeline, and the viewer in the notebook shows it.',
-        'The code on the slide is the same scene on both sides. Same steps, same names; Python uses snake_case.',
-        'The talk and the playground use TypeScript, because it runs in the browser with nothing to set up, and the editor completes and checks it as you type. If you prefer Python, open the default Colab notebook (the link is on the slide and in the chat).',
-        'SeqViewSpec has no Python builder yet; it may get one later.',
-      ),
-      foot: `<a class="chip" href="${Links.colab}" target="_blank" rel="noopener">Open the Colab notebook</a>`,
-      body: `
-        <header class="slide-head">
-          <h2>Python or TypeScript</h2>
-          <p class="lead">The same builder in both. In a notebook, build a scene from your own analysis: ${link(Links.colab, 'default Colab notebook')}.</p>
-        </header>
-        <div class="code-pair">
-          <div class="stack"><span class="code-label">TYPESCRIPT · molviewspec builder, the playground</span><pre class="code"><code>${highlight(typescript, 'ts')}</code></pre></div>
-          <div class="stack"><span class="code-label">PYTHON · molviewspec, a notebook</span><pre class="code"><code>${highlight(PythonCode, 'py')}</code></pre></div>
-        </div>`,
-    }),
-
-    slide({
-      part: 3,
-      notes: notes(
-        'Principle 6, portability. A description is a file, so it travels.',
+        'Principle 5, portability. A description is a file, so it travels.',
         '- <strong>.mvsx</strong>: the description with its data in one file, for a supplement or an archive.',
         '- <strong>Embed</strong>: put it in any page with the viewer: one call to create the viewer, one to load the description. The playground is such a page.',
         '- <strong>mvs-render</strong>: a command-line tool renders a description to an image, for a figure in a paper or for a pipeline, with no browser to click in.',

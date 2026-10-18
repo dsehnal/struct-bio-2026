@@ -7,9 +7,11 @@
  */
 
 import type { RevealApi } from 'reveal.js';
-import { assistantScene, prismDemoScene } from './demo.js';
+import { assistantScene } from './demo.js';
 import { morphScene } from './morph.js';
 import { snippetScene } from './snippet.js';
+import { splashScene } from './splash.js';
+import { tourScene } from './tour.js';
 import { storyScene } from './story.js';
 
 // Live slides (_spec/README.md decision 7): a section with `data-live` gets its live parts when it is shown and loses
@@ -29,12 +31,13 @@ export type DisposeLiveScene = () => void | Promise<void>;
 export type LiveScene = (slide: HTMLElement, deck: RevealApi) => Promise<DisposeLiveScene>;
 
 /**
- * The scenes by the `data-live` of a slide: the morph slide, the full Prism viewer (part 1), a snippet beside a viewer
+ * The scenes by the `data-live` of a slide: the morph slide, the Prism tour (part 1), the title slide's splash, a snippet beside a viewer
  * (`snippet.ts`, parts 3–5), a story (part 6) and the assistant (part 7).
  */
 const LiveScenes: Readonly<Record<string, LiveScene>> = {
   'morph-1iep': morphScene,
-  prism: prismDemoScene,
+  splash: splashScene,
+  tour: tourScene,
   snippet: snippetScene,
   story: storyScene,
   assistant: assistantScene,

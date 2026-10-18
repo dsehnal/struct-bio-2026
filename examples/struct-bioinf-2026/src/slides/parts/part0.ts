@@ -31,11 +31,14 @@ export function part0(): string {
   const url = playgroundUrl();
   return [
     `
-    <section class="title-slide" data-part="0">
-      <h1>Molecular visualisation<br />for structural biology</h1>
-      <p class="subtitle">Mol* v6: describe your figure, don't click it</p>
-      <p class="event">EMBL-EBI Structural bioinformatics 2026 · 23 October</p>
-      <p><a class="chip" href="${modeHref('playground')}" target="_blank" rel="noopener">Open the playground</a></p>
+    <section class="title-slide" data-part="0" data-live="splash">
+      <div class="title-text">
+        <h1>Molecular visualisation<br />for structural biology</h1>
+        <p class="subtitle">Mol* v6: describe your figure, don't click it</p>
+        <p class="event">EMBL-EBI Structural bioinformatics 2026 · 23 October</p>
+        <p><a class="chip" href="${modeHref('playground')}" target="_blank" rel="noopener">Open the playground</a></p>
+      </div>
+      <div class="title-splash"></div>
       ${notes(
         'Welcome. This is the last day of the course, so I will not teach you how to click in Mol*: you did that on Tuesday with PDBe and EMDB.',
         'The message of the hour, in one line: <strong>your figure is a description, not a set of clicks</strong>. You describe it once as a short spec, and then the same description runs in a web page, a notebook, a paper supplement or a story, and an assistant can write it with you.',
@@ -46,6 +49,7 @@ export function part0(): string {
     slide({
       part: 0,
       notes: notes(
+        '<strong>First, what this talk is not</strong>: it is about <em>visualising</em> data and results, not about computing them. The analyses, the predictions, the contacts and the scores come from the tools of the rest of the week. Mol* shows them, and lets you describe and share the view. Nothing here replaces an analysis.',
         'Why do we visualise at all? Three reasons, in the order a scientist meets them.',
         '- To <strong>check a model against its evidence</strong>: does the ligand sit in the density, is this loop confident in the AlphaFold model.',
         '- To <strong>see a mechanism</strong>: why a mutation breaks a protein, where a drug binds.',
@@ -54,7 +58,8 @@ export function part0(): string {
       ),
       body: `
         <h2>Why visualise?</h2>
-        ${stage(`<div class="cards">
+        ${stage(`<p class="callout">This talk is about <strong>visualising</strong> data and results, not computing them. Analyses, predictions, contacts and scores come from the tools of the rest of the week. Mol* shows them, and lets you describe and share the view.</p>
+        <div class="cards">
           <div class="card"><h3>Check a model</h3><p>Against its evidence: the density, the confidence, the validation.</p></div>
           <div class="card"><h3>See a mechanism</h3><p>Where a drug binds, why a mutation breaks the fold.</p></div>
           <div class="card"><h3>Communicate it</h3><p>To a colleague, a reviewer, a student, in a figure that others can reproduce.</p></div>

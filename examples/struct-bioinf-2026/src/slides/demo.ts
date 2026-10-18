@@ -6,38 +6,15 @@
  * @author David Sehnal <david.sehnal@gmail.com>
  */
 
-import { createEmbeddedViewer } from '../viewer/index.js';
 import type { LiveScene } from './live.js';
 
-// The two live demos in Prism's own UI: the full viewer with 1IEP (outline.md §1), and the viewer with the assistant
-// (outline.md §7). The first is the viewer as the app has it, not the compact rail of the code slides.
+// The live demo of the assistant in Prism's own UI (outline.md §7): the full viewer with the assistant.
 
 export const AssistantPrompts: readonly string[] = [
   'Load 1IEP and show imatinib with the residues around it.',
   'Color the pocket by hydrophobicity and label the gatekeeper.',
   'Now show the same pocket in the AlphaFold model of ABL1 and compare.',
 ];
-
-export const prismDemoScene: LiveScene = async (el) => {
-  const container = el.querySelector<HTMLElement>('.live-viewer');
-  if (!container) throw new Error('The slide has no .live-viewer.');
-  const viewer = await createEmbeddedViewer(container, { layout: 'full' });
-  let disposed = false;
-  void (async () => {
-    viewer.setStatus('Loading 1IEP…');
-    try {
-      await viewer.loadEntry('pdb', '1iep');
-      if (!disposed) viewer.setStatus(undefined);
-    } catch (e) {
-      console.error(e);
-      if (!disposed) viewer.setStatus(`Could not load 1IEP: ${e instanceof Error ? e.message : String(e)}`, 'error');
-    }
-  })();
-  return async () => {
-    disposed = true;
-    await viewer.dispose();
-  };
-};
 
 /** Prism with the assistant and its Assistant tab open; the assistant's code is a chunk loaded here and nowhere else. */
 export const assistantScene: LiveScene = async (el) => {

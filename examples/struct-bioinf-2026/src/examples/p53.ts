@@ -120,9 +120,8 @@ structure
 
 // Residues of chain B with an atom within 4 Å of the DNA, as sticks.
 const touching = structure.component({
-  selector: molql(
-    'chain B and polymer.protein and ' +
-      'byres ((chain B and polymer.protein) within 4 of polymer.nucleic)',
+  selector: pymol(
+    'byres ((chain B and polymer.protein) within 4 of polymer.nucleic)',
   ),
 });
 touching

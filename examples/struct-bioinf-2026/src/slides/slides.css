@@ -17,6 +17,10 @@
   --slide-soft: #f3f4f6;
   --slide-contact: #d1495b;
   --slide-structural: #00798c;
+  /* The two weights of the deck: heavy for titles (slides, cards, the items of a list), medium for emphasis and small labels. */
+  --slide-weight-heavy: 700;
+  --slide-weight-medium: 600;
+  --r-heading-font-weight: var(--slide-weight-heavy);
   --slide-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --r-main-font: system-ui, -apple-system, "Segoe UI", sans-serif;
   --r-heading-font: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -242,7 +246,7 @@ body {
   background: var(--slide-accent-soft);
   border-radius: 3px;
   box-shadow: 0 0 0 2px var(--slide-accent-soft);
-  font-weight: 600;
+  font-weight: var(--slide-weight-medium);
 }
 
 .reveal .code-tabs {
@@ -546,8 +550,8 @@ body {
 }
 
 .reveal .dg-title {
-  font-size: 21px;
-  font-weight: 600;
+  font-size: 19px;
+  font-weight: var(--slide-weight-heavy);
   fill: var(--slide-ink);
 }
 
@@ -562,7 +566,7 @@ body {
 
 .reveal .dg-head {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: var(--slide-weight-medium);
   letter-spacing: 0.14em;
   fill: var(--slide-muted);
 }
@@ -589,15 +593,31 @@ body {
   fill: context-stroke;
 }
 
-.reveal .dg-core .dg-box {
-  fill: var(--slide-accent-soft);
-  stroke: var(--slide-accent);
+/* The map of the talk: tinted columns of cards; in parts 3–6 the cards of the part are lit and the rest is quieter. */
+.reveal .dg-col {
+  stroke: var(--slide-line);
+  stroke-width: 1.5;
 }
 
-/* The map of the talk: in parts 3–6 the boxes of the part are lit and the rest fades. */
+.reveal .dg-col-0 {
+  fill: #f4f6f9;
+}
+
+.reveal .dg-col-1 {
+  fill: #eef4fb;
+}
+
+.reveal .dg-col-2 {
+  fill: #f5f3ee;
+}
+
+.reveal .dg-note {
+  font-size: 14px;
+  fill: var(--slide-muted);
+}
+
 .reveal .parts-map[data-current] .node {
-  opacity: 0.3;
-  transition: opacity 0.2s;
+  opacity: 0.6;
 }
 
 .reveal .parts-map[data-current="3"] .node[data-parts~="3"],
@@ -611,9 +631,16 @@ body {
 .reveal .parts-map[data-current="4"] .node[data-parts~="4"] .dg-box,
 .reveal .parts-map[data-current="5"] .node[data-parts~="5"] .dg-box,
 .reveal .parts-map[data-current="6"] .node[data-parts~="6"] .dg-box {
-  fill: var(--slide-accent-soft);
+  fill: #fff;
   stroke: var(--slide-accent);
   stroke-width: 2.5;
+}
+
+.reveal .parts-map[data-current="3"] .node[data-parts~="3"] .dg-title,
+.reveal .parts-map[data-current="4"] .node[data-parts~="4"] .dg-title,
+.reveal .parts-map[data-current="5"] .node[data-parts~="5"] .dg-title,
+.reveal .parts-map[data-current="6"] .node[data-parts~="6"] .dg-title {
+  fill: var(--slide-accent);
 }
 
 .reveal .dg-grid {
@@ -791,7 +818,7 @@ body {
 }
 
 .reveal .story-title {
-  font-weight: 600;
+  font-weight: var(--slide-weight-heavy);
 }
 
 .reveal .story-text {
@@ -1070,7 +1097,7 @@ body {
 
 .reveal .snap .snap-n {
   color: var(--slide-accent);
-  font-weight: 700;
+  font-weight: var(--slide-weight-medium);
 }
 
 .reveal .snap span:last-child {
@@ -1115,4 +1142,129 @@ body {
 
 .reveal .snap {
   font-size: 0.85em;
+}
+
+/* --- the Prism tour: the viewer beside a list whose current item the viewer shows (`tour.ts`) ------------------------------ */
+
+.reveal .tour-columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16em;
+  gap: 2.4vmin;
+}
+
+.reveal .tour-step {
+  display: none;
+}
+
+.reveal .tour-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  min-height: 0;
+  overflow: auto;
+  font-size: 0.75em;
+}
+
+.reveal .tour-list li {
+  display: flex;
+  flex-direction: column;
+  border-left: 4px solid var(--slide-line);
+  padding: 0.3em 0.7em;
+  color: var(--slide-muted);
+  line-height: 1.25;
+}
+
+.reveal .tour-list li.current {
+  border-left-color: var(--slide-accent);
+  background: var(--slide-accent-soft);
+  border-radius: 0 8px 8px 0;
+  color: var(--slide-ink);
+}
+
+.reveal .tour-list li strong {
+  font-size: 1.05em;
+}
+
+.reveal .tour-list li span {
+  font-size: 0.85em;
+}
+
+/* --- weights, in one place ------------------------------------------------------------------------------------------ */
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal .card h3,
+.reveal .tour-list li strong,
+.reveal .story-title,
+.reveal .snap strong {
+  font-weight: var(--slide-weight-heavy);
+}
+
+.reveal strong,
+.reveal b,
+.reveal .chip,
+.reveal .part-tag,
+.reveal .code-label,
+.reveal .code-tabs button,
+.reveal .tour-list li.current strong {
+  font-weight: var(--slide-weight-medium);
+}
+
+.reveal .tour-list li strong,
+.reveal .tour-list li.current strong {
+  font-weight: var(--slide-weight-heavy);
+}
+
+/* --- the title slide: the text, and Prism's quantum splash beside it (`splash.ts`) ------------------------------------- */
+
+.reveal .title-slide {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 3vmin;
+}
+
+.reveal .title-text {
+  flex: 0 1 46%;
+  display: flex;
+  flex-direction: column;
+  gap: 2vmin;
+}
+
+.reveal .title-text h1 {
+  font-size: 2.7em;
+}
+
+.reveal .title-splash {
+  position: relative;
+  flex: 1;
+  align-self: stretch;
+  min-width: 0;
+  /* The colors the splash reads (prism-ui's light theme brand tokens), as the viewer's shadow root defines them. */
+  --msp-color-text-subtle: #6b7280;
+  --msp-color-brand-1: #7a4f2f;
+  --msp-color-brand-2: #e0ae2c;
+  --msp-color-brand-3: #6f9a80;
+  --msp-color-brand-4: #3f86ad;
+}
+
+.reveal .splash-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.reveal .callout {
+  border-left: 5px solid var(--slide-accent);
+  background: var(--slide-accent-soft);
+  border-radius: 0 10px 10px 0;
+  padding: 0.7em 1em;
+  font-size: 0.95em;
+  line-height: 1.35;
 }
