@@ -62,7 +62,9 @@ with two modes:
     playground's panes) have the glass edge (a hairline, no shadow); the ✳ of the Mol\* star is the bullet and the mark
     of a pull quote. Code colors are the same in the slides' highlighter, their Data tabs and Monaco's theme
     (`runner/editor.ts`). Red and teal stay for the biology (the hotspots are data). Fonts are Prism's stack. Titles are
-    weight 600 and tight, with no kicker above them.
+    weight 600 and tight, with no kicker above them. Type is one scale of roles (`--fs-display`, `-title`, `-lead`,
+    `-body`, `-small`, `-label`, `-code`, `-code-dense` in `slides.css` `:root`): a text takes its size from its role,
+    never a size of its own, and code inside a text is 0.92 of the text.
 
 ## Assets to prepare
 

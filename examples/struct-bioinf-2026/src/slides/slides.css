@@ -31,6 +31,28 @@
   --r-link-color: var(--app-steel-text);
   --r-link-color-hover: var(--app-brown);
   --r-background-color: var(--app-canvas);
+
+  /* THE TYPE SCALE (_spec/README.md, "Visual style"): every text of a slide takes its size from one of these roles, never a
+     size of its own. All but the code sizes are lengths (the base times a step), not ems, so nesting never compounds them.
+     The base is big enough for the back of a Zoom call (21.6px at 1280 x 720) and scales with the window. */
+  --fs-base: clamp(18px, 3vmin, 44px);
+  /* The title slide's h1. */
+  --fs-display: calc(var(--fs-base) * 2.7);
+  /* Every slide's h2. */
+  --fs-title: calc(var(--fs-base) * 1.8);
+  /* The line under a title, and a pull quote (callout, big statement). */
+  --fs-lead: calc(var(--fs-base) * 1.1);
+  /* Running text: lists, table cells, the titles of cards and list items (heavier), notes under a list. */
+  --fs-body: calc(var(--fs-base) * 1);
+  /* Secondary text: what is under a card or list-item title, captions, citations, URLs, controls. */
+  --fs-small: calc(var(--fs-base) * 0.8);
+  /* Uppercase labels: code labels, table headers, badges, the footer's part tag. */
+  --fs-label: calc(var(--fs-base) * 0.6);
+  /* One size for all code: every code column is a share of the window's width, so a width-based size fits them all and
+     reads the same on every slide (a container-based one grew in wide panels). */
+  --fs-code: clamp(12px, 0.85vw, 2.6vmin);
+  /* Monospace looks larger than the sans at the same size: code inside a text is this much of the text's size. */
+  --mono-scale: 0.92;
 }
 
 /* One color per part (brown 0–1, gold 2–3, sage 4–5, steel 6–7, brown again for the last): \`--part\` for ticks and stars,
@@ -73,9 +95,9 @@ body {
   height: 100%;
 }
 
-/* Big enough for the back of a Zoom call: 21.6px at 1280 x 720. */
+/* The deck's base size; the sizes of the text are in :root. */
 .reveal {
-  font-size: clamp(18px, 3vmin, 44px);
+  font-size: var(--fs-base);
 }
 
 .reveal .slides {
@@ -89,6 +111,7 @@ body {
   width: 100%;
   height: 100%;
   padding: 3.4vmin 5vmin 1.6vmin;
+  font-size: var(--fs-body);
   display: flex !important;
   flex-direction: column;
   gap: 1.4vmin;
@@ -107,15 +130,15 @@ body {
 }
 
 .reveal h1 {
-  font-size: 3.2em;
+  font-size: var(--fs-display);
 }
 
 .reveal h2 {
-  font-size: 1.7em;
+  font-size: var(--fs-title);
 }
 
 .reveal h3 {
-  font-size: 1.1em;
+  font-size: var(--fs-body);
 }
 
 .reveal p {
@@ -136,7 +159,7 @@ body {
 
 .reveal .lead {
   color: var(--slide-muted);
-  font-size: 0.9em;
+  font-size: var(--fs-lead);
 }
 
 .reveal a {
@@ -271,7 +294,7 @@ body {
 
 .reveal .part-tag {
   color: var(--slide-muted);
-  font-size: 0.6em;
+  font-size: var(--fs-label);
   letter-spacing: 0.04em;
 }
 
@@ -301,7 +324,7 @@ body {
 }
 
 .reveal .title-slide .subtitle {
-  font-size: 1.4em;
+  font-size: var(--fs-lead);
   color: var(--app-brown);
 }
 
@@ -314,7 +337,7 @@ body {
   padding: 0.25em 0.9em;
   border: 1px solid var(--app-steel-text);
   border-radius: var(--app-radius);
-  font-size: 0.75em;
+  font-size: var(--fs-small);
   text-decoration: none;
   white-space: nowrap;
   background: var(--app-canvas);
@@ -327,7 +350,6 @@ body {
 
 .reveal .title-slide .chip {
   align-self: flex-start;
-  font-size: 0.9em;
 }
 
 /* --- live slides ------------------------------------------------------------------------------------------------------- */
@@ -366,7 +388,7 @@ body {
 }
 
 .reveal .code-box .code {
-  font-size: clamp(13px, 2.2cqw, 2.6vmin);
+  font-size: var(--fs-code);
   white-space: pre;
   overflow-wrap: normal;
   overflow: auto;
@@ -375,7 +397,6 @@ body {
 .reveal .code-box .code.wrap {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: clamp(13px, 2.2cqw, 2.4vmin);
 }
 
 .reveal .code-tabs .widen {
@@ -394,7 +415,7 @@ body {
 }
 
 .reveal .data-note {
-  font-size: 0.6em;
+  font-size: var(--fs-small);
   color: var(--slide-muted);
 }
 
@@ -413,7 +434,7 @@ body {
 
 .reveal .code-tabs button {
   font: inherit;
-  font-size: 0.6em;
+  font-size: var(--fs-small);
   padding: 0.2em 0.9em;
   border: 0;
   border-radius: var(--app-radius);
@@ -438,7 +459,7 @@ body {
   width: auto;
   box-shadow: none;
   font-family: var(--slide-mono);
-  font-size: 0.8em;
+  font-size: var(--fs-code);
   line-height: 1.4;
   overflow: auto;
   background: var(--app-paper);
@@ -504,7 +525,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.7em;
-  font-size: 1.2em;
+  font-size: var(--fs-body);
 }
 
 .reveal .points li {
@@ -525,14 +546,13 @@ body {
 }
 
 .reveal .points.small {
-  font-size: 0.95em;
   gap: 0.5em;
 }
 
 .reveal .points code,
 .reveal .inline-code {
   font-family: var(--slide-mono);
-  font-size: 0.85em;
+  font-size: calc(1em * var(--mono-scale));
   background: var(--app-paper);
   padding: 0.05em 0.35em;
   border-radius: 2px;
@@ -575,11 +595,11 @@ body {
 
 .reveal .card h3 {
   color: var(--slide-ink);
-  font-size: 1.2em;
+  font-size: var(--fs-body);
 }
 
 .reveal .card p {
-  font-size: 0.95em;
+  font-size: var(--fs-small);
   color: var(--slide-muted);
   line-height: 1.35;
 }
@@ -602,7 +622,7 @@ body {
 
 .reveal .card .mini-code {
   font-family: var(--slide-mono);
-  font-size: 0.65em;
+  font-size: calc(var(--fs-small) * var(--mono-scale));
   background: var(--app-paper);
   border: 0;
   border-radius: 2px;
@@ -611,7 +631,7 @@ body {
 }
 
 .reveal .big-statement {
-  font-size: 1.4em;
+  font-size: var(--fs-lead);
   line-height: 1.3;
 }
 
@@ -629,7 +649,7 @@ body {
   padding: 0.15em 0.8em;
   border-radius: var(--app-radius);
   background: var(--app-panel);
-  font-size: 0.9em;
+  font-size: var(--fs-body);
 }
 
 .reveal .two-col {
@@ -665,7 +685,7 @@ body {
 
 .reveal .timeline {
   border-collapse: collapse;
-  font-size: 0.8em;
+  font-size: var(--fs-body);
   width: 100%;
 }
 
@@ -707,7 +727,7 @@ body {
 
 .reveal .url {
   font-family: var(--slide-mono);
-  font-size: 0.7em;
+  font-size: calc(var(--fs-small) * var(--mono-scale));
   overflow-wrap: anywhere;
   color: var(--app-steel-text);
 }
@@ -863,7 +883,7 @@ body {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.4em;
-  font-size: 1.15em;
+  font-size: var(--fs-body);
 }
 
 .reveal .chain span {
@@ -873,18 +893,12 @@ body {
   border: 0;
   color: var(--app-brown);
   font-family: var(--slide-mono);
-  font-size: 0.85em;
+  font-size: calc(1em * var(--mono-scale));
 }
 
 .reveal .chain i {
   font-style: normal;
   color: var(--slide-muted);
-}
-
-/* --- the part opener: the part's words beside the map ------------------------------------------------------------------ */
-
-.reveal .opener h2 {
-  font-size: 2.2em;
 }
 
 /* --- the morph slide: two live viewers stacked in one box, only their opacity changes (`morph.ts`) ------------------------ */
@@ -900,7 +914,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5em;
-  font-size: 0.6em;
+  font-size: var(--fs-small);
   color: var(--slide-muted);
   white-space: nowrap;
 }
@@ -961,7 +975,7 @@ body {
 .reveal .story-panel {
   min-height: 0;
   overflow: auto;
-  font-size: 0.8em;
+  font-size: var(--fs-body);
 }
 
 .reveal .story-hint {
@@ -1001,7 +1015,7 @@ body {
 
 .reveal .story-text {
   margin-top: 0.3em;
-  font-size: 0.9em;
+  font-size: var(--fs-small);
   line-height: 1.35;
 }
 
@@ -1046,7 +1060,7 @@ body {
   border-radius: var(--app-radius);
   color: var(--slide-muted);
   background: var(--app-panel);
-  font-size: 0.8em;
+  font-size: var(--fs-small);
 }
 
 .reveal .shot-placeholder[hidden] {
@@ -1054,7 +1068,7 @@ body {
 }
 
 .reveal .cite {
-  font-size: 0.7em;
+  font-size: var(--fs-small);
   color: var(--slide-muted);
   line-height: 1.35;
 }
@@ -1070,7 +1084,7 @@ body {
 }
 
 .reveal .code-label {
-  font-size: 0.65em;
+  font-size: var(--fs-label);
   color: var(--slide-muted);
   letter-spacing: 0.06em;
 }
@@ -1082,7 +1096,7 @@ body {
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 0.4em 1.2em;
-  font-size: 0.95em;
+  font-size: var(--fs-body);
 }
 
 .reveal .links li {
@@ -1097,12 +1111,9 @@ body {
   overflow-wrap: anywhere;
 }
 
-.reveal .code.big {
-  font-size: 1.05em;
-}
-
 .reveal .code-pair .stack {
   min-height: 0;
+  container-type: inline-size;
 }
 
 .reveal .stage {
@@ -1117,11 +1128,6 @@ body {
 .reveal .code.nowrap {
   white-space: pre;
   overflow-wrap: normal;
-  font-size: 0.62em;
-}
-
-.reveal .code-pair .code {
-  font-size: 0.9em;
 }
 
 /* --- the principle slides (`principles.ts`) ---------------------------------------------------------------------------- */
@@ -1133,23 +1139,9 @@ body {
 
 .reveal .code.plain {
   flex: 0 1 auto;
-  font-size: 0.95em;
+  font-size: var(--fs-code);
   white-space: pre;
   overflow-wrap: normal;
-}
-
-.reveal .grid2 {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-auto-rows: minmax(0, 1fr);
-  gap: 1.6vmin 2.4vmin;
-}
-
-.reveal .grid2 .code.plain {
-  font-size: clamp(12px, 3cqw, 2.8vmin);
-  flex: 1;
 }
 
 .reveal .grid3 {
@@ -1166,13 +1158,13 @@ body {
 }
 
 .reveal .grid3 .panel .code.plain {
-  font-size: clamp(12px, 3.7cqw, 3.2vmin);
+  font-size: var(--fs-code);
   flex: 1;
 }
 
 .reveal table.schema {
   border-collapse: collapse;
-  font-size: 0.85em;
+  font-size: var(--fs-body);
   width: 100%;
 }
 
@@ -1188,12 +1180,12 @@ body {
 .reveal table.schema code {
   font-family: var(--slide-mono);
   color: var(--app-steel-text);
-  font-size: 0.95em;
+  font-size: calc(1em * var(--mono-scale));
 }
 
 .reveal table.chains td.id {
   font-family: var(--slide-mono);
-  font-size: 1.3em;
+  font-size: calc(1em * var(--mono-scale));
   color: var(--slide-ink);
 }
 
@@ -1218,7 +1210,7 @@ body {
   background: var(--app-panel);
   border-radius: var(--app-radius);
   padding: 0.6em 0.7em;
-  font-size: 0.7em;
+  font-size: var(--fs-body);
   line-height: 1.25;
 }
 
@@ -1229,6 +1221,7 @@ body {
 
 .reveal .snap span:last-child {
   color: var(--slide-muted);
+  font-size: var(--fs-small);
 }
 
 .reveal .snap-arrow {
@@ -1237,17 +1230,13 @@ body {
   flex-direction: column;
   align-items: center;
   color: var(--part-ink);
-  font-size: 1.1em;
+  font-size: var(--fs-body);
 }
 
 .reveal .snap-arrow small {
-  font-size: 0.45em;
+  font-size: var(--fs-label);
   color: var(--slide-muted);
   text-align: center;
-}
-
-.reveal .grid2 > .panel {
-  container-type: inline-size;
 }
 
 .reveal .stage > .two-col {
@@ -1258,17 +1247,9 @@ body {
   container-type: inline-size;
 }
 
-.reveal .panel .code.plain {
-  font-size: clamp(12px, 2.9cqw, 2.6vmin);
-}
-
+/* The error text keeps its lines, like code. */
 .reveal .panel .code.error-box {
-  font-size: clamp(11px, 2.5cqw, 2.4vmin);
   white-space: pre;
-}
-
-.reveal .snap {
-  font-size: 0.85em;
 }
 
 /* --- the Prism tour: the viewer beside a list whose current item the viewer shows (`tour.ts`) ------------------------------ */
@@ -1277,7 +1258,7 @@ body {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 16em;
+  grid-template-columns: minmax(0, 1fr) 19em;
   gap: 2.4vmin;
 }
 
@@ -1291,10 +1272,10 @@ body {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.35em;
+  gap: 0.2em;
   min-height: 0;
   overflow: auto;
-  font-size: 0.75em;
+  font-size: var(--fs-body);
 }
 
 .reveal .tour-list li {
@@ -1321,12 +1302,8 @@ body {
   color: var(--slide-ink);
 }
 
-.reveal .tour-list li strong {
-  font-size: 1.05em;
-}
-
 .reveal .tour-list li span {
-  font-size: 0.85em;
+  font-size: var(--fs-small);
 }
 
 /* --- weights, in one place ------------------------------------------------------------------------------------------ */
@@ -1374,10 +1351,6 @@ body {
   gap: 2vmin;
 }
 
-.reveal .title-text h1 {
-  font-size: 2.7em;
-}
-
 .reveal .title-splash {
   position: relative;
   flex: 1;
@@ -1411,7 +1384,7 @@ body {
 .reveal .callout {
   position: relative;
   padding: 0.1em 0 0.1em 2.3em;
-  font-size: 1.3em;
+  font-size: var(--fs-lead);
   line-height: 1.3;
   letter-spacing: -0.01em;
 }
@@ -1455,7 +1428,6 @@ body {
 
 .reveal .avail-col h3 {
   margin: 0;
-  font-size: 1.1em;
 }
 
 .reveal .avail-col .badge {
@@ -1463,7 +1435,7 @@ body {
   border-radius: 2px;
   background: var(--avail-tint);
   color: var(--avail-ink);
-  font-size: 0.6em;
+  font-size: var(--fs-label);
   font-weight: var(--slide-weight-medium);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1483,7 +1455,7 @@ body {
   gap: 0.15em;
   padding: 1.2vmin 1.4vmin;
   padding-left: 0;
-  font-size: 0.78em;
+  font-size: var(--fs-body);
   line-height: 1.3;
 }
 
@@ -1493,11 +1465,12 @@ body {
 
 .reveal .avail-col li span {
   color: var(--slide-muted);
+  font-size: var(--fs-small);
 }
 
 .reveal .avail-col li a {
   font-family: var(--app-font-mono);
-  font-size: 0.85em;
+  font-size: calc(1em * var(--mono-scale));
 }
 
 .reveal .avail-when {
@@ -1505,7 +1478,7 @@ body {
   padding: 1.2vmin 1.4vmin;
   border-radius: 2px;
   background: var(--avail-tint);
-  font-size: 0.72em;
+  font-size: var(--fs-body);
 }
 
 /* --- a code slide's code fades in with its viewer ---------------------------------------------------------------------- */
@@ -1529,13 +1502,13 @@ body {
 .reveal table.addressing {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.72em;
+  font-size: var(--fs-body);
   line-height: 1.3;
 }
 
 .reveal table.addressing th {
   padding: 0 1em 0.6em 0;
-  font-size: 0.7em;
+  font-size: var(--fs-label);
   font-weight: var(--slide-weight-medium);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1560,14 +1533,14 @@ body {
 
 .reveal table.addressing td code {
   font-family: var(--slide-mono);
-  font-size: 0.85em;
+  font-size: calc(1em * var(--mono-scale));
   color: var(--part-ink);
 }
 
 /* A closing point under a list or a code panel. */
 .reveal .state-note {
   margin: 0.9em 0 0;
-  font-size: 0.82em;
+  font-size: var(--fs-body);
   line-height: 1.35;
   color: var(--slide-ink);
 }

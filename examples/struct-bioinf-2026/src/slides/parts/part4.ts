@@ -76,7 +76,7 @@ export function part4(): string {
       body: `
         <h2>SeqViewSpec: the same idea for sequences</h2>
         <div class="two-col">
-          <pre class="code nowrap"><code>${highlight(SvsBuilder, 'ts')}</code></pre>
+          <div class="stack panel"><pre class="code nowrap"><code>${highlight(SvsBuilder, 'ts')}</code></pre></div>
           <div class="stack">
             <span class="code-label">WHERE SEQUENCE DATA COMES FROM</span>
             <ul class="points small">
