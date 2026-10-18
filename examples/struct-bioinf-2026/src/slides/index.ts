@@ -13,6 +13,7 @@ import 'reveal.js/theme/white.css';
 import './slides.css';
 import { deckHtml } from './deck.js';
 import { LiveSlides } from './live.js';
+import { deckNav } from './nav.js';
 
 // Slides mode (_spec/README.md decision 7): reveal.js does the deck (navigation, fragments, notes, overview), the live
 // parts are ours (`live.ts`). Reveal's own layout scaling is off: it scales the deck with a CSS transform, and the
@@ -23,7 +24,8 @@ export async function startSlides(root: HTMLElement): Promise<void> {
   const deck = new Reveal(root.querySelector<HTMLElement>('.reveal')!, {
     hash: true,
     disableLayout: true,
-    controls: true,
+    // Our own ‹ n / N › (`nav.ts`), with a list of the slides behind the number.
+    controls: false,
     progress: true,
     transition: 'fade',
     width: '100%',
@@ -36,6 +38,7 @@ export async function startSlides(root: HTMLElement): Promise<void> {
     plugins: [RevealNotes],
   });
   navigationKeys(deck);
+  deckNav(deck, root);
   // The speaker view shows the current and the next slide in frames of the same page (`receiver` in the address): those
   // frames are pictures of the deck, so they get no viewers (the presenter's own window has them).
   const preview = /[?&]receiver\b/.test(location.search);
