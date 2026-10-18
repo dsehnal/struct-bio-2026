@@ -65,10 +65,24 @@ export async function createEmbeddedViewer(
   return createEmbeddedViewerWith(container, embeddedViewerSpec(options.layout));
 }
 
+/** After the first load: time for its first frames before the box fades in. */
+const RevealAfterLoadMs = 250;
+/** A box whose first load has not ended by then is shown anyway. */
+const RevealFallbackMs = 15_000;
+
 /** As `createEmbeddedViewer`, over a spec of the caller's (the Prism tour adds the animation export). */
 export async function createEmbeddedViewerWith(container: HTMLElement, spec: PrismViewerSpec): Promise<EmbeddedViewer> {
   // The viewer's target gets a shadow root, so a message over it is a sibling, not a child.
-  container.classList.add('embedded-viewer');
+  container.classList.add('embedded-viewer', 'is-loading');
+  // The whole box fades in once its first scene has drawn (a load done and a moment for its frames), so a slide never
+  // shows the viewer assembling itself. An error shows at once; the fallback reveals a box whose load never ends.
+  let revealed = false;
+  const reveal = (delayMs = 0) => {
+    if (revealed) return;
+    revealed = true;
+    setTimeout(() => container.classList.remove('is-loading'), delayMs);
+  };
+  const fallback = setTimeout(() => reveal(), RevealFallbackMs);
   const target = document.createElement('div');
   target.style.cssText = 'position: absolute; inset: 0';
   const status = document.createElement('div');
@@ -78,6 +92,15 @@ export async function createEmbeddedViewerWith(container: HTMLElement, spec: Pri
     status.textContent = message ?? '';
     status.dataset.kind = kind;
     status.hidden = !message;
+    if (message && kind === 'error') reveal();
+  };
+  /** Runs a load; the first one to end, done or failed, reveals the box. */
+  const loading = async <T>(load: () => Promise<T>): Promise<T> => {
+    try {
+      return await load();
+    } finally {
+      reveal(RevealAfterLoadMs);
+    }
   };
   setStatus('Starting the viewer…');
   let viewer: PrismViewer;
@@ -97,20 +120,21 @@ export async function createEmbeddedViewerWith(container: HTMLElement, spec: Pri
     setStatus,
     async loadMvs(data) {
       const mvsj = typeof data === 'string' ? data : MVSData.toMVSJ(data);
-      const result = await viewer.api.load.mvs({ data: mvsj, format: 'mvsj' });
+      const result = await loading(() => viewer.api.load.mvs({ data: mvsj, format: 'mvsj' }));
       if (!result.ok) throw new Error(result.message);
     },
     async loadEntry(source, id) {
-      const result = await viewer.api.load.entry({ source, id });
+      const result = await loading(() => viewer.api.load.entry({ source, id }));
       if (!result.ok) throw new Error(result.message);
     },
     async loadSvs(doc) {
-      const result = await viewer.api.load.svs({ data: text(doc) });
+      const result = await loading(() => viewer.api.load.svs({ data: text(doc) }));
       if (!result.ok) throw new Error(result.message);
     },
     async dispose() {
       if (disposed) return;
       disposed = true;
+      clearTimeout(fallback);
       await viewer.dispose();
       container.replaceChildren();
     },

@@ -17,6 +17,16 @@
   background: #f3f4f6;
 }
 
+/* Only the fade in is animated: the box starts invisible at once. */
+.embedded-viewer:not(.is-loading) {
+  transition: opacity 600ms ease;
+}
+
+/* Until its first scene has drawn (src/viewer/index.ts): invisible, but laid out, so the plugin sizes its canvas. */
+.embedded-viewer.is-loading {
+  opacity: 0;
+}
+
 .embedded-viewer .viewer-status {
   position: absolute;
   inset: 0;
@@ -29,7 +39,7 @@
   pointer-events: none;
 }
 
-.embedded-viewer .viewer-status[data-kind="error"] {
+.embedded-viewer .viewer-status[data-kind='error'] {
   color: #b91c1c;
 }
 
