@@ -26,7 +26,52 @@ scope.MonacoEnvironment ??= {
 
 export type EditorTheme = 'light' | 'dark';
 
-const THEMES: Record<EditorTheme, string> = { light: 'vs', dark: 'vs-dark' };
+/** The light theme is the page's own (src/fonts.css): warm paper, the wordmark's colors for the syntax (the slides' tokens). */
+const PRISM_LIGHT = 'prism-light';
+
+const THEMES: Record<EditorTheme, string> = { light: PRISM_LIGHT, dark: 'vs-dark' };
+
+function defineThemes(): void {
+  monaco.editor.defineTheme(PRISM_LIGHT, {
+    base: 'vs',
+    inherit: true,
+    rules: [
+      { token: '', foreground: '332b1f' },
+      { token: 'comment', foreground: '6b5f4f', fontStyle: 'italic' },
+      { token: 'keyword', foreground: '7a4f2f' },
+      { token: 'keyword.flow', foreground: '7a4f2f' },
+      { token: 'string', foreground: '3d6b52' },
+      { token: 'string.escape', foreground: '3d6b52' },
+      { token: 'number', foreground: '7d5c06' },
+      { token: 'regexp', foreground: '3d6b52' },
+      { token: 'identifier', foreground: '332b1f' },
+      { token: 'type.identifier', foreground: '2d6a8e' },
+      { token: 'delimiter', foreground: '6b5f4f' },
+      { token: 'delimiter.bracket', foreground: '6b5f4f' },
+    ],
+    colors: {
+      'editor.background': '#f4f1ea',
+      'editor.foreground': '#332b1f',
+      'editorLineNumber.foreground': '#6b5f4f',
+      'editorLineNumber.activeForeground': '#332b1f',
+      'editorCursor.foreground': '#7a4f2f',
+      'editor.selectionBackground': '#e0ae2c55',
+      'editor.inactiveSelectionBackground': '#e0ae2c33',
+      'editor.lineHighlightBackground': '#eeece700',
+      'editorIndentGuide.background1': '#332b1f20',
+      'editorWidget.background': '#fcfbf9',
+      'editorWidget.border': '#332b1f30',
+      'editorSuggestWidget.background': '#fcfbf9',
+      'editorSuggestWidget.border': '#332b1f30',
+      'editorSuggestWidget.selectedBackground': '#eeece7',
+      'editorHoverWidget.background': '#fcfbf9',
+      'editorHoverWidget.border': '#332b1f30',
+      'editorError.foreground': '#c4091f',
+      'scrollbarSlider.background': '#332b1f22',
+      'scrollbarSlider.hoverBackground': '#332b1f38',
+    },
+  });
+}
 
 /** `ts.ModuleDetectionKind.Force`: every file is a module, so two models with the same `const` do not clash. */
 const MODULE_DETECTION_FORCE = 3;
@@ -47,6 +92,7 @@ function useKind(kind: SnippetKind): void {
 function configure(): void {
   if (configured) return;
   configured = true;
+  defineThemes();
   const ts = monaco.typescript;
   ts.typescriptDefaults.setEagerModelSync(true);
   ts.typescriptDefaults.setCompilerOptions({

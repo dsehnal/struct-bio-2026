@@ -1,9 +1,41 @@
 /*
- * The fonts of the whole page, the same as Prism's (`--msp-font-sans`, `--msp-font-mono` in prism-ui's
- * `styles/theme.css`), so the slides, the playground and the viewer read as one thing. Prism's own tokens live in its
- * shadow root, so the page names the stacks again here.
+ * The look of the whole page, Prism's: the fonts, the palette and the spectrum, the same as prism-ui's light theme
+ * (`styles/theme.css`: `--msp-font-sans`, `--msp-font-mono`, `--msp-color-bg`, `--msp-canvas-bg`, `--msp-color-text`,
+ * `--msp-color-brand-1` to `-4`) and the wordmark's gradient, so the slides, the playground and the viewer read as one thing.
+ * Prism's own tokens live in its shadow root, so the page names them again here, once; the slides' CSS, the playground's and
+ * the viewer box's use only these (_spec/README.md, "Visual style").
  */
 :root {
   --app-font-sans: "Helvetica Neue", "Segoe UI", Helvetica, "Source Sans Pro", Arial, sans-serif;
   --app-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* The page is Prism's canvas; panels and the backdrop are its panel tone; code sits on warm paper. */
+  --app-canvas: #fcfbf9;
+  --app-panel: #eeece7;
+  --app-paper: #f4f1ea;
+  --app-ink: #332b1f;
+  /* A warm brown-grey: 6.0:1 on the canvas, 5.3:1 on a panel. */
+  --app-muted: #6b5f4f;
+  /* Hairlines: the ink at 13%. */
+  --app-line: rgba(51, 43, 31, 0.13);
+  --app-line-strong: rgba(51, 43, 31, 0.24);
+  --app-danger: #c4091f;
+  --app-radius: 3px;
+
+  /* The only accents: the four colors of the wordmark, and a darker shade of each for text (4.5:1 on canvas, panel, paper). */
+  --app-brown: #7a4f2f;
+  --app-gold: #e0ae2c;
+  --app-sage: #6f9a80;
+  --app-steel: #3f86ad;
+  --app-gold-text: #7d5c06;
+  --app-sage-text: #3d6b52;
+  --app-steel-text: #2d6a8e;
+  /* The wordmark's own gradient: brown, gold at 35%, sage at 60%, steel. */
+  --app-spectrum: linear-gradient(
+    90deg,
+    var(--app-brown) 0%,
+    var(--app-gold) 35%,
+    var(--app-sage) 60%,
+    var(--app-steel) 100%
+  );
 }

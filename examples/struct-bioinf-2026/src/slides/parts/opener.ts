@@ -24,7 +24,6 @@ export function opener(o: {
     body: `
       <div class="two-col wide-right">
         <div class="stack">
-          <p class="time">Part ${o.part} · ${escapeHtml(o.time)}</p>
           <h2>${escapeHtml(o.title)}</h2>
           <ul class="points small">${o.points.map((p) => `<li>${p}</li>`).join('')}</ul>
         </div>

@@ -127,9 +127,9 @@ export function part3(): string {
         <h2>Example A: p53, from sequence to variant</h2>
         <p class="lead">Three views of one protein, the tumour suppressor mutated in many cancers.</p>
         ${stage(`<div class="cards">
-          <div class="card"><h3>1 · Confidence</h3><p>The AlphaFold model coloured by pLDDT: a confident DNA-binding domain, a helix, disordered ends.</p></div>
-          <div class="card"><h3>2 · On DNA</h3><p>1TSR: the DNA-binding domain bound to its site, and the residues in contact.</p></div>
-          <div class="card"><h3>3 · Hotspots</h3><p><span style="color:var(--slide-contact)">Contact</span> mutants touch the DNA, <span style="color:var(--slide-structural)">structural</span> mutants hold the fold.</p></div>
+          <div class="card"><h3>Confidence</h3><p>The AlphaFold model coloured by pLDDT: a confident DNA-binding domain, a helix, disordered ends.</p></div>
+          <div class="card"><h3>On DNA</h3><p>1TSR: the DNA-binding domain bound to its site, and the residues in contact.</p></div>
+          <div class="card"><h3>Hotspots</h3><p><span style="color:var(--slide-contact)">Contact</span> mutants touch the DNA, <span style="color:var(--slide-structural)">structural</span> mutants hold the fold.</p></div>
         </div>`)}`,
     }),
 

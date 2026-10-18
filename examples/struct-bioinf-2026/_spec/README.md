@@ -51,6 +51,19 @@ with two modes:
     under Prism in one box and cross-fades their opacity (a fragment step, a slider). It is the one place the classic
     viewer is used, so its styles are imported next to it and every rule is under `.msp-*`.
 
+12. **Visual style: Prism's, from one place.** The slides, the playground and the viewer's box look like Mol*/Prism, not
+    a stock template. `src/fonts.css` is the only place the palette lives, copied from prism-ui's light theme
+    (`styles/theme.css`): the canvas `#fcfbf9` is the page, the panel `#eeece7` what holds things, the ink `#332b1f`, a
+    warm muted brown-grey, hairlines of the ink at 13%, code on warm paper, Prism's small radii. The only accents are
+    the wordmark's four colors (brown, gold, sage, steel; a darker shade of each where it is text, 4.5:1 or more) and
+    their spectrum, the wordmark's own gradient: a rule under every slide title and reveal's progress bar. One color a
+    part (0–1 brown, 2–3 gold, 4–5 sage, 6–7 steel) lights the parts map and ticks the cards and stars of its slides.
+    Cards are columns divided by hairlines with a short tick, not boxes; only real panels (code, viewers, the
+    playground's panes) have the glass edge (a hairline, no shadow); the ✳ of the Mol\* star is the bullet and the mark
+    of a pull quote. Code colors are the same in the slides' highlighter, their Data tabs and Monaco's theme
+    (`runner/editor.ts`). Red and teal stay for the biology (the hotspots are data). Fonts are Prism's stack. Titles are
+    weight 600 and tight, with no kicker above them.
+
 ## Assets to prepare
 
 - A screenshot of the MolViewStories landing page (https://molstar.org/mol-view-stories/) for outline.md §6.

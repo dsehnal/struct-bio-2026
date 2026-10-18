@@ -13,8 +13,11 @@
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  border-radius: 4px;
-  background: #f3f4f6;
+  box-sizing: border-box;
+  /* Prism's glass edge: a hairline, a small radius, no shadow, the canvas's own color (src/fonts.css). */
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius);
+  background: var(--app-canvas);
 }
 
 /* Only the fade in is animated: the box starts invisible at once. */
@@ -33,14 +36,14 @@
   display: grid;
   place-items: center;
   padding: 16px;
-  color: #6b7280;
+  color: var(--app-muted);
   font: 14px var(--app-font-sans);
   text-align: center;
   pointer-events: none;
 }
 
 .embedded-viewer .viewer-status[data-kind="error"] {
-  color: #b91c1c;
+  color: var(--app-danger);
 }
 
 .embedded-viewer .viewer-status[hidden] {
