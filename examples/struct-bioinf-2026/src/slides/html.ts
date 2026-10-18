@@ -16,7 +16,7 @@ export const escapeHtml = (text: string) => text.replace(/&/g, '&amp;').replace(
 export const PartNames = [
   'Opening',
   'The new viewer: Prism',
-  "Describe, don't click",
+  'How it fits together',
   'MolViewSpec',
   'Sequences',
   'Volumes',

@@ -17,7 +17,7 @@ import { qrSvg } from '../qr.js';
 const Plan: readonly { min: string; name: string }[] = [
   { min: '0–2', name: 'Opening' },
   { min: '2–9', name: 'The new viewer: Prism' },
-  { min: '9–11', name: "Describe, don't click" },
+  { min: '9–11', name: 'How it fits together' },
   { min: '11–19', name: 'MolViewSpec, example A: p53' },
   { min: '19–25', name: 'Sequences: Seq*, SeqViewSpec' },
   { min: '25–30', name: 'Volumes, example B: imatinib' },
@@ -40,7 +40,7 @@ export function part0(): string {
       <div class="title-splash"></div>
       ${notes(
         'Welcome. I will not teach you how to click in Mol*: most of you have seen it in PDBe, EMDB or AlphaFold DB pages.',
-        'The message of the hour, in one line: <strong>your figure is a description, not a set of clicks</strong>. You describe it once as a short spec, and then the same description runs in a web page, a notebook, a paper supplement or a story.',
+        'The hour in one line: how to use Mol* to show your structures, sequences, maps and annotations, from the new viewer to scenes you can write, share and reuse.',
         'Everything today runs in your browser. Nothing to install. The playground link comes on the next-but-one slide and again at the end.',
       )}
     </section>`,
@@ -76,7 +76,6 @@ export function part0(): string {
         '- <strong>MolViewSpec</strong> and <strong>SeqViewSpec</strong>: descriptions of a 3D scene and of a sequence view.',
         '- <strong>MolQL</strong>: a language to say what you select, so that it means the same everywhere.',
         '- The <strong>data</strong>: the volume server and annotations.',
-        'If you remember one sentence: your figure is a description, not a set of clicks.',
       ),
       body: `
         <h2>Mol* v6: a rebuild of what surrounds the renderer</h2>
@@ -86,8 +85,7 @@ export function part0(): string {
           <div class="card"><h3>Descriptions</h3><p>MolViewSpec for 3D, SeqViewSpec for sequences.</p></div>
           <div class="card"><h3>Selections</h3><p>MolQL: what to select, as a language.</p></div>
           <div class="card"><h3>Data</h3><p>The volume server and annotation files.</p></div>
-        </div>
-        <p class="big-statement">Your figure is <strong>a description</strong>, not a set of clicks.</p>`)}`,
+        </div>`)}`,
     }),
 
     slide({

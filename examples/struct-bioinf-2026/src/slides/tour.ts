@@ -38,7 +38,7 @@ async function call(what: string, run: () => Promise<{ ok: boolean; message?: st
   }
 }
 
-export const tourScene: LiveScene = async (el) => {
+export const tourScene: LiveScene = async (el, deck) => {
   const container = el.querySelector<HTMLElement>('.live-viewer');
   const items = [...el.querySelectorAll<HTMLElement>('.tour-list li')];
   const steps = [...el.querySelectorAll<HTMLElement>('.tour-step')];
@@ -177,6 +177,15 @@ export const tourScene: LiveScene = async (el) => {
   };
   deckRoot.addEventListener('fragmentshown', onFragment);
   deckRoot.addEventListener('fragmenthidden', onFragment);
+  // A click on an item goes to its step: item n is shown once n fragments are (the first by none); reveal counts its
+  // fragments from 0, so that is fragment n - 1. The deck, the list and the viewer move as with the arrows.
+  const onItem = (e: MouseEvent) => {
+    const li = (e.target as HTMLElement).closest<HTMLElement>('.tour-list li');
+    if (!li) return;
+    const { h, v } = deck.getIndices();
+    deck.slide(h, v, Number(li.dataset.step) - 1);
+  };
+  el.addEventListener('click', onItem);
   shown = steps.filter((f) => f.classList.contains('visible')).length;
   paint();
 
@@ -206,6 +215,7 @@ export const tourScene: LiveScene = async (el) => {
     disposed = true;
     deckRoot.removeEventListener('fragmentshown', onFragment);
     deckRoot.removeEventListener('fragmenthidden', onFragment);
+    el.removeEventListener('click', onItem);
     await embedded.dispose();
   };
 };

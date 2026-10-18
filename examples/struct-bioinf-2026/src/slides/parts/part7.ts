@@ -100,7 +100,7 @@ export function part7(): string {
           <li><span class="what">Cite Mol*</span>${link(Links.molstarPaper, 'Sehnal et al., Nucleic Acids Res. 2021, doi:10.1093/nar/gkab314')}</li>
           <li><span class="what">Cite MolViewStories</span>${link(Links.viewStoriesPaper, 'Slanináková et al., Protein Science 2026, doi:10.1002/pro.70540')}</li>
         </ul>
-        <p class="big-statement">Your figure is <strong>a description</strong>. Thank you, and questions.</p>`)}`,
+        <p class="big-statement">Thank you, and questions.</p>`)}`,
     }),
   ].join('');
 }

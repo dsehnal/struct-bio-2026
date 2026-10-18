@@ -40,20 +40,20 @@
   --part-ink: var(--app-brown);
 }
 
-.reveal .slides > section[data-part='2'],
-.reveal .slides > section[data-part='3'] {
+.reveal .slides > section[data-part="2"],
+.reveal .slides > section[data-part="3"] {
   --part: var(--app-gold);
   --part-ink: var(--app-gold-text);
 }
 
-.reveal .slides > section[data-part='4'],
-.reveal .slides > section[data-part='5'] {
+.reveal .slides > section[data-part="4"],
+.reveal .slides > section[data-part="5"] {
   --part: var(--app-sage);
   --part-ink: var(--app-sage-text);
 }
 
-.reveal .slides > section[data-part='6'],
-.reveal .slides > section[data-part='7'] {
+.reveal .slides > section[data-part="6"],
+.reveal .slides > section[data-part="7"] {
   --part: var(--app-steel);
   --part-ink: var(--app-steel-text);
 }
@@ -125,7 +125,7 @@ body {
 /* The wordmark's spectrum as a thin rule under every slide title. */
 .reveal h1::after,
 .reveal h2::after {
-  content: '';
+  content: "";
   display: block;
   width: 120px;
   max-width: 40%;
@@ -176,7 +176,7 @@ body {
 }
 
 .reveal .part-tag::before {
-  content: '\2733\00a0';
+  content: "\2733\00a0";
   color: var(--part);
 }
 
@@ -415,7 +415,7 @@ body {
 }
 
 .reveal .points li::before {
-  content: '\2733';
+  content: "\2733";
   position: absolute;
   left: 0;
   top: 0.12em;
@@ -466,7 +466,7 @@ body {
 }
 
 .reveal .card::before {
-  content: '';
+  content: "";
   width: 28px;
   height: 2px;
   margin-bottom: 0.45em;
@@ -700,27 +700,27 @@ body {
   opacity: 0.62;
 }
 
-.reveal .parts-map[data-current='3'] .node[data-parts~='3'],
-.reveal .parts-map[data-current='4'] .node[data-parts~='4'],
-.reveal .parts-map[data-current='5'] .node[data-parts~='5'],
-.reveal .parts-map[data-current='6'] .node[data-parts~='6'] {
+.reveal .parts-map[data-current="3"] .node[data-parts~="3"],
+.reveal .parts-map[data-current="4"] .node[data-parts~="4"],
+.reveal .parts-map[data-current="5"] .node[data-parts~="5"],
+.reveal .parts-map[data-current="6"] .node[data-parts~="6"] {
   opacity: 1;
 }
 
 /* The lit cards take the part's color (the slide's \`--part\`): its edge, and its ink on the title. */
-.reveal .parts-map[data-current='3'] .node[data-parts~='3'] .dg-box,
-.reveal .parts-map[data-current='4'] .node[data-parts~='4'] .dg-box,
-.reveal .parts-map[data-current='5'] .node[data-parts~='5'] .dg-box,
-.reveal .parts-map[data-current='6'] .node[data-parts~='6'] .dg-box {
+.reveal .parts-map[data-current="3"] .node[data-parts~="3"] .dg-box,
+.reveal .parts-map[data-current="4"] .node[data-parts~="4"] .dg-box,
+.reveal .parts-map[data-current="5"] .node[data-parts~="5"] .dg-box,
+.reveal .parts-map[data-current="6"] .node[data-parts~="6"] .dg-box {
   fill: #fff;
   stroke: var(--part);
   stroke-width: 2.5;
 }
 
-.reveal .parts-map[data-current='3'] .node[data-parts~='3'] .dg-title,
-.reveal .parts-map[data-current='4'] .node[data-parts~='4'] .dg-title,
-.reveal .parts-map[data-current='5'] .node[data-parts~='5'] .dg-title,
-.reveal .parts-map[data-current='6'] .node[data-parts~='6'] .dg-title {
+.reveal .parts-map[data-current="3"] .node[data-parts~="3"] .dg-title,
+.reveal .parts-map[data-current="4"] .node[data-parts~="4"] .dg-title,
+.reveal .parts-map[data-current="5"] .node[data-parts~="5"] .dg-title,
+.reveal .parts-map[data-current="6"] .node[data-parts~="6"] .dg-title {
   fill: var(--part-ink);
 }
 
@@ -1070,20 +1070,6 @@ body {
   flex: 1;
 }
 
-.reveal .clicks {
-  columns: 2;
-  column-gap: 1.2em;
-  margin: 0;
-  padding: 0 0 0 1.8em;
-  font-size: 0.8em;
-  line-height: 1.35;
-  color: var(--slide-muted);
-}
-
-.reveal .clicks li {
-  break-inside: avoid;
-}
-
 .reveal table.schema {
   border-collapse: collapse;
   font-size: 0.85em;
@@ -1220,6 +1206,14 @@ body {
   line-height: 1.25;
 }
 
+.reveal .tour-list li {
+  cursor: pointer;
+}
+
+.reveal .tour-list li:not(.current):hover strong {
+  color: var(--app-brown);
+}
+
 .reveal .tour-list li.current {
   border-left-color: var(--part);
   background: var(--app-panel);
@@ -1305,7 +1299,7 @@ body {
 }
 
 .reveal .callout::before {
-  content: '\2733';
+  content: "\2733";
   position: absolute;
   left: 0;
   top: -0.08em;

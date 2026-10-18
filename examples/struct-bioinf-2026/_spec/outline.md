@@ -14,10 +14,10 @@ MD (Harris).
 
 ## Message
 
-Your figure is a description, not a set of clicks. Describe it once as a short spec: what to load, what to show, what it
-means. Then the same description runs in a web page, a notebook, a paper's supplement or a story. Mol\* v6 provides the
-viewer (Prism), the descriptions (MolViewSpec for 3D, SeqViewSpec for sequences), the selections (MolQL, SeqQL) and the
-data (volume server, annotations).
+How to use Mol* to show structures, sequences, maps and annotations. A scene can be written once as a short spec: what
+to load, what to show, what it means. Then the same description runs in a web page, a notebook, a paper's supplement or
+a story. Mol\* v6 provides the viewer (Prism), the descriptions (MolViewSpec for 3D, SeqViewSpec for sequences), the
+selections (MolQL, SeqQL) and the data (volume server, annotations).
 
 ## Timing (≈45 min talk, ≈15 min questions)
 
@@ -25,7 +25,7 @@ data (volume server, annotations).
 | ----- | ------------------------------------- | -------------------------- |
 | 0–2   | 0. Opening                            | slides                     |
 | 2–9   | 1. The new viewer: Prism              | live in Prism              |
-| 9–11  | 2. Describe, don't click              | slides (one diagram)       |
+| 9–11  | 2. How it fits together               | slides (one diagram)       |
 | 11–19 | 3. MolViewSpec + example A (p53)      | slides with live snippets  |
 | 19–25 | 4. Sequences: Seq\*, SeqViewSpec      | slides with live snippets  |
 | 25–30 | 5. Volumes + example B (imatinib)     | slides with live snippets  |
@@ -64,7 +64,7 @@ and scripts call the same operations.
 Slide: classic UI vs Prism, one live box with both viewers cross-faded (a step and a slider), with 3–4 differences
 named. Fallback: a 60 s recording of the demo.
 
-## 2. Describe, don't click (2 min)
+## 2. How it fits together (2 min)
 
 One diagram, used again as the map for the rest of the talk:
 
@@ -195,7 +195,7 @@ with its part's tag.
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0    | title, "Using Mol\* to visualise your data" (with Prism's quantum splash) · why visualise (this talk shows, it does not compute) · Mol\* v6 · the plan with the playground QR code                                                                                                                                                                                            |
 | 1    | classic vs Prism (morph) · "What's better in Prism": the live viewer stepped through seven things (tree, selection, selection visuals, volumes, images and animations, Seq\*, command menu)                                                                                                                                                                                   |
-| 2    | the map of the talk · state, not steps · a description is a tree of steps                                                                                                                                                                                                                                                                                                     |
+| 2    | the map of the talk ("Data, descriptions, viewers") · a description is a tree of steps                                                                                                                                                                                                                                                                                        |
 | 3    | opener with the map · `basics-smallest` · `basics-selectors` · how a selection is written (schema, MolQL, PyMOL; the P-loop of 1IEP) · "Example: PyMOL selectors" (`basics-pymol`) · data stays outside the structure · `basics-annotations` · `basics-primitives` · portability · example A · `p53-af-plddt` · numbering · `p53-dna` · `p53-hotspots` · checked, not guessed |
 | 4    | opener · SeqViewSpec shape · `p53-sequence` (SeqQL is not shown)                                                                                                                                                                                                                                                                                                              |
 | 5    | opener · the volume server's principle · `imatinib-pocket` · `imatinib-density`                                                                                                                                                                                                                                                                                               |

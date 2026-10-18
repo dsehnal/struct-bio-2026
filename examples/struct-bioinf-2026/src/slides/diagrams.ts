@@ -60,7 +60,7 @@ const Columns: readonly MapColumn[] = [
 ];
 
 /**
- * "Describe, don't click" (outline.md §2): data, descriptions (written in TypeScript or Python), viewers and outputs: three
+ * The map of the talk (outline.md §2): data, descriptions (written in TypeScript or Python), viewers and outputs: three
  * tinted columns of cards of one size, one arrow between each two. With `current` (3–6) the cards that part deals with are
  * lit and the rest are quieter (still readable): the map at the start of parts 3–6; without it, all are the same.
  */

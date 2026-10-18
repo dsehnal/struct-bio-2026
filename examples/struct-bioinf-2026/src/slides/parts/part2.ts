@@ -11,9 +11,8 @@ import { partsMap } from '../diagrams.js';
 import { escapeHtml, notes, slide, stage } from '../html.js';
 import { playgroundUrl } from '../links.js';
 import { qrSvg } from '../qr.js';
-import { stateNotSteps } from '../principles.js';
 
-// Part 2, Describe, don't click (outline.md §2, 2 min). The diagram comes back as the map of parts 3–6.
+// Part 2, How it fits together (outline.md §2, 2 min). The diagram comes back as the map of parts 3–6.
 
 export function part2(): string {
   return [
@@ -59,12 +58,10 @@ export function part2(): string {
         'The point: the description in the middle is independent of what is on either side. Same description, different data, different viewer.',
       ),
       body: `
-        <h2>Describe, don't click</h2>
+        <h2>Data, descriptions, viewers</h2>
         <p class="lead">A description says what to load, what to show and what it means. Viewers draw it.</p>
         ${stage(partsMap())}`,
     }),
-
-    stateNotSteps(2),
 
     slide({
       part: 2,
