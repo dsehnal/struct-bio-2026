@@ -22,9 +22,8 @@ const Plan: readonly { min: string; name: string }[] = [
   { min: '19–25', name: 'Sequences: Seq*, SeqViewSpec, SeqQL' },
   { min: '25–30', name: 'Volumes, example B: imatinib' },
   { min: '30–36', name: 'Stories, example C: the spike' },
-  { min: '36–42', name: 'The assistant in Prism' },
-  { min: '42–45', name: 'Your turn: the playground' },
-  { min: '45–60', name: 'Questions, in the playground' },
+  { min: '36–40', name: 'Your turn: the playground' },
+  { min: '40–60', name: 'Questions, in the playground' },
 ];
 
 export function part0(): string {
@@ -41,7 +40,7 @@ export function part0(): string {
       <div class="title-splash"></div>
       ${notes(
         'Welcome. This is the last day of the course, so I will not teach you how to click in Mol*: you did that on Tuesday with PDBe and EMDB.',
-        'The message of the hour, in one line: <strong>your figure is a description, not a set of clicks</strong>. You describe it once as a short spec, and then the same description runs in a web page, a notebook, a paper supplement or a story, and an assistant can write it with you.',
+        'The message of the hour, in one line: <strong>your figure is a description, not a set of clicks</strong>. You describe it once as a short spec, and then the same description runs in a web page, a notebook, a paper supplement or a story.',
         'Everything today runs in your browser. Nothing to install. The playground link comes on the next-but-one slide and again at the end.',
       )}
     </section>`,
@@ -83,7 +82,7 @@ export function part0(): string {
         <h2>Mol* v6: a rebuild of what surrounds the renderer</h2>
         <p class="lead">PDBe, RCSB, AlphaFold DB, EMDB, UniProt and others embed Mol*. You used it on Tuesday.</p>
         ${stage(`<div class="cards four">
-          <div class="card"><h3>Prism</h3><p>A new viewer UI, with an optional assistant.</p></div>
+          <div class="card"><h3>Prism</h3><p>A new viewer UI.</p></div>
           <div class="card"><h3>Descriptions</h3><p>MolViewSpec for 3D, SeqViewSpec for sequences.</p></div>
           <div class="card"><h3>Selections</h3><p>MolQL and SeqQL: what to select, as a language.</p></div>
           <div class="card"><h3>Data</h3><p>The volume server and annotation files.</p></div>
@@ -95,7 +94,7 @@ export function part0(): string {
       part: 0,
       notes: notes(
         'The plan of the hour. About 45 minutes of talk, then questions. The talk is mostly live: the viewers on the slides are real.',
-        'Here is the playground link and a QR code. Open it now on your own screen if you want to follow along. Every example slide has a "Try it" button that opens the same snippet in the playground. If you would rather watch, wait for the end: we come back to the playground in part 8 and you will use it during the questions.',
+        'Here is the playground link and a QR code. Open it now on your own screen if you want to follow along. Every example slide has a "Try it" button that opens the same snippet in the playground. If you would rather watch, wait for the end: we come back to the playground in part 7 and you will use it during the questions.',
         'The link is also in the chat.',
         'I will go fast. Do not worry about catching everything: the snippets are all in the playground, with suggested edits.',
       ),

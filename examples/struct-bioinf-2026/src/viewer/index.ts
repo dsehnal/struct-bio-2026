@@ -16,7 +16,7 @@ import './viewer.css';
 
 // The viewer both modes embed (_spec/README.md decision 6): Prism, over `DefaultPrismViewerSpec()` (viewer-spec.md §5).
 // That spec already has what the talk needs: the `loaders` feature (`load.mvs`, `load.svs`) and the sequence band
-// (sequence.md §6), and `agent: {}`, no assistant. It has no `persist`, so nothing is stored in the browser and
+// (sequence.md §6), and `agent: {}`. It has no `persist`, so nothing is stored in the browser and
 // several viewers may live on a page (viewer-spec.md §2.6: a `persist.key` is claimed per live viewer and a second
 // viewer with the same key is refused). Mol*'s extensions (the app's `FullPrismViewerSpec`) are not needed.
 
@@ -65,7 +65,7 @@ export async function createEmbeddedViewer(
   return createEmbeddedViewerWith(container, embeddedViewerSpec(options.layout));
 }
 
-/** As `createEmbeddedViewer`, over a spec of the caller's (the assistant slide adds the assistant to the full layout). */
+/** As `createEmbeddedViewer`, over a spec of the caller's (the Prism tour adds the animation export). */
 export async function createEmbeddedViewerWith(container: HTMLElement, spec: PrismViewerSpec): Promise<EmbeddedViewer> {
   // The viewer's target gets a shadow root, so a message over it is a sibling, not a child.
   container.classList.add('embedded-viewer');

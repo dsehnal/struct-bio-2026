@@ -40,7 +40,7 @@ export function part3(): string {
       lead: 'Download, parse, structure, component, representation, color.',
       notes: notes(
         'Principle 1, the tree. The smallest scene: download a file, parse it, make a structure, pick a component, give it a representation and a colour. About 8 lines of builder code.',
-        'Click the second tab: this is the MVSJ the code produced. It is the actual description, plain JSON. The code is only a convenient way to write it. You could write the JSON by hand, or generate it from Python, or have an assistant write it.',
+        'Click the second tab: this is the MVSJ the code produced. It is the actual description, plain JSON. The code is only a convenient way to write it. You could write the JSON by hand, or generate it from Python.',
         'Everything else today is more nodes in this tree.',
       ),
     }),

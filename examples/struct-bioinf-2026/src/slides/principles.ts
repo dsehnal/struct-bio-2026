@@ -72,7 +72,6 @@ export function stateNotSteps(part: number): string {
       'Principle: <strong>state, not steps</strong>. The same figure, 1IEP with the protein in gray and imatinib as sticks, two ways.',
       'On the left, what you do in a classic UI: about thirty clicks, each one a step. If you want the figure again tomorrow, or want a colleague to make the same one, you have to remember or write down the steps, and the order matters.',
       `On the right, the description: ${lines} lines that say what the figure <em>is</em>. It is a state, not a recipe. A state can be <strong>replayed</strong> (load it again and get the same figure), <strong>diffed</strong> (change the colour and the difference is one line in a text diff) and <strong>shared</strong> (it is a file, or a link).`,
-      'This is also why an assistant can write it: a short description is something a model can produce and a person can check.',
     ),
     body: `
       <h2>State, not steps</h2>
@@ -246,7 +245,6 @@ export function checkedNotGuessed(part: number): string {
       'Principle: <strong>checked, not guessed</strong>. A description is validated before anything is drawn.',
       'Here are two typos: <code>cartoons</code> for <code>cartoon</code>, and <code>colour</code> for <code>color</code>. A viewer that guesses would draw a default and say nothing, and you would wonder why the figure is the wrong colour. A description that is checked says what is wrong and in which node.',
       'The error names the node, the parameter and the allowed values. In the playground the editor also underlines the line as you type, and the last good scene stays on screen.',
-      'It is also what keeps an assistant honest: whatever it writes is checked the same way.',
     ),
     body: `
       <h2>Checked, not guessed</h2>

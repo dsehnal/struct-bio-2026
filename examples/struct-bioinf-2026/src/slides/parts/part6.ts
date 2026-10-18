@@ -26,7 +26,7 @@ export function part6(): string {
         '<strong>Example C</strong>: the SARS-CoV-2 spike, played back',
       ],
       notes: notes(
-        'Stories. A story is a list of snapshots of one MolViewSpec description, each with a short text, played with transitions. It can be written by hand, in code, or with an assistant.',
+        'Stories. A story is a list of snapshots of one MolViewSpec description, each with a short text, played with transitions. It can be written by hand or in code.',
         'On the map: a story is a MolViewSpec description with several snapshots, and what you publish is a file or a link: the right-hand column.',
         'First the tool that makes them without setting anything up, then a story to play: the spike.',
       ),

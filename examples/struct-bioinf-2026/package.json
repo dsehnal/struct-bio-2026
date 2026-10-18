@@ -18,7 +18,6 @@
   "dependencies": {
     "@molstar/mvs-builder": "workspace:*",
     "@molstar/plugin-ui": "workspace:*",
-    "@molstar/prism-assistant": "workspace:*",
     "@molstar/prism-ui": "workspace:*",
     "@molstar/prism-viewer": "workspace:*",
     "@molstar/seq-core": "workspace:*",

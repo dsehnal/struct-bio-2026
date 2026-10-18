@@ -31,8 +31,8 @@ with two modes:
      its own and `asset` resolves `data/<name>` against it.
 4. **The examples are biological.** There are three, each tied to a session earlier in the week (outline.md): p53 for
    sequence, variants and pLDDT; imatinib/ABL for ligand and density; the spike for cryo-EM and a story.
-5. **The assistant is for the presenter only.** Participants do not get a key, and the playground has no agent.
-   Everything else needs no account and no install.
+5. **No assistant.** The talk does not show Prism's assistant, and neither the slides nor the playground load it.
+   Nothing needs an account or an install.
 6. **One viewer: Prism.** Slides and playground both embed the Prism viewer, which loads MVS and takes SVS for its
    sequence band. Then what participants see in the playground is what was shown in the talk. No example combines MVS
    and SVS in one story yet.
@@ -44,7 +44,7 @@ with two modes:
 9. **Hosted as a static build on GitHub Pages**, published by hand from `vite build`. No server; all data comes from
    public services (PDBe, AFDB, the PDBe volume server).
 10. **Guided playground.** The playground starts from one-click example cards, with suggested edits next to the code
-    (outline.md §8). It is a place to try small changes, not an IDE.
+    (outline.md §7). It is a place to try small changes, not an IDE.
 11. **Live slides hold one scene, which may hold several viewers.** A scene function gets its slide, mounts what it
     needs and returns one dispose; one live slide at a time keeps the WebGL contexts to that slide's. The
     classic-vs-Prism slide (outline.md §1) stacks the classic `Viewer` (`@molstar/viewer`, loaded lazily with its SCSS)
@@ -54,5 +54,5 @@ with two modes:
 ## Assets to prepare
 
 - A screenshot of the MolViewStories landing page (https://molstar.org/mol-view-stories/) for outline.md §6.
-- Recordings for the fallbacks: the Prism demo (§1) and the assistant's three prompts (§7).
+- A recording of the Prism tour (§1) as the fallback.
 - A QR code and a short URL for the playground.

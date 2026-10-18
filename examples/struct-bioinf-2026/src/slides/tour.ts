@@ -153,10 +153,6 @@ export const tourScene: LiveScene = async (el) => {
       if (palette?.run) palette.run(container);
       else console.warn('Tour: the viewer has no command menu button.');
     },
-    // 8. The assistant: named here, shown live in part 7.
-    async () => {
-      await call('camera', () => api.camera.reset({}));
-    },
   ];
 
   const pose = async (n: number) => {
@@ -217,7 +213,6 @@ const Items: readonly { title: string; text: string }[] = [
   { title: 'Images and animations', text: 'Lighting, outlines, a preview; animations as MP4 or WebM.' },
   { title: 'Sequence viewer (Seq*)', text: 'Linked to the 3D view, both ways.' },
   { title: 'The command menu', text: 'Type what you want.' },
-  { title: 'Experimental: the assistant', text: 'An agent over the same operations. Live in part 7.' },
 ];
 
 export function tourSlide(part: number): string {
@@ -226,7 +221,7 @@ export function tourSlide(part: number): string {
     className: 'live-slide tour-live',
     data: { live: 'tour' },
     notes: notes(
-      'What is better in Prism, for you: eight things, one per step. Press the right arrow: each step puts the viewer in the state that shows the item, and the list highlights it. The viewer is 1IEP, c-Abl kinase with imatinib, with its 2Fo-Fc density streamed around the pocket. Every step goes through the same named operations as a click, so you can also do each one by hand, and ← goes back to the step before.',
+      'What is better in Prism, for you: seven things, one per step. Press the right arrow: each step puts the viewer in the state that shows the item, and the list highlights it. The viewer is 1IEP, c-Abl kinase with imatinib, with its 2Fo-Fc density streamed around the pocket. Every step goes through the same named operations as a click, so you can also do each one by hand, and ← goes back to the step before.',
       '- <strong>1. The structure tree</strong>: the Structure tab says what is in the scene in plain words. The Contents row is expanded and picked, as if you had clicked it: the structure has four entities, and they have their real names from the file (the ABL kinase polymer, a chloride ion, imatinib with its long chemical name, water). Click any row to see its inspector.',
       '- <strong>2. Better selection</strong>: the Selection tab. The ligand is selected (built), then grown by 5 Å, then the gatekeeper T315 is added (changed). The summary at the top says what is selected, in words, and the selection is shown in 3D and in the sequence. By hand: the Selection field takes <code>ligand</code>, <code>A:315</code>, a PyMOL selection; the buttons grow it, expand it to residues or chains, invert it.',
       '- <strong>3. Selection visuals</strong>: how a selection is shown, and how to change that. The "Color, transparency, glow" section of the Selection tab is open, and the pocket has a colour and a glow on it; the list under it shows the applied layers, each removable, with Clear all. The colours of the selection and the highlight are in Settings, Appearance.',
@@ -234,7 +229,6 @@ export function tourSlide(part: number): string {
       '- <strong>5. Images and animations</strong>: the Export card. Lighting is on (occlusion and an outline) for a nicer picture. First the Image part: a preview with a crop, the resolution, PNG, Copy or Download. Then the Animation part of the same card: the animation (camera spin, rock, snapshots), its length and frame rate, and the <strong>format: MP4 or WebM</strong>, with a quality choice. The animation export is a lazy extension: its code loads when this part is first opened.',
       "- <strong>6. The sequence viewer (Seq*)</strong>: the band at the top. Six residues around the DFG motif are selected, and they light up in the sequence as well as in 3D. By hand: hover a residue in the band and it lights in 3D, click or drag to select, and the reverse. Tracks, colours and the rail are in the Sequence button's menu.",
       '- <strong>7. The command menu</strong> (Ctrl or ⌘ + K): the first screen is open, with Browse (Preset, Styles, Select…), then Data (Open files…), and the rest. Type what you want and it filters. A next click: open Select, type <code>ligand</code> and press Enter.',
-      '- <strong>8. Experimental: the assistant</strong>: an agent over the same named operations, in the Assistant tab. It is not on this slide; it is part 7, live, with a key.',
       'Press → once more to leave the tour. The earlier steps are not undone by leaving: the next slide has its own viewer.',
     ),
     body: `

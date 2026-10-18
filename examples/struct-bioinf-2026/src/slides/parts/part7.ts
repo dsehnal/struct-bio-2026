@@ -6,38 +6,72 @@
  * @author David Sehnal <david.sehnal@gmail.com>
  */
 
-import { AssistantPrompts } from '../demo.js';
-import { escapeHtml, notes, slide } from '../html.js';
+import { modeHref } from '../../mode.js';
+import { escapeHtml, link, notes, slide, stage } from '../html.js';
+import { Links, playgroundUrl } from '../links.js';
+import { qrSvg } from '../qr.js';
+import { pythonSlide } from './python.js';
 
-// Part 7, The assistant in Prism (outline.md §7, 6 min, live). The viewer is made by the live scene (`demo.ts`), with the
-// assistant loaded only for this slide.
+// Part 7, Your turn: the playground (outline.md §7, 4 min, then questions).
+
+const Cards: readonly { id: string; title: string; text: string }[] = [
+  { id: 'basics-smallest', title: 'The smallest scene', text: 'Download, parse, draw.' },
+  { id: 'p53-af-plddt', title: 'A: p53', text: 'Confidence, DNA, hotspots, sequence.' },
+  { id: 'imatinib-pocket', title: 'B: imatinib', text: 'A drug and its evidence.' },
+  { id: 'spike-story', title: 'C: the spike', text: 'A light story.' },
+];
 
 export function part7(): string {
-  return slide({
-    part: 7,
-    className: 'live-slide',
-    data: { live: 'assistant' },
-    notes: notes(
-      'The assistant in Prism, live, on my key. Before the talk: the Assistant tab is open: add the key of a provider and choose "Until reload", so it stays in memory and is gone with the page. It never reaches the code of the page or a recording; check that the screen share does not show the key as you type it.',
-      'What to say: the assistant drives the <strong>same named operations</strong> as the UI (part 1). It does not hold a hidden copy of the scene. Each step is recorded and can be undone, so you can see exactly what it did: the turn card at the bottom left lists every call, and Undo turn reverts it.',
-      'Three prompts, in order. They are on the slide; the Copy button puts one on the clipboard, then press Ctrl or ⌘ + K, paste, and press Ctrl or ⌘ + Enter.',
-      '- 1. "Load 1IEP and show imatinib with the residues around it."',
-      '- 2. "Color the pocket by hydrophobicity and label the gatekeeper."',
-      '- 3. "Now show the same pocket in the AlphaFold model of ABL1 and compare." This one is harder: it shows what it can do and where it stops.',
-      'Honest limits: it can be wrong, and the scene and the history are what you check. It needs a model key and it costs money. It is an aid for building views faster, not an analysis you cite.',
-      'Fallback: a recording of the same three prompts.',
-    ),
-    body: `
-      <header class="slide-head">
-        <h2>The assistant in Prism</h2>
-        <p class="lead">It asks for the same operations as the UI. Every step is recorded and can be undone.</p>
-      </header>
-      <div class="assistant-columns">
-        <div class="live-viewer"></div>
-        <aside class="assistant-side">
-          ${AssistantPrompts.map((p, i) => `<div class="prompt"><q>${i + 1}. ${escapeHtml(p)}</q><button type="button" data-prompt="${i}">Copy</button></div>`).join('')}
-          <p class="side-note">Ctrl/⌘+K, paste, Ctrl/⌘+Enter. Check the scene and the history, not the assistant's words. It can be wrong, needs a model key and costs money.</p>
-        </aside>
-      </div>`,
-  });
+  const url = playgroundUrl();
+  return [
+    pythonSlide(7),
+
+    slide({
+      part: 7,
+      notes: notes(
+        'Your turn. The playground is guided, for people who do not write code. Scan the QR code or open the link in the chat.',
+        '- It starts from <strong>one-click examples</strong>: cards for the smallest scene, A (p53), B (imatinib) and C (the spike). Each opens the snippet already run, with the viewer beside it.',
+        '- Each example has 2–3 <strong>suggested edits</strong> of rising difficulty, written next to the code, for example "change <code>1tsr</code> to <code>2ocj</code>", "add R213 to the hotspots", "raise the iso level to 2σ". A "show me" button applies the edit, and "reset" goes back.',
+        '- Errors are shown in plain words at the line where they happen, and the last working scene stays on screen. You cannot break it.',
+        'We now have the questions. Use the playground during them: ask, and I will show it, or try it yourself.',
+      ),
+      body: `
+        <h2>Your turn: the playground</h2>
+        <div class="two-col wide-right center">
+          <div class="stack">
+            <div class="qr-box big">${qrSvg(url, 'QR code of the playground address')}</div>
+            <p class="url">${escapeHtml(url)}</p>
+          </div>
+          <div class="stack">
+            <p class="lead">One click opens an example with its viewer, and suggested edits next to the code.</p>
+            <div class="cards two">
+              ${Cards.map((c) => `<a class="card" href="${modeHref('playground')}&snippet=${encodeURIComponent(c.id)}" target="_blank" rel="noopener"><h3>${escapeHtml(c.title)}</h3><p>${escapeHtml(c.text)}</p></a>`).join('')}
+            </div>
+          </div>
+        </div>`,
+    }),
+
+    slide({
+      part: 7,
+      notes: notes(
+        'The links, in one place, and they are in the chat. The Mol* paper is the one to cite for the viewer; MolViewStories has its own citation.',
+        'How to get in touch: GitHub issues and discussions for Mol*. Thank you, and over to your questions.',
+        'Say thanks to the organisers and to Anyfold, with whom this work is developed.',
+      ),
+      body: `
+        <h2>Links, and thank you</h2>
+        ${stage(`<ul class="links">
+          <li><span class="what">Mol*</span>${link(Links.molstar)}</li>
+          <li><span class="what">MolViewSpec docs</span>${link(Links.viewSpecDocs)}</li>
+          <li><span class="what">Python molviewspec</span>${link(Links.pythonPackage)}</li>
+          <li><span class="what">Colab notebook</span>${link(Links.colab, 'colab.research.google.com/drive/1O2TldXlS01s-YgkD9gy87vWsfCBTYuz9')}</li>
+          <li><span class="what">MolViewStories</span>${link(Links.viewStories)}</li>
+          <li><span class="what">The playground</span>${link(url)}</li>
+          <li><span class="what">Get in touch</span>${link(Links.github)}</li>
+          <li><span class="what">Cite Mol*</span>${link(Links.molstarPaper, 'Sehnal et al., Nucleic Acids Res. 2021, doi:10.1093/nar/gkab314')}</li>
+          <li><span class="what">Cite MolViewStories</span>${link(Links.viewStoriesPaper, 'Slanináková et al., Protein Science 2026, doi:10.1002/pro.70540')}</li>
+        </ul>
+        <p class="big-statement">Your figure is <strong>a description</strong>. Thank you, and questions.</p>`)}`,
+    }),
+  ].join('');
 }

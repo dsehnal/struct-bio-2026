@@ -15,9 +15,9 @@ MD (Harris).
 ## Message
 
 Your figure is a description, not a set of clicks. Describe it once as a short spec: what to load, what to show, what it
-means. Then the same description runs in a web page, a notebook, a paper's supplement or a story, and an assistant can
-write it with you. Mol\* v6 provides the viewer (Prism), the descriptions (MolViewSpec for 3D, SeqViewSpec for
-sequences), the selections (MolQL, SeqQL) and the data (volume server, annotations).
+means. Then the same description runs in a web page, a notebook, a paper's supplement or a story. Mol\* v6 provides the
+viewer (Prism), the descriptions (MolViewSpec for 3D, SeqViewSpec for sequences), the selections (MolQL, SeqQL) and the
+data (volume server, annotations).
 
 ## Timing (≈45 min talk, ≈15 min questions)
 
@@ -30,12 +30,11 @@ sequences), the selections (MolQL, SeqQL) and the data (volume server, annotatio
 | 19–25 | 4. Sequences: Seq\*, SeqViewSpec, SeqQL | slides with live snippets  |
 | 25–30 | 5. Volumes + example B (imatinib)       | slides with live snippets  |
 | 30–36 | 6. Stories, MolViewStories, example C   | story playback, brief UI   |
-| 36–42 | 7. The assistant in Prism               | live (presenter's key)     |
-| 42–45 | 8. Your turn: the playground            | link, one-click examples   |
-| 45–60 | Questions                               | participants in playground |
+| 36–40 | 7. Your turn: the playground            | link, one-click examples   |
+| 40–60 | Questions                               | participants in playground |
 
 The presenter goes fast, so the parts are tight. Each example slide has a "try it" chip that opens the same snippet in
-the playground. Participants who follow along use it, and everyone else gets the playground in part 8 and during
+the playground. Participants who follow along use it, and everyone else gets the playground in part 7 and during
 questions. Each part has one fallback (a recording or a saved scene) in case the network or a server is slow.
 
 ## 0. Opening (2 min)
@@ -44,7 +43,7 @@ questions. Each part has one fallback (a recording or a saved scene) in case the
   the week's resources meet (PDBe, EMDB, AFDB, UniProt, ChEMBL).
 - Mol\* in one slide: PDBe, RCSB, AlphaFold DB, EMDB, UniProt and others embed it, and the participants used it on
   Tuesday. Version 6 is a rebuild of what surrounds the renderer.
-- The plan of the hour and the playground link (QR code + short URL), shown now and again in part 8.
+- The plan of the hour and the playground link (QR code + short URL), shown now and again in part 7.
 
 ## 1. The new viewer: Prism (7 min, live)
 
@@ -59,8 +58,8 @@ The participants know the classic Mol\* UI. Show what changes, not every feature
 6. **History**: every change is a step you can undo, and the session is kept in the browser (journal.md).
 7. **Embedding**: one file and one call (`createPrismViewer`); the same viewer works headless for scripts and tests.
 
-The idea to land: every button is an operation with a name and parameters. That is what makes parts 2 and 7 possible.
-The UI, scripts and the assistant all call the same operations.
+The idea to land: every button is an operation with a name and parameters. That is what makes part 2 possible: the UI
+and scripts call the same operations.
 
 Slide: classic UI vs Prism, one live box with both viewers cross-faded (a step and a slider), with 3–4 differences
 named. Fallback: a 60 s recording of the demo.
@@ -150,7 +149,7 @@ alternative.
 ## 6. Stories, MolViewStories, example C (6 min)
 
 - A story is a list of snapshots of one MVS description, each with a short text, played with transitions. It can be
-  written by hand, in code, or with an assistant.
+  written by hand or in code.
 - **Example C: SARS-CoV-2 spike, a light story.** It is a plain multi-snapshot MVS (3D only; no sequence in the story
   yet):
   1. The cryo-EM map EMD-21375 at low contour, the shape you see first.
@@ -168,20 +167,7 @@ alternative.
 - Brief live look (≈1 min): open the ABL Kinase example, edit one scene's code, and watch the preview change.
 - Example C is shown as playback, with a link so participants can step through it themselves.
 
-## 7. The assistant in Prism (6 min, live)
-
-- The assistant drives the same named operations as the UI (part 1). It does not hold a hidden copy of the scene. Each
-  step is recorded and can be undone, so you can see exactly what it did.
-- Live prompts on the presenter's key, in order (scripted, tested on the day):
-  1. "Load 1IEP and show imatinib with the residues around it."
-  2. "Color the pocket by hydrophobicity and label the gatekeeper."
-  3. "Now show the same pocket in the AlphaFold model of ABL1 and compare." This is harder, and shows what it can do and
-     where it stops.
-- Honest limits: it can be wrong, and the scene and the history are what you check. It needs a model key, and it costs
-  money. It is an aid for building views faster, not an analysis you cite.
-- Fallback: a recording of the same three prompts.
-
-## 8. Your turn: the playground (3 min, then questions)
+## 7. Your turn: the playground (4 min, then questions)
 
 The playground is guided, for people who do not write code:
 
@@ -208,14 +194,13 @@ with its part's tag.
 | Part | Slides                                                                                                                                                                                                                                                                                                                         |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 0    | title (with Prism's quantum splash) · why visualise (this talk shows, it does not compute) · Mol\* v6 · the plan with the playground QR code                                                                                                                                                                                   |
-| 1    | classic vs Prism (morph) · "What's better in Prism, for you": the live viewer stepped through eight things (tree, selection, selection visuals, volumes, images and animations, Seq\*, command menu, assistant)                                                                                                                |
+| 1    | classic vs Prism (morph) · "What's better in Prism, for you": the live viewer stepped through seven things (tree, selection, selection visuals, volumes, images and animations, Seq\*, command menu)                                                                                                                           |
 | 2    | the map of the talk · state, not steps · a description is a tree of steps                                                                                                                                                                                                                                                      |
 | 3    | opener with the map · `basics-smallest` · `basics-selectors` · one selection, many languages · "Or just use PyMOL" (`basics-pymol`) · data stays outside the structure · `basics-annotations` · `basics-primitives` · portability · example A · `p53-af-plddt` · numbering · `p53-dna` · `p53-hotspots` · checked, not guessed |
 | 4    | opener · SeqViewSpec shape · SeqQL · `p53-sequence`                                                                                                                                                                                                                                                                            |
 | 5    | opener · the volume server's principle · `imatinib-pocket` · `imatinib-density`                                                                                                                                                                                                                                                |
 | 6    | opener · MolViewStories · snapshots and transitions · `spike-story` stepped by →                                                                                                                                                                                                                                               |
-| 7    | Prism with the assistant (lazy chunk), the three prompts with Copy buttons                                                                                                                                                                                                                                                     |
-| 8    | Python or TypeScript + Colab · the playground (QR code, one card per example) · links, citations, thanks                                                                                                                                                                                                                       |
+| 7    | Python or TypeScript + Colab · the playground (QR code, one card per example) · links, citations, thanks                                                                                                                                                                                                                       |
 
 Choices not in the sections above:
 
@@ -238,8 +223,8 @@ Choices not in the sections above:
   labels.
 - Reveal's arrows are scaled into the bottom right corner, where every slide's footer leaves room for them. The speaker
   view's frames (`receiver` in the address) get no viewers.
-- The playground address in the QR codes is the page's own. The assistant slide opens the Assistant tab; the key is
-  entered there with "Until reload".
+- The playground address in the QR codes is the page's own.
+- No assistant in this talk: it was cut (2026-10-18), so no slide, tour step or dependency names it.
 
 To cut for time (30 to 60 seconds each): portability, example A intro, state not steps, checked not guessed, snapshots
 and transitions, the selection languages, numbering.

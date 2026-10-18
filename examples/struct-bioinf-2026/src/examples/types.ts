@@ -5,7 +5,7 @@
  */
 
 // The snippets both modes read (_spec/README.md decision 2). An example is a starting snippet and the edits the
-// playground suggests (outline.md §8); slides show a snippet by id and may run it in a live viewer.
+// playground suggests (outline.md §7); slides show a snippet by id and may run it in a live viewer.
 
 /** What a snippet's code is: MVS builder code (run by the runner, shown by `load.mvs`), or SVS builder code. */
 export type SnippetKind = 'mvs' | 'svs';

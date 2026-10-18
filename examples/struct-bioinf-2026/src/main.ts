@@ -6,6 +6,7 @@
  * @author David Sehnal <david.sehnal@gmail.com>
  */
 
+import './fonts.css';
 import { modeFromSearch } from './mode.js';
 
 // One app, two modes (_spec/README.md decision 1). Each mode is its own chunk, so the slides do not load the
@@ -28,7 +29,7 @@ async function main() {
 main().catch((e) => {
   console.error(e);
   const p = document.createElement('p');
-  p.style.cssText = 'padding: 24px; font: 16px system-ui, sans-serif';
+  p.style.cssText = 'padding: 24px; font: 16px var(--app-font-sans)';
   p.textContent = `The page could not start: ${e instanceof Error ? e.message : String(e)}`;
   document.body.appendChild(p);
 });

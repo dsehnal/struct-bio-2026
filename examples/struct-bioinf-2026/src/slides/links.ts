@@ -8,7 +8,7 @@
 
 import { modeHref } from '../mode.js';
 
-// The addresses the deck names (outline.md §3, §6, §8).
+// The addresses the deck names (outline.md §3, §6, §7).
 
 export const Links = {
   molstar: 'https://molstar.org',

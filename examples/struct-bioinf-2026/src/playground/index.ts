@@ -22,7 +22,7 @@ import { type CodeEditor, createCodeEditor, runSnippet, runSvsSnippet } from '..
 import { createEmbeddedViewer, type EmbeddedViewer } from '../viewer/index.js';
 import './playground.css';
 
-// Playground mode (_spec/README.md decisions 1, 10, outline.md §8): cards for the examples, the snippets of the open
+// Playground mode (_spec/README.md decisions 1, 10, outline.md §7): cards for the examples, the snippets of the open
 // example, the editor with the suggested edits beside it, errors in plain words below it, and the viewer. A deep link
 // (`?mode=playground&snippet=<id>`) opens a snippet; the address follows the open one.
 
@@ -144,7 +144,7 @@ export async function startPlayground(root: HTMLElement): Promise<void> {
     history.replaceState(null, '', url);
   }
 
-  /** Runs the code in the editor: a failed run keeps the last working scene (outline.md §8). */
+  /** Runs the code in the editor: a failed run keeps the last working scene (outline.md §7). */
   function execute(): Promise<void> {
     last = runCode();
     return last;

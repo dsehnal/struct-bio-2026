@@ -1,0 +1,9 @@
+/*
+ * The fonts of the whole page, the same as Prism's (`--msp-font-sans`, `--msp-font-mono` in prism-ui's
+ * `styles/theme.css`), so the slides, the playground and the viewer read as one thing. Prism's own tokens live in its
+ * shadow root, so the page names the stacks again here.
+ */
+:root {
+  --app-font-sans: "Helvetica Neue", "Segoe UI", Helvetica, "Source Sans Pro", Arial, sans-serif;
+  --app-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}

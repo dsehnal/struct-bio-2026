@@ -20,9 +20,6 @@
       "path": "../../packages/mvs/builder"
     },
     {
-      "path": "../../packages/prism/assistant"
-    },
-    {
       "path": "../../packages/prism/ui"
     },
     {

@@ -34,7 +34,7 @@ export function part2(): string {
     slide({
       part: 2,
       notes: notes(
-        'A description is a tree: load, parse, make a structure, pick a component, give it a representation, give that a colour or a label. It is <strong>data</strong>, JSON, not code. So it can be validated, saved, shared, diffed and generated, by a person, by a script or by an assistant.',
+        'A description is a tree: load, parse, make a structure, pick a component, give it a representation, give that a colour or a label. It is <strong>data</strong>, JSON, not code. So it can be validated, saved, shared, diffed and generated, by a person or by a script.',
         'Selections are a language of their own, MolQL. "Residues within 5 Å of the ligand" means the same thing everywhere, in the viewer, in a description, in a story. PyMOL, VMD and Jmol syntax compile to it, so what you already know still works.',
         'In the next part we write the smallest such tree, 8 lines.',
       ),

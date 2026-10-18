@@ -8,7 +8,7 @@
 
 // A QR code as an SVG, with no dependency: byte mode, error correction level M, versions 1–10 (up to 213 bytes), after the
 // QR Code specification (ISO/IEC 18004) in the structure of Nayuki's public-domain generator. The deck uses it for the
-// playground's address (outline.md §0, §8), so a participant can open it from the screen.
+// playground's address (outline.md §0, §7), so a participant can open it from the screen.
 
 /** Error correction codewords per block and number of blocks, level M, by version (index 0 unused). */
 const EccPerBlock = [0, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26];

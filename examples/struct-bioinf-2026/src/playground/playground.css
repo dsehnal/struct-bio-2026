@@ -12,11 +12,7 @@ body {
   height: 100%;
   color-scheme: light;
   background: #fff;
-  font:
-    14px system-ui,
-    -apple-system,
-    "Segoe UI",
-    sans-serif;
+  font: 14px var(--app-font-sans);
   color: #1f2937;
 }
 
@@ -298,7 +294,7 @@ body {
 
 .problems li {
   white-space: pre-wrap;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--app-font-mono);
   font-size: 12px;
 }
 

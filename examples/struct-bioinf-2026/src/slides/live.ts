@@ -7,7 +7,6 @@
  */
 
 import type { RevealApi } from 'reveal.js';
-import { assistantScene } from './demo.js';
 import { morphScene } from './morph.js';
 import { snippetScene } from './snippet.js';
 import { splashScene } from './splash.js';
@@ -32,7 +31,7 @@ export type LiveScene = (slide: HTMLElement, deck: RevealApi) => Promise<Dispose
 
 /**
  * The scenes by the `data-live` of a slide: the morph slide, the Prism tour (part 1), the title slide's splash, a snippet beside a viewer
- * (`snippet.ts`, parts 3–5), a story (part 6) and the assistant (part 7).
+ * (`snippet.ts`, parts 3–5), and a story (part 6).
  */
 const LiveScenes: Readonly<Record<string, LiveScene>> = {
   'morph-1iep': morphScene,
@@ -40,7 +39,6 @@ const LiveScenes: Readonly<Record<string, LiveScene>> = {
   tour: tourScene,
   snippet: snippetScene,
   story: storyScene,
-  assistant: assistantScene,
 };
 
 interface Mounted {

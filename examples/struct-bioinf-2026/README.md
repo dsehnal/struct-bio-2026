@@ -36,7 +36,7 @@ through the `molstar-src` export condition, so nothing needs building first.
 ## The viewer
 
 `src/viewer/index.ts` composes `DefaultPrismViewerSpec()` (the built-in features: the `loaders` feature with `load.mvs`
-and `load.svs`, the sequence band, no assistant) with `ui.layout.compactRail`, and creates it with `createPrismViewer`.
-`loadMvs` runs `load.mvs` (MVSJ of an `MVSData` from `@molstar/mvs-builder`), `loadSvs` runs `load.svs`. The spec has no
-`persist`, so there is no key to clash: several viewers may live on a page, and a live slide's viewer is disposed when
-the slide is left.
+and `load.svs`, the sequence band) with `ui.layout.compactRail`, and creates it with `createPrismViewer`. `loadMvs` runs
+`load.mvs` (MVSJ of an `MVSData` from `@molstar/mvs-builder`), `loadSvs` runs `load.svs`. The spec has no `persist`, so
+there is no key to clash: several viewers may live on a page, and a live slide's viewer is disposed when the slide is
+left.

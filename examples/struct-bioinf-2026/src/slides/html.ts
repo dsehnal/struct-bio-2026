@@ -21,7 +21,6 @@ export const PartNames = [
   'Sequences',
   'Volumes',
   'Stories',
-  'The assistant',
   'Your turn',
 ] as const;
 
