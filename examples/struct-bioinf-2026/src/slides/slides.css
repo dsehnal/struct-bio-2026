@@ -477,6 +477,12 @@ body {
   align-items: center;
 }
 
+.reveal .two-col.shot-wide {
+  /* A screenshot that must be readable: it takes most of the width, the points a narrow column beside it. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2.6fr);
+  align-items: center;
+}
+
 .reveal .two-col.center {
   align-items: center;
 }
@@ -514,6 +520,10 @@ body {
   padding: 0.3em;
   width: min(34vmin, 100%);
   flex: none;
+}
+
+.reveal .qr-box.small {
+  width: min(18vmin, 100%);
 }
 
 .reveal .qr-box.big {

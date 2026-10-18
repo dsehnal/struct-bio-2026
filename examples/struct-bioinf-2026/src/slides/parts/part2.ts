@@ -6,14 +6,49 @@
  * @author David Sehnal <david.sehnal@gmail.com>
  */
 
+import { modeHref } from '../../mode.js';
 import { partsMap } from '../diagrams.js';
-import { notes, slide, stage } from '../html.js';
+import { escapeHtml, notes, slide, stage } from '../html.js';
+import { playgroundUrl } from '../links.js';
+import { qrSvg } from '../qr.js';
 import { stateNotSteps } from '../principles.js';
 
 // Part 2, Describe, don't click (outline.md §2, 2 min). The diagram comes back as the map of parts 3–6.
 
 export function part2(): string {
   return [
+    slide({
+      part: 2,
+      notes: notes(
+        'Before the ideas, the place where you can try every one of them: the playground. Everything I show from now on is in it, as the same code.',
+        '- On the left, <strong>one-click examples</strong>: cards at the top, the smallest scene and the three examples, and the snippets of each.',
+        '- In the middle, the <strong>code</strong>, with a Run button (Ctrl or ⌘ + Enter). The editor completes and checks it as you type.',
+        '- On the right, the <strong>viewer</strong> showing what the code describes, here the p53 cancer hotspots on DNA.',
+        '- <strong>Try a change</strong>: two or three suggested edits per example, with Show me and Reset. Errors come in plain words at their line, and the last working scene stays.',
+        'Nothing to install, no account. Open it now if you want to follow along: every example slide has a "Try it" button that opens the same code there.',
+      ),
+      foot: `<a class="chip" href="${modeHref('playground')}" target="_blank" rel="noopener">Open the playground</a>`,
+      body: `
+        <h2>The playground</h2>
+        <div class="two-col shot-wide">
+          <div class="stack">
+            <ul class="points small">
+              <li><strong>One-click examples</strong>, and the snippets of each.</li>
+              <li>The <strong>code</strong> beside the <strong>viewer</strong>: Run, or Ctrl/⌘+Enter.</li>
+              <li><strong>Try a change</strong>: suggested edits with Show me and Reset.</li>
+              <li>Errors in plain words; the last working scene stays.</li>
+              <li>Nothing to install, no account.</li>
+            </ul>
+            <div class="qr-box small">${qrSvg(playgroundUrl(), 'QR code of the playground address')}</div>
+            <p class="url">${escapeHtml(playgroundUrl())}</p>
+          </div>
+          <div class="shot">
+            <img src="img/playground.jpg" alt="The playground: example cards, suggested edits, the code and the viewer with p53 hotspots on DNA" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
+            <div class="shot-placeholder" hidden>Screenshot of the playground<br />(public/img/playground.jpg)</div>
+          </div>
+        </div>`,
+    }),
+
     slide({
       part: 2,
       notes: notes(
