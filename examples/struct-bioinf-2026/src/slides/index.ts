@@ -6,7 +6,7 @@
  * @author David Sehnal <david.sehnal@gmail.com>
  */
 
-import Reveal from 'reveal.js';
+import Reveal, { type RevealApi } from 'reveal.js';
 import RevealNotes from 'reveal.js/plugin/notes';
 import 'reveal.js/reveal.css';
 import 'reveal.js/theme/white.css';
@@ -29,9 +29,13 @@ export async function startSlides(root: HTMLElement): Promise<void> {
     width: '100%',
     height: '100%',
     margin: 0,
-    // The speaker view (S): notes, the next slide and a timer.
+    // Reveal's keys (space, letters, Home/End, …) would also fire while someone works in a viewer or types in it; the
+    // deck takes ← and → only (`navigationKeys`).
+    keyboard: false,
+    // The speaker view: notes, the next slide and a timer (its S key is off with the others; `deck.getPlugin('notes')`).
     plugins: [RevealNotes],
   });
+  navigationKeys(deck);
   // The speaker view shows the current and the next slide in frames of the same page (`receiver` in the address): those
   // frames are pictures of the deck, so they get no viewers (the presenter's own window has them).
   const preview = /[?&]receiver\b/.test(location.search);
@@ -40,4 +44,21 @@ export async function startSlides(root: HTMLElement): Promise<void> {
   deck.on('ready', sync);
   deck.on('slidechanged', sync);
   await deck.initialize();
+}
+
+/** ← and → step the deck (fragments included), unless the key goes to a text field, also inside a viewer's shadow root. */
+function navigationKeys(deck: RevealApi) {
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    if (isEditable(e.composedPath()[0])) return;
+    e.preventDefault();
+    if (e.key === 'ArrowLeft') deck.prev();
+    else deck.next();
+  });
+}
+
+function isEditable(target: EventTarget | undefined) {
+  if (!(target instanceof HTMLElement)) return false;
+  return target.isContentEditable || target.matches('input, textarea, select');
 }
