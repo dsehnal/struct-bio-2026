@@ -33,7 +33,7 @@ export function part0(): string {
     <section class="title-slide" data-part="0" data-live="splash">
       <div class="title-text">
         <h1>Molecular visualisation<br />for structural biology</h1>
-        <p class="subtitle">Mol* v6: describe your figure, don't click it</p>
+        <p class="subtitle">Using Mol* to visualise your data</p>
         <p class="event">EMBL-EBI Structural bioinformatics 2026 · 23 October</p>
         <p><a class="chip" href="${modeHref('playground')}" target="_blank" rel="noopener">Open the playground</a></p>
       </div>

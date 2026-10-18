@@ -54,6 +54,21 @@ export function part7(): string {
     slide({
       part: 7,
       notes: notes(
+        'When can you use it? Most of what you saw works today.',
+        '- <strong>Today</strong>: MolViewSpec, in the Mol* viewer as it is on PDBe, RCSB and AlphaFold DB pages, from Python (the molviewspec package and the Colab notebook), and in MolViewStories. The volume server is what PDBe and EMDB pages already use.',
+        '- <strong>Beta now</strong>: the new viewer, Prism, and the sequence viewer, Seq*. They are part of Mol* v6. If you are fine with a beta, you can use them now, as in this talk and the playground. They should be more stable in one to two months.',
+      ),
+      body: `
+        <h2>When can I use it?</h2>
+        <div class="cards two">
+          <div class="card"><h3>Today</h3><p>MolViewSpec: in the Mol* viewer, from Python and Colab, in MolViewStories. The volume server behind PDBe and EMDB.</p></div>
+          <div class="card"><h3>Beta now</h3><p>Prism and Seq* (Mol* v6): usable now if a beta is fine for you. More stable in 1–2 months.</p></div>
+        </div>`,
+    }),
+
+    slide({
+      part: 7,
+      notes: notes(
         'The links, in one place, and they are in the chat. The Mol* paper is the one to cite for the viewer; MolViewStories has its own citation.',
         'How to get in touch: GitHub issues and discussions for Mol*. Thank you, and over to your questions.',
         'Say thanks to the organisers and to Anyfold, with whom this work is developed.',
