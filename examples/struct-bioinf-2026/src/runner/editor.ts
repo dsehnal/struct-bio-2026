@@ -131,6 +131,15 @@ export interface CodeEditor {
   dispose(): void;
 }
 
+/**
+ * The page's monospace stack (`--app-font-mono`, Prism's, `src/fonts.css`): Monaco measures its font from a literal
+ * family list, not a CSS variable, and otherwise keeps its own (Menlo first on a Mac).
+ */
+function pageMonoFont() {
+  const stack = getComputedStyle(document.documentElement).getPropertyValue('--app-font-mono').trim();
+  return stack || 'ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace';
+}
+
 export function createEditor(el: HTMLElement, options: CodeEditorOptions): CodeEditor {
   configure();
   useKind(options.kind ?? 'mvs');
@@ -143,6 +152,7 @@ export function createEditor(el: HTMLElement, options: CodeEditorOptions): CodeE
       monaco.Uri.parse(`inmemory://snippet/editor-${++checks}.ts`),
     ),
     fixedOverflowWidgets: true,
+    fontFamily: pageMonoFont(),
     fontSize: 13,
     lineHeight: 20,
     minimap: { enabled: false },
