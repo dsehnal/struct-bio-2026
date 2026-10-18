@@ -37,7 +37,13 @@ export const splashScene: LiveScene = async (slide) => {
   canvas.className = 'splash-canvas';
   canvas.setAttribute('aria-hidden', 'true');
   host.appendChild(canvas);
-  const field = new QuantumField(canvas, {}, { still: prefersReducedMotion() });
+  // No rest: Prism's splash fades out and stops after a while without input (ambient-pace.ts), but on the title slide
+  // it runs for as long as the slide is up; leaving the slide disposes it.
+  const field = new QuantumField(
+    canvas,
+    {},
+    { still: prefersReducedMotion(), pace: { restAfterMs: Number.POSITIVE_INFINITY } },
+  );
 
   let left = 0;
   let top = 0;
