@@ -72,7 +72,7 @@ export function slide(o: SlideOptions): string {
   return `
     <section class="${o.className ?? ''}" data-part="${o.part}"${data}>
       ${o.body}
-      <footer class="slide-foot"><span class="part-tag">${o.part} · ${PartNames[o.part]}</span>${o.foot ?? ''}</footer>
+      <footer class="slide-foot"><span class="part-tag">${PartNames[o.part]}</span>${o.foot ?? ''}</footer>
       ${o.notes}
     </section>`;
 }
