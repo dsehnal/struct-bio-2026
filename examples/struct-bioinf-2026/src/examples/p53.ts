@@ -110,9 +110,10 @@ structure
   .color({ color: 'goldenrod' });
 
 // The other two copies make fewer, non-specific contacts: faded.
+// By label ids this time: label C and E are auth A and C.
 structure
   .component({
-    selector: [{ auth_asym_id: 'A' }, { auth_asym_id: 'C' }],
+    selector: [{ label_asym_id: 'C' }, { label_asym_id: 'E' }],
   })
   .representation({ type: 'cartoon' })
   .color({ color: 'lightgray' })

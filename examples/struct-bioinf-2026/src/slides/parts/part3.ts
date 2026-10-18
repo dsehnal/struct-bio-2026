@@ -153,7 +153,7 @@ export function part3(): string {
       title: 'The DNA-binding domain on DNA (1TSR)',
       lead: 'Chain B is the copy on the consensus site. Red sticks: residues that touch the DNA.',
       notes: notes(
-        '1TSR is the p53 core domain on DNA, by X-ray. Chain B is the copy bound to the consensus site; the other two copies make fewer, non-specific contacts, so they are faded.',
+        '1TSR is the p53 core domain on DNA, by X-ray. Chain B is the copy bound to the consensus site; the other two copies make fewer, non-specific contacts, so they are faded. Note that they are selected by their <strong>label</strong> ids, C and E, while chain B is selected by its auth id: label C is auth A, so the same letter is a different chain in the two numberings (the slide before).',
         'The red residues are a MolQL selection, written in PyMOL syntax: residues of chain B within 4 Å of the DNA. Say it in words, and it is a query, not a list somebody typed.',
         'Look for K120, R248, R273, R280, R283 on the DNA.',
         'Try it: change the distance, or change the chain.',

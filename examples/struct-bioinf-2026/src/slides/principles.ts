@@ -209,7 +209,7 @@ export function numbering(part: number): string {
     ),
     body: `
       <h2>Numbering: auth, label and UniProt</h2>
-      <p class="lead">The same chain has two names in one file. Selectors say which: <code class="inline-code">auth_asym_id</code>, <code class="inline-code">auth_seq_id</code>.</p>
+      <p class="lead">The same chain has two names in one file. A selector says which it means: <code class="inline-code">auth_asym_id</code> or <code class="inline-code">label_asym_id</code>.</p>
       <div class="two-col center">
         <div class="stack panel">
           <span class="code-label">1TSR: CHAIN IDS</span>
