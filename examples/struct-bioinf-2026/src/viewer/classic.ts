@@ -26,6 +26,8 @@ export async function createClassicViewer(container: HTMLElement): Promise<Class
     // The defaults are the UI as people know it (PDBe, RCSB); these only fit the viewer into a slide: the app's default
     // layout is "expanded" (`position: fixed`, the whole window), and the expand button would switch to it.
     layoutIsExpanded: false,
+    // WebGL, as the Prism viewers (index.ts): the classic viewer's `auto` would pick WebGPU where it can.
+    graphicsBackend: 'webgl',
     viewportShowExpand: false,
     viewportShowToggleFullscreen: false,
   });

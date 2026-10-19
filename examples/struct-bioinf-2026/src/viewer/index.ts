@@ -49,7 +49,9 @@ export function embeddedViewerSpec(layout: EmbeddedLayout = 'compact'): PrismVie
   return {
     ...base,
     // The page drives the viewer (no Home while empty); the tool rail is hidden behind a button in the canvas's corner.
-    options: { ui: { homeWhenEmpty: false, splash: 'off' } },
+    // WebGL (2, with a WebGL 1 fallback), never WebGPU: Prism's `auto` picks WebGPU where it can, which is not ready
+    // for a live talk yet.
+    options: { ui: { homeWhenEmpty: false, splash: 'off' }, renderer: { graphicsBackend: 'webgl' } },
     ...(layout === 'compact' ? { ui: { layout: { compactRail: true } } } : {}),
   };
 }

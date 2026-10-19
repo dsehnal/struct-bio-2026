@@ -35,7 +35,9 @@ with two modes:
    Nothing needs an account or an install.
 6. **One viewer: Prism.** Slides and playground both embed the Prism viewer, which loads MVS and takes SVS for its
    sequence band. Then what participants see in the playground is what was shown in the talk. No example combines MVS
-   and SVS in one story yet.
+   and SVS in one story yet. It renders with WebGL (2, with a WebGL 1 fallback), never WebGPU
+   (`renderer.graphicsBackend: 'webgl'`, the classic viewer too): Prism's `auto` would pick WebGPU where it can, and
+   that is not ready for a live talk.
 7. **Slides are reveal.js with our own parts.** Reveal does the deck: navigation, fragments, speaker notes, overview.
    Ours are the live parts: a slide that embeds the viewer and runs a snippet, the code/MVSJ side by side, the "try it"
    chip that opens the playground.
