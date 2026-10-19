@@ -52,6 +52,40 @@ the [API change ledger](breaking-v6-changes.md).
 - [Breaking] Remove the duplicate `@molstar/mvs-builder/expression` module; use
   `@molstar/query-language/language/expression`
 
+## Graphics
+
+- WebGPU backend next to WebGL1/2: all representations, transparency modes, postprocessing, picking and illumination;
+  Gaussian surfaces, isosurfaces, color smoothing and other GPU paths as compute shaders (indirect draws, no readback of
+  the vertex count); context loss restored in place on both backends
+- The Viewer and the Mesoscale Explorer use WebGPU by default where the adapter has the features WebGL2 has
+  (`graphics-backend=auto`, which stays on WebGL2 where blending into float32 targets is missing, e.g. older Firefox);
+  `graphics-backend=webgpu` asks for WebGPU, `webgl` for WebGL (WebGL2, else WebGL1), `webgl2` and `webgl1` for that
+  version only. The plugin and library default stays WebGL. The Prism viewer has the same option
+  (`renderer.graphicsBackend`, `graphics-backend`, `auto` by default) and keeps v5's `prefer-webgl1` (`webgl1`)
+- [Breaking] The `preferWebgl1` option and `prefer-webgl1` URL parameter of the Viewer and the Mesoscale Explorer are
+  removed: `graphicsBackend: 'webgl1'` (`graphics-backend=webgl1`)
+- [Breaking] `PluginFeatureDetection.preferWebGl1` is removed: iOS and Safari 15.1–15.3 no longer default to WebGL1
+  (WebGL2 works there in current versions); `PluginConfig.General.PreferWebGl1` is off by default and still selects
+  WebGL1 when set
+- Graphics backend switching at runtime, keeping the scene (render objects, markers, camera, props):
+  `Canvas3DContext.setBackend` (a new canvas element takes the place of the old one), `Canvas3D.contextChanged`,
+  `Representation.setGraphics`; in the plugin `PluginContext.setGraphicsBackends` and a Graphics Backend setting in the
+  viewport settings (advanced) where it was created with more than one backend
+- [Breaking] `Canvas3D.identify` returns `'pending'` while pick data is still being read (WebGPU reads it
+  asynchronously), instead of the `undefined` of "nothing found"; `canvas3d.asyncIdentify(target)?.wait()` resolves with
+  the pick data on every backend, see the [API change ledger](breaking-v6-changes.md)
+- [Breaking] Rendering code uses a backend-neutral `GraphicsContext` (`canvas3d.graphics`); `Canvas3D.webgl` and
+  `Canvas3DContext.webgl` are removed, see the [API change ledger](breaking-v6-changes.md) for the other changes
+- [Breaking] Fewer shader programs: the color and size types read by index share one program each, the grid color
+  types another, and the instance granularity selects the marker and layer data's index at runtime (the object uniform
+  `uInstanceGranularity`), so changing it compiles nothing; custom renderables and shaders follow, see the
+  [API change ledger](breaking-v6-changes.md)
+- Gaussian surfaces on WebGPU choose the GPU or the CPU by their size instead of the resolution: large structures are
+  computed on the GPU at coarse resolutions too (on an integrated GPU 30k atoms at 2 Å in 11 ms instead of 30 ms),
+  small ones on the CPU, where they are faster; WebGL keeps the resolution cutoff
+- Fix images and direct volumes with instance granularity: markers were read per group instance, and direct volumes
+  ignored overpaint
+
 ## MVS selectors through model indices
 
 - New MolQL generator `element-schema` (`structure.generator.element-schema`, `sel.atom.element-schema` in MolScript)
@@ -774,3 +808,42 @@ the [API change ledger](breaking-v6-changes.md).
 - Prism: Storybook's Viewer › Layouts shows every major layout (desktop floating, pinned, docked, expanded; the compact
   rail; embedded; tablet and phone), each with a panel or a card open, in a frame of the device's size that shrinks to
   fit the page
+- Fix: a card pinned beside the canvas (the Story, export, canvas settings) is full height and flat again; it had kept
+  the floating card's margins and corners since the card moved into a wrapper of its own
+
+## MVS load
+
+- Expanding MVS animations into frames no longer uses `produce` (mutative): a compiled update plan
+  (`ObjectMutator`, `@molstar/core/util/object-mutator`) copies only what changed; ~20× faster for long animations, identical frames
+- `UUID.create22` is a random per-process prefix and a counter instead of a random id per call: ~70× faster, still 22
+  URL-safe base64 characters and unique
+- MVS animation frames are built without a `StateBuilder`, from a ref-hash cache, and reuse the transforms they share
+  with the previous frame or their snapshot; frames keep a camera and canvas only with `include_camera` /
+  `include_canvas`; subtrees a frame did not change are converted and loaded once and replayed after. What structure and
+  model nodes collect from unchanged subtrees is cached. A node whose own inputs did not change replays its own transforms. Loading motm1 4× and exosome 5× faster than before this
+  work, 4–5× less memory kept
+- [Breaking] `@molstar/mvs/load-generic`: `UpdateTarget.update` and `UpdateTarget.commit` are removed
+  (`UpdateTarget.updateState` for loading extensions); see the API change ledger
+- MVS animations with large color maps (thousands of keys interpolated as a whole): each distinct map is made once and
+  shared by every frame and transition that has it; transform versions of large params hash from their parts. A story
+  of 22,546 frames over a 118 MB document loads in ~2.5 s (Node) instead of failing after minutes, keeping ~95 MB
+  instead of 1.6 GB
+- MolQL validation of MVS trees skips values that cannot hold an expression (color maps, coordinate lists): 0.8 s → 3
+  ms on that story
+- MVS animation frames with `include_camera` / `include_canvas` take the same incremental path
+- MVS: unchanged `download` subtrees of animation frames are replayed whole, the animated snapshot itself shares the
+  frames' memos, and color fades repeated with the same maps share one plan
+- MVS tree validation checks known value types without io-ts contexts (a sound fast path; `decode` still reports the
+  errors): 1 s → 0.25 s on the 118 MB story
+
+## State
+
+- Fix: a node below a Null object that is evaluated again because a dependency changed no longer fails the update
+  (`Cannot set properties of undefined`) when it has children added in the same update; they get cells
+- Fix: a dependency with no cell (below a Null object, or deleted while a dependency derived from params kept its
+  dependent) no longer fails the update or leaves the dependent with an object made from a disposed one: the dependent
+  is evaluated again and is in error (`Unresolved dependency.`) until a cell of that ref exists, then it is linked and
+  evaluated again, in the same update
+- Fix: a dependency that has no object after this pass (below a new Null object or an error, or evaluated below a
+  Null object) no longer stalls its dependent and fails the whole update (`Unresolved dependency: … (waiting on: …)`);
+  the dependent alone is in error

@@ -3,6 +3,7 @@
  *
  * @author Alexander Rose <alexander.rose@weirdbyte.de>
  * @author Gianluca Tomasello <giagitom@gmail.com>
+ * @author David Sehnal <david.sehnal@gmail.com>
  */
 
 import type { ParamDefinition as PD } from '@molstar/core/util/param-definition';
@@ -13,14 +14,17 @@ import { Geometry, type GeometryUtils } from '@molstar/graphics/geo/geometry/geo
 import type { LocationIterator } from '@molstar/graphics/geo/util/location-iterator';
 import { Theme } from '@molstar/graphics/theme/theme';
 import { createUnitsTransform, includesUnitKind, type StructureGroup } from './visual/util/common.js';
+import { getGroupLoci, isWholeStructureLoci } from './visual/util/loci-index.js';
 import {
   createRenderObject,
   type GraphicsRenderObject,
   type RenderObjectValues,
+  hasForeignResources,
 } from '@molstar/graphics/gl/render-object';
 import { PickingId } from '@molstar/graphics/geo/geometry/picking';
 import { type Loci, isEveryLoci, EmptyLoci } from '@molstar/model/model/loci';
 import { Interval } from '@molstar/core/data/int';
+import type { IntMap } from '@molstar/core/data/int/map';
 import { type LocationCallback, VisualUpdateState } from '../util.js';
 import { ColorTheme } from '@molstar/graphics/theme/color';
 import { createMarkers } from '@molstar/graphics/geo/geometry/marker-data';
@@ -56,11 +60,11 @@ import {
   StructureImageParams,
 } from './params.js';
 import type { Clipping } from '@molstar/graphics/theme/clipping';
-import type { WebGLContext } from '@molstar/graphics/gl/webgl/context';
-import { isPromiseLike } from '@molstar/core/util/type-helpers';
+import type { GraphicsContext } from '@molstar/graphics/gl/context';
 import type { Substance } from '@molstar/graphics/theme/substance';
 import type { Emissive } from '@molstar/graphics/theme/emissive';
 import type { Wiggle } from '@molstar/graphics/theme/wiggle';
+import { getGeometrySignatures, type SignatureContext, type SignatureDefines } from '@molstar/graphics/repr/signatures';
 
 export interface UnitsVisual<P extends RepresentationProps = {}> extends Visual<StructureGroup, P> {}
 
@@ -86,6 +90,8 @@ function createUnitsRenderObject<G extends Geometry>(
 }
 
 interface UnitsVisualBuilder<P extends StructureParams, G extends Geometry> {
+  /** define values the visual decides (e.g. varying groups), for its signatures, see `getGeometrySignatures` */
+  signatureDefines?: (props: PD.Values<P>, graphics?: GraphicsContext) => SignatureDefines;
   defaultProps: PD.Values<P>;
   createGeometry(
     ctx: VisualContext,
@@ -124,7 +130,7 @@ interface UnitsVisualBuilder<P extends StructureParams, G extends Geometry> {
     geometry: G,
     props: PD.Values<P>,
     theme: Theme,
-    webgl?: WebGLContext,
+    graphics?: GraphicsContext,
   ) => void;
   dispose?: (geometry: G) => void;
 }
@@ -174,7 +180,12 @@ export function UnitsVisual<G extends Geometry, P extends StructureParams & Geom
   let locationIt: LocationIterator;
   let positionIt: LocationIterator;
 
-  function prepareUpdate(theme: Theme, props: PD.Values<P>, structureGroup: StructureGroup) {
+  function prepareUpdate(
+    theme: Theme,
+    props: PD.Values<P>,
+    structureGroup: StructureGroup,
+    graphics?: GraphicsContext,
+  ) {
     if (!structureGroup && !currentStructureGroup) {
       throw new Error('missing structureGroup');
     }
@@ -202,6 +213,13 @@ export function UnitsVisual<G extends Geometry, P extends StructureParams & Geom
       newStructureGroup,
       currentStructureGroup,
     );
+
+    // after a backend switch or restore: textures and buffers of the previous context are rendered or computed again,
+    // geometry relying on what the new context lacks (`GeometryUtils.isCompatible`) is created again, for the new context
+    if (graphics && renderObject && hasForeignResources(renderObject, graphics)) updateState.createGeometry = true;
+    if (graphics && geometry && builder.geometryUtils.isCompatible?.(geometry, graphics) === false) {
+      updateState.createGeometry = true;
+    }
 
     if (!Structure.areHierarchiesEqual(currentStructureGroup.structure, newStructureGroup.structure)) {
       // console.log('new hierarchy');
@@ -279,9 +297,9 @@ export function UnitsVisual<G extends Geometry, P extends StructureParams & Geom
       }
       if (
         newTheme.color.granularity.startsWith('vertex') ||
-        renderObject.values.dColorType.ref.value.startsWith('vertex') ||
+        renderObject.values.colorType.ref.value.startsWith('vertex') ||
         newTheme.color.granularity.startsWith('volume') ||
-        renderObject.values.dColorType.ref.value.startsWith('volume')
+        renderObject.values.colorType.ref.value.startsWith('volume')
       ) {
         updateState.updateColor = true;
       }
@@ -403,9 +421,26 @@ export function UnitsVisual<G extends Geometry, P extends StructureParams & Geom
       StructureElement.Loci.is(loci) &&
       Structure.areRootsEquivalent(loci.structure, currentStructureGroup.structure)
     ) {
-      if (StructureElement.Loci.isWholeStructure(loci)) return true;
+      if (isWholeStructureLoci(loci)) return true;
     }
     return false;
+  }
+
+  /** the units of `currentStructureGroup.group` and its index, read once per group (see `getGroupLoci`) */
+  const lociGroup: { group?: Unit.SymmetryGroup; units: ReadonlyArray<Unit>; unitIndexMap?: IntMap<number> } = {
+    units: [],
+  };
+
+  /** `loci` on the units of this visual only, `undefined` when it has none of them (perf-audit 07 P3) */
+  function getVisualLoci(loci: Loci): Loci | undefined {
+    if (!StructureElement.Loci.is(loci)) return loci;
+    const { group } = currentStructureGroup;
+    if (lociGroup.group !== group) {
+      lociGroup.group = group;
+      lociGroup.units = group.units;
+      lociGroup.unitIndexMap = group.unitIndexMap;
+    }
+    return getGroupLoci(loci, lociGroup.units, lociGroup.unitIndexMap!);
   }
 
   function eachInstance(loci: Loci, structureGroup: StructureGroup, apply: (interval: Interval) => boolean) {
@@ -446,17 +481,19 @@ export function UnitsVisual<G extends Geometry, P extends StructureParams & Geom
         return apply(Interval.ofBounds(0, locationIt.groupCount * locationIt.instanceCount));
       }
     } else {
+      const visualLoci = getVisualLoci(loci);
+      if (!visualLoci) return false;
       if (instanceGranularity) {
-        return eachInstance(loci, currentStructureGroup, apply);
+        return eachInstance(visualLoci, currentStructureGroup, apply);
       } else {
-        return eachLocation(loci, currentStructureGroup, apply, isMarking);
+        return eachLocation(visualLoci, currentStructureGroup, apply, isMarking);
       }
     }
   }
 
   function finalize(ctx: VisualContext) {
     if (renderObject) {
-      processValues?.(renderObject.values, geometry, currentProps, currentTheme, ctx.webgl);
+      processValues?.(renderObject.values, geometry, currentProps, currentTheme, ctx.graphics);
     }
   }
 
@@ -471,7 +508,7 @@ export function UnitsVisual<G extends Geometry, P extends StructureParams & Geom
       return geometryVersion;
     },
     createOrUpdate(ctx: VisualContext, theme: Theme, props: PD.Values<P>, structureGroup?: StructureGroup) {
-      prepareUpdate(theme, props, structureGroup || currentStructureGroup);
+      prepareUpdate(theme, props, structureGroup || currentStructureGroup, ctx.graphics);
       if (updateState.createGeometry) {
         const newGeometry = _createGeometry(
           ctx,
@@ -481,17 +518,15 @@ export function UnitsVisual<G extends Geometry, P extends StructureParams & Geom
           newProps,
           geometry,
         );
-        if (isPromiseLike(newGeometry)) {
-          return newGeometry.then((g) => {
-            update(g);
-            finalize(ctx);
-          });
-        }
-        update(newGeometry);
-      } else {
-        update();
+        return Visual.withPreparedGeometry(newGeometry, builder.geometryUtils, newTheme, ctx.graphics, (g) => {
+          update(g);
+          finalize(ctx);
+        });
       }
-      finalize(ctx);
+      return Visual.withPreparedGeometry(geometry, builder.geometryUtils, newTheme, ctx.graphics, () => {
+        update();
+        finalize(ctx);
+      });
     },
     getLoci(pickingId: PickingId) {
       if (!renderObject) return EmptyLoci;
@@ -510,18 +545,10 @@ export function UnitsVisual<G extends Geometry, P extends StructureParams & Geom
       }
     },
     mark(loci: Loci, action: MarkerAction) {
-      let hasInvariantId = true;
-      if (StructureElement.Loci.is(loci)) {
-        hasInvariantId = false;
-        const { invariantId } = currentStructureGroup.group.units[0];
-        for (const e of loci.elements) {
-          if (e.unit.invariantId === invariantId) {
-            hasInvariantId = true;
-            break;
-          }
-        }
-      }
-      return hasInvariantId ? Visual.mark(renderObject, loci, action, lociApply, previousMark) : false;
+      // on its own units only, so that `previousMark` compares (and keeps) just those; a loci of all of them stays as
+      // it is, and a whole-structure one arrives as `EveryLoci` (`UnitsRepresentation.mark`)
+      const visualLoci = getVisualLoci(loci);
+      return visualLoci ? Visual.mark(renderObject, visualLoci, action, lociApply, previousMark) : false;
     },
     setVisibility(visible: boolean) {
       Visual.setVisibility(renderObject, visible);
@@ -538,26 +565,26 @@ export function UnitsVisual<G extends Geometry, P extends StructureParams & Geom
     setTransform(matrix?: Mat4, instanceMatrices?: Float32Array | null) {
       Visual.setTransform(renderObject, matrix, instanceMatrices);
     },
-    setOverpaint(overpaint: Overpaint, webgl?: WebGLContext) {
-      const smoothing = { geometry, props: currentProps, webgl };
+    setOverpaint(overpaint: Overpaint, graphics?: GraphicsContext, smooth = true) {
+      const smoothing = smooth ? { geometry, props: currentProps, graphics } : undefined;
       Visual.setOverpaint(renderObject, overpaint, lociApply, true, smoothing);
     },
-    setTransparency(transparency: Transparency, webgl?: WebGLContext) {
-      const smoothing = { geometry, props: currentProps, webgl };
+    setTransparency(transparency: Transparency, graphics?: GraphicsContext, smooth = true) {
+      const smoothing = smooth ? { geometry, props: currentProps, graphics } : undefined;
       Visual.setTransparency(renderObject, transparency, lociApply, true, smoothing);
     },
-    setEmissive(emissive: Emissive, webgl?: WebGLContext) {
-      const smoothing = { geometry, props: currentProps, webgl };
+    setEmissive(emissive: Emissive, graphics?: GraphicsContext, smooth = true) {
+      const smoothing = smooth ? { geometry, props: currentProps, graphics } : undefined;
       Visual.setEmissive(renderObject, emissive, lociApply, true, smoothing);
     },
-    setSubstance(substance: Substance, webgl?: WebGLContext) {
-      const smoothing = { geometry, props: currentProps, webgl };
+    setSubstance(substance: Substance, graphics?: GraphicsContext, smooth = true) {
+      const smoothing = smooth ? { geometry, props: currentProps, graphics } : undefined;
       Visual.setSubstance(renderObject, substance, lociApply, true, smoothing);
     },
     setClipping(clipping: Clipping) {
       Visual.setClipping(renderObject, clipping, lociApply, true);
     },
-    setWiggle(wiggle: Wiggle, webgl?: WebGLContext) {
+    setWiggle(wiggle: Wiggle, graphics?: GraphicsContext) {
       Visual.setWiggle(renderObject, wiggle, lociApply, true);
     },
     setThemeStrength(strength: {
@@ -575,6 +602,10 @@ export function UnitsVisual<G extends Geometry, P extends StructureParams & Geom
         renderObject.state.disposed = true;
         renderObject = undefined;
       }
+    },
+    getSignatures: (props: PD.Values<P>, ctx: SignatureContext) => {
+      const p = { ...defaultProps, ...props };
+      return getGeometrySignatures(builder.geometryUtils, p, ctx, builder.signatureDefines?.(p, ctx.graphics));
     },
     mustRecreate,
   };

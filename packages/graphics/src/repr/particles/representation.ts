@@ -21,8 +21,9 @@ import {
 } from '../representation.js';
 import { Subject } from 'rxjs';
 import { Task } from '@molstar/core/task';
-import type { WebGLContext } from '@molstar/graphics/gl/webgl/context';
+import type { GraphicsContext } from '@molstar/graphics/gl/context';
 import type { ParticleVisual, ParticleParams } from './visual.js';
+import { getFactorySignatures, getQualitySignatures, type SignatureContext } from '../signatures.js';
 
 export interface ParticleRepresentation<P extends PD.Params = PD.Params> extends Representation<ParticleList, P> {}
 
@@ -48,12 +49,12 @@ export function ParticleRepresentation<P extends ParticleParams>(
     materialId: number,
     particles: ParticleList,
     props: PD.Values<P>,
-    webgl?: WebGLContext,
+    graphics?: GraphicsContext,
   ) => ParticleVisual<P>,
   getLoci: (particles: ParticleList, props: PD.Values<P>) => ModelLoci,
 ): ParticleRepresentation<P> {
   let version = 0;
-  const { webgl } = ctx;
+  let { graphics } = ctx;
   const updated = new Subject<number>();
   const geometryState = new Representation.GeometryState();
   const materialId = getNextMaterialId();
@@ -82,6 +83,8 @@ export function ParticleRepresentation<P extends ParticleParams>(
     if (state.themeStrength !== undefined) visual.setThemeStrength(state.themeStrength);
   }
 
+  /** updates one after another, see `Representation.createUpdateQueue` */
+  const serialize = Representation.createUpdateQueue();
   function createOrUpdate(props: Partial<PD.Values<P>> = {}, particles?: ParticleList) {
     if (particles && particles !== _particles) {
       _params = getParams(ctx, particles);
@@ -91,14 +94,14 @@ export function ParticleRepresentation<P extends ParticleParams>(
     const qualityProps = getQualityProps(Object.assign({}, _props, props), _particles);
     Object.assign(_props, props, qualityProps);
 
-    return Task.create(`Creating or updating '${label}' representation`, async (runtime) => {
+    const task = Task.create(`Creating or updating '${label}' representation`, async (runtime) => {
       if (!visual) {
-        visual = visualCtor(materialId, _particles, _props, webgl);
-      } else if (visual.mustRecreate?.({ particles: _particles }, _props, webgl)) {
+        visual = visualCtor(materialId, _particles, _props, graphics);
+      } else if (visual.mustRecreate?.({ particles: _particles }, _props, graphics)) {
         visual.destroy();
-        visual = visualCtor(materialId, _particles, _props, webgl);
+        visual = visualCtor(materialId, _particles, _props, graphics);
       }
-      await visual.createOrUpdate({ webgl, runtime }, _theme, _props, { particles: _particles });
+      await visual.createOrUpdate({ graphics, runtime }, _theme, _props, { particles: _particles });
       renderObjects.length = 0;
       if (visual.renderObject) {
         renderObjects.push(visual.renderObject);
@@ -107,6 +110,7 @@ export function ParticleRepresentation<P extends ParticleParams>(
       geometryState.snapshot();
       updated.next(version++);
     });
+    return serialize(task);
   }
 
   function setState(state: Partial<Representation.State>) {
@@ -180,6 +184,19 @@ export function ParticleRepresentation<P extends ParticleParams>(
     mark: (loci: ModelLoci, action: MarkerAction) => {
       return visual?.mark(loci, action) ?? false;
     },
+    setGraphics: (value: GraphicsContext) => {
+      graphics = value;
+    },
+    getSignatures: (props: PD.Values<P>, ctx: SignatureContext) =>
+      getQualitySignatures(props, (props) =>
+        getFactorySignatures(
+          visualCtor,
+          // without particles: factories that read them name their visuals
+          () => visualCtor(materialId, undefined as unknown as ParticleList, props, ctx.graphics),
+          props,
+          ctx,
+        ),
+      ),
     destroy,
   };
 }

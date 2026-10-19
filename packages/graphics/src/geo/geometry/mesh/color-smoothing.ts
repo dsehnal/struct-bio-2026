@@ -2,12 +2,18 @@
  * Copyright (c) 2021-2026 mol* contributors, licensed under MIT, See LICENSE file for more info.
  *
  * @author Alexander Rose <alexander.rose@weirdbyte.de>
+ * @author David Sehnal <david.sehnal@gmail.com>
  */
 
+import { setColorType } from '../color-data.js';
+import { setEmissiveType } from '../emissive-data.js';
+import { setOverpaintType } from '../overpaint-data.js';
+import { setSubstanceType } from '../substance-data.js';
+import { setTransparencyType } from '../transparency-data.js';
 import type { MeshValues } from '@molstar/graphics/gl/renderable/mesh';
 import { createTextureImage, type TextureImage } from '@molstar/graphics/gl/renderable/util';
-import type { WebGLContext } from '@molstar/graphics/gl/webgl/context';
-import type { Texture } from '@molstar/graphics/gl/webgl/texture';
+import type { GraphicsContext } from '@molstar/graphics/gl/context';
+import type { Texture } from '@molstar/graphics/gl/texture';
 import { Box3D, type Sphere3D } from '@molstar/core/math/geometry';
 import { lerp } from '@molstar/core/math/interpolate';
 import { Vec2, Vec3, Vec4 } from '@molstar/core/math/linear-algebra';
@@ -26,7 +32,7 @@ interface ColorSmoothingInput {
   colorType: 'group' | 'groupInstance';
   boundingSphere: Sphere3D;
   invariantBoundingSphere: Sphere3D;
-  itemSize: 4 | 3 | 1;
+  itemSize: 4 | 1;
 }
 
 export type ColorSmoothingOptions = {
@@ -34,61 +40,168 @@ export type ColorSmoothingOptions = {
   stride: number;
 };
 
+/**
+ * Grow-only scratch for the accumulators of `calcMeshColorSmoothing` (`data` with up to 4 values per cell, `count`),
+ * all-zero between calls: the normalization clears what the splat wrote. The calculation is synchronous, so one set
+ * serves every call; grids above `MaxScratchCells` (20 MB) get their own arrays so a rare large grid is not retained.
+ */
+const MaxScratchCells = 1 << 20;
+const Scratch = { data: new Float32Array(0), count: new Float32Array(0), dirty: false };
+
+function getAccumulators(cellCount: number, itemSize: number) {
+  if (cellCount > MaxScratchCells)
+    return { data: new Float32Array(cellCount * itemSize), count: new Float32Array(cellCount) };
+  if (Scratch.count.length < cellCount) {
+    const n = Math.min(MaxScratchCells, Math.max(cellCount, 2 * Scratch.count.length));
+    Scratch.data = new Float32Array(n * 4);
+    Scratch.count = new Float32Array(n);
+  } else if (Scratch.dirty) {
+    // a previous call threw before clearing
+    Scratch.data.fill(0);
+    Scratch.count.fill(0);
+  }
+  Scratch.dirty = true;
+  return { data: Scratch.data, count: Scratch.count };
+}
+
+function releaseAccumulators(data: Float32Array) {
+  if (data === Scratch.data) Scratch.dirty = false;
+}
+
+function getTextureSide(gridDim: Vec3) {
+  const { width, height } = getVolumeTexture2dLayout(gridDim);
+  return Math.max(width, height);
+}
+
+/**
+ * Grid of the smoothing: `box` expanded by `1 + resolution`, two extra cells per axis, on the cell lattice of
+ * `latticeBox` (the bounding-sphere box) expanded alike. A cell then has the same position and value, up to rounding,
+ * as on the grid of `latticeBox`: its value depends only on the vertices within 2 cells of it, which are splatted
+ * wherever the grid ends, and the vertices, which are what is interpolated, lie in `box` (as far as `latticeBox` holds
+ * them). With `box` equal to `latticeBox`, this is the grid of `latticeBox` (as `getGridDim` in
+ * `texture-mesh/color-smoothing.ts`). Vertex animation (wiggle, tumble) gets no slack beyond the padding, as on the
+ * faces where the vertices touch `latticeBox`.
+ */
+function getGrid(latticeBox: Box3D, box: Box3D, resolution: number) {
+  const pad = 1 + resolution;
+  const scaleFactor = 1 / resolution;
+  const min = Vec3();
+  const gridDim = Vec3();
+  for (let k = 0; k < 3; ++k) {
+    const latticeMin = latticeBox.min[k] - pad;
+    min[k] = latticeMin + Math.floor((box.min[k] - latticeBox.min[k]) * scaleFactor) * resolution;
+    gridDim[k] = Math.ceil((box.max[k] + pad) * scaleFactor - min[k] * scaleFactor) + 2;
+  }
+  return { min, gridDim };
+}
+
+/**
+ * Box of the vertices (of all instances for instance types, from the transformed corners of the untransformed box),
+ * within `bound`; `bound` when there are no vertices
+ */
+function getVertexBox(input: ColorSmoothingInput, instanceCount: number, isInstanceType: boolean, bound: Box3D) {
+  const { vertexCount, positionBuffer, transformBuffer } = input;
+  if (vertexCount === 0) return Box3D.clone(bound);
+
+  let minX = Infinity;
+  let minY = Infinity;
+  let minZ = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  let maxZ = -Infinity;
+  for (let j = 0, jl = vertexCount * 3; j < jl; j += 3) {
+    const x = positionBuffer[j];
+    const y = positionBuffer[j + 1];
+    const z = positionBuffer[j + 2];
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+    if (z < minZ) minZ = z;
+    if (z > maxZ) maxZ = z;
+  }
+
+  const box = Box3D.create(Vec3.create(minX, minY, minZ), Vec3.create(maxX, maxY, maxZ));
+  if (isInstanceType) {
+    const corners = Box3D();
+    Box3D.setEmpty(corners);
+    const c = Vec3();
+    for (let i = 0; i < instanceCount; ++i) {
+      for (let k = 0; k < 8; ++k) {
+        Vec3.set(c, k & 1 ? maxX : minX, k & 2 ? maxY : minY, k & 4 ? maxZ : minZ);
+        Vec3.transformMat4Offset(c, c, transformBuffer, 0, 0, i * 16);
+        Box3D.add(corners, c);
+      }
+    }
+    Box3D.copy(box, corners);
+  }
+
+  // both boxes hold the vertices: take the smaller extent per axis (an empty intersection means `bound` misses
+  // vertices, where the former grid cut them off too)
+  for (let k = 0; k < 3; ++k) {
+    const lo = Math.max(box.min[k], bound.min[k]);
+    const hi = Math.min(box.max[k], bound.max[k]);
+    if (!(lo <= hi)) return Box3D.clone(bound);
+    box.min[k] = lo;
+    box.max[k] = hi;
+  }
+  return box;
+}
+
 export function calcMeshColorSmoothing(
   input: ColorSmoothingInput,
   options: ColorSmoothingOptions,
-  webgl?: WebGLContext,
+  graphics?: GraphicsContext,
   texture?: Texture,
 ) {
+  // a texture of another context (e.g. before a backend switch) is not reused
+  if (texture && graphics && !graphics.resources.ownsTexture(texture)) texture = undefined;
   const { colorType, vertexCount, groupCount, positionBuffer, instanceBuffer, transformBuffer, groupBuffer, itemSize } =
     input;
-  const { resolution, stride } = options;
+  const { stride } = options;
 
   const isInstanceType = colorType.endsWith('Instance');
-  const box = Box3D.fromSphere3D(Box3D(), isInstanceType ? input.boundingSphere : input.invariantBoundingSphere);
-  const pad = 1 + resolution;
-  const expandedBox = Box3D.expand(Box3D(), box, Vec3.create(pad, pad, pad));
-
+  const instanceCount = isInstanceType ? input.instanceCount : 1;
+  const sphereBox = Box3D.fromSphere3D(Box3D(), isInstanceType ? input.boundingSphere : input.invariantBoundingSphere);
+  const box = getVertexBox(input, instanceCount, isInstanceType, sphereBox);
+  // the grid is uploaded into a texture with a graphics context: coarsen as `getFittingResolution`, on this grid
+  let resolution = options.resolution;
+  if (graphics) {
+    const { maxTextureSize } = graphics.resources.limits;
+    while (getTextureSide(getGrid(sphereBox, box, resolution).gridDim) > maxTextureSize) resolution *= 1.1;
+  }
+  const { min, gridDim } = getGrid(sphereBox, box, resolution);
   const scaleFactor = 1 / resolution;
-  const scaledBox = Box3D.scale(Box3D(), expandedBox, scaleFactor);
-  const gridDim = Box3D.size(Vec3(), scaledBox);
-  Vec3.ceil(gridDim, gridDim);
-  Vec3.add(gridDim, gridDim, Vec3.create(2, 2, 2));
-  const { min } = expandedBox;
 
-  const [xn, yn] = gridDim;
   const { width, height } = getVolumeTexture2dLayout(gridDim);
 
-  const data = new Float32Array(width * height * itemSize);
-  const count = new Float32Array(width * height);
+  const cellCount = width * height;
+  const { data, count } = getAccumulators(cellCount, itemSize);
 
   const grid = new Uint8Array(width * height * itemSize);
   const textureImage: TextureImage<Uint8Array> = { array: grid, width, height, filter: 'linear' };
 
-  const instanceCount = isInstanceType ? input.instanceCount : 1;
   const colors = input.colorData.array;
 
-  function getIndex(x: number, y: number, z: number) {
-    const column = Math.floor(((z * xn) % width) / xn);
-    const row = Math.floor((z * xn) / width);
-    const px = column * xn + x;
-    return itemSize * (row * yn * width + y * width + px);
-  }
+  const zOff = getSliceOffsets(gridDim, width);
 
   const p = 2;
+  const p2 = p * p;
   const [dimX, dimY, dimZ] = gridDim;
   const v = Vec3();
 
   for (let i = 0; i < instanceCount; ++i) {
     // - use reordered index for access from GPU
     // - use serial index for access from CPU
-    const instanceIndex = webgl && isInstanceType ? instanceBuffer[i] : i;
+    const instanceIndex = graphics && isInstanceType ? instanceBuffer[i] : i;
     for (let j = 0; j < vertexCount; j += stride) {
       Vec3.fromArray(v, positionBuffer, j * 3);
       if (isInstanceType) Vec3.transformMat4Offset(v, v, transformBuffer, 0, 0, i * 16);
       Vec3.sub(v, v, min);
       Vec3.scale(v, v, scaleFactor);
-      const [vx, vy, vz] = v;
+      const vx = v[0];
+      const vy = v[1];
+      const vz = v[2];
 
       // vertex mapped to grid
       const x = Math.floor(vx);
@@ -97,6 +210,10 @@ export function calcMeshColorSmoothing(
 
       // group colors
       const ci = (instanceIndex * groupCount + groupBuffer[j]) * itemSize;
+      const c0 = colors[ci];
+      const c1 = itemSize === 4 ? colors[ci + 1] : 0;
+      const c2 = itemSize === 4 ? colors[ci + 2] : 0;
+      const c3 = itemSize === 4 ? colors[ci + 3] : 0;
 
       // Extents of grid to consider for this atom
       const begX = Math.max(0, x - p);
@@ -110,43 +227,82 @@ export function calcMeshColorSmoothing(
       const endY = Math.min(dimY, y + p + 2);
       const endZ = Math.min(dimZ, z + p + 2);
 
-      for (let xi = begX; xi < endX; ++xi) {
-        const dx = xi - vx;
+      // z/y/x with x, the texture-fast axis, innermost; each cell gets at most one contribution per vertex, so the
+      // per-cell summation order is unchanged. `dz2 > p2` and `dy2 + dz2 > p2` only skip cells whose distance below
+      // exceeds p as well (rounded addition of non-negative terms is monotone), and `d2` keeps the original
+      // association so `d` is bit-identical; cells at `s == 0` (`d2 > p2` or `d == p`) would add 0, which changes
+      // nothing for finite colors. Skipping them also keeps the scratch clean: every write makes `count` > 0, so the
+      // normalization clears it, even for a non-finite color (an out-of-range group or instance).
+      for (let zi = begZ; zi < endZ; ++zi) {
+        const dz = zi - vz;
+        const dz2 = dz * dz;
+        if (dz2 > p2) continue;
+        const zo = zOff[zi];
         for (let yi = begY; yi < endY; ++yi) {
           const dy = yi - vy;
-          for (let zi = begZ; zi < endZ; ++zi) {
-            const dz = zi - vz;
-            const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            if (d > p) continue;
+          const dy2 = dy * dy;
+          if (dy2 + dz2 > p2) continue;
+          const yo = zo + yi * width;
+          for (let xi = begX; xi < endX; ++xi) {
+            const dx = xi - vx;
+            const d2 = dx * dx + dy2 + dz2;
+            if (d2 > p2) continue;
 
-            const s = p - d;
-            const index = getIndex(xi, yi, zi);
-            for (let k = 0; k < itemSize; ++k) {
-              data[index + k] += colors[ci + k] * s;
+            const s = p - Math.sqrt(d2);
+            if (s === 0) continue;
+            const c = yo + xi;
+            if (itemSize === 4) {
+              const index = c * 4;
+              data[index] += c0 * s;
+              data[index + 1] += c1 * s;
+              data[index + 2] += c2 * s;
+              data[index + 3] += c3 * s;
+            } else {
+              data[c] += c0 * s;
             }
-            count[index / itemSize] += s;
+            count[c] += s;
           }
         }
       }
     }
   }
 
-  for (let i = 0, il = count.length; i < il; ++i) {
-    const is = i * itemSize;
-    const c = count[i];
-    for (let k = 0; k < itemSize; ++k) {
-      grid[is + k] = Math.round(data[is + k] / c);
+  // cells without a contribution stay 0 in `grid` (formerly `Math.round(0 / 0)`, also 0 in a Uint8Array); a cell with
+  // `data` > 0 has `count` > 0, so clearing the counted cells leaves the accumulators all-zero for the next call
+  if (itemSize === 4) {
+    for (let i = 0; i < cellCount; ++i) {
+      const c = count[i];
+      if (c === 0) continue;
+      const is = i * 4;
+      grid[is] = Math.round(data[is] / c);
+      grid[is + 1] = Math.round(data[is + 1] / c);
+      grid[is + 2] = Math.round(data[is + 2] / c);
+      grid[is + 3] = Math.round(data[is + 3] / c);
+      data[is] = 0;
+      data[is + 1] = 0;
+      data[is + 2] = 0;
+      data[is + 3] = 0;
+      count[i] = 0;
+    }
+  } else {
+    for (let i = 0; i < cellCount; ++i) {
+      const c = count[i];
+      if (c === 0) continue;
+      grid[i] = Math.round(data[i] / c);
+      data[i] = 0;
+      count[i] = 0;
     }
   }
+  releaseAccumulators(data);
 
   const gridTexDim = Vec2.create(width, height);
   const gridTransform = Vec4.create(min[0], min[1], min[2], scaleFactor);
   const type = isInstanceType ? ('volumeInstance' as const) : ('volume' as const);
 
-  if (webgl) {
+  if (graphics) {
     if (!texture) {
-      const format = itemSize === 4 ? 'rgba' : itemSize === 3 ? 'rgb' : 'alpha';
-      texture = webgl.resources.texture('image-uint8', format, 'ubyte', 'linear');
+      const format = itemSize === 4 ? 'rgba' : 'r';
+      texture = graphics.resources.texture('image-uint8', format, 'ubyte', 'linear');
     }
     texture.load(textureImage);
 
@@ -174,6 +330,21 @@ export function calcMeshColorSmoothing(
       type: isInstanceType ? 'vertexInstance' : 'vertex',
     };
   }
+}
+
+/**
+ * Offset of slice `z` in the 2d layout of a grid (`getVolumeTexture2dLayout`), in cells: cell (x, y, z) is at
+ * `offsets[z] + y * width + x`
+ */
+function getSliceOffsets(gridDim: Vec3, width: number) {
+  const [xn, yn, zn] = gridDim;
+  const offsets = new Float64Array(zn);
+  for (let z = 0; z < zn; ++z) {
+    const column = Math.floor(((z * xn) % width) / xn);
+    const row = Math.floor((z * xn) / width);
+    offsets[z] = row * yn * width + column * xn;
+  }
+  return offsets;
 }
 
 //
@@ -218,16 +389,17 @@ export function getTrilinearlyInterpolated(input: ColorInterpolationInput): Text
   const image = createTextureImage(Math.max(1, instanceCount * vertexCount), outputStride, Uint8Array);
   const { array } = image;
 
-  const [xn, yn] = gridDim;
+  const [xn, yn, zn] = gridDim;
   const width = gridTexDim[0];
   const min = Vec3.fromArray(Vec3(), gridTransform, 0);
   const scaleFactor = gridTransform[3];
 
+  const zOff = getSliceOffsets(gridDim, width);
   function getIndex(x: number, y: number, z: number) {
-    const column = Math.floor(((z * xn) % width) / xn);
-    const row = Math.floor((z * xn) / width);
-    const px = column * xn + x;
-    return colorStride * (row * yn * width + y * width + px);
+    // vertices outside the grid (not expected) keep their former, layout-derived index
+    const zo =
+      z >= 0 && z < zn ? zOff[z] : Math.floor(((z * xn) % width) / xn) * xn + Math.floor((z * xn) / width) * yn * width;
+    return colorStride * (zo + y * width + x);
   }
 
   const v = Vec3();
@@ -299,10 +471,10 @@ function isSupportedColorType(x: string): x is 'group' | 'groupInstance' {
 export function applyMeshColorSmoothing(
   values: MeshValues,
   options: ColorSmoothingOptions,
-  webgl?: WebGLContext,
+  graphics?: GraphicsContext,
   colorTexture?: Texture,
 ) {
-  if (!isSupportedColorType(values.dColorType.ref.value)) return;
+  if (!isSupportedColorType(values.colorType.ref.value)) return;
 
   const smoothingData = calcMeshColorSmoothing(
     {
@@ -314,24 +486,24 @@ export function applyMeshColorSmoothing(
       positionBuffer: values.aPosition.ref.value,
       groupBuffer: values.aGroup.ref.value,
       colorData: values.tColor.ref.value,
-      colorType: values.dColorType.ref.value,
+      colorType: values.colorType.ref.value,
       boundingSphere: values.boundingSphere.ref.value,
       invariantBoundingSphere: values.invariantBoundingSphere.ref.value,
-      itemSize: 3,
+      itemSize: 4,
     },
     options,
-    webgl,
+    graphics,
     colorTexture,
   );
 
   if (smoothingData.kind === 'volume') {
-    ValueCell.updateIfChanged(values.dColorType, smoothingData.type);
+    setColorType(values, smoothingData.type);
     ValueCell.update(values.tColorGrid, smoothingData.texture);
     ValueCell.update(values.uColorTexDim, smoothingData.gridTexDim);
     ValueCell.update(values.uColorGridDim, smoothingData.gridDim);
     ValueCell.update(values.uColorGridTransform, smoothingData.gridTransform);
   } else if (smoothingData.kind === 'vertex') {
-    ValueCell.updateIfChanged(values.dColorType, smoothingData.type);
+    setColorType(values, smoothingData.type);
     ValueCell.update(values.tColor, smoothingData.texture);
     ValueCell.update(values.uColorTexDim, smoothingData.texDim);
   }
@@ -344,10 +516,10 @@ function isSupportedOverpaintType(x: string): x is 'groupInstance' {
 export function applyMeshOverpaintSmoothing(
   values: MeshValues,
   options: ColorSmoothingOptions,
-  webgl?: WebGLContext,
+  graphics?: GraphicsContext,
   colorTexture?: Texture,
 ) {
-  if (!isSupportedOverpaintType(values.dOverpaintType.ref.value)) return;
+  if (!isSupportedOverpaintType(values.overpaintType.ref.value)) return;
 
   const smoothingData = calcMeshColorSmoothing(
     {
@@ -359,23 +531,23 @@ export function applyMeshOverpaintSmoothing(
       positionBuffer: values.aPosition.ref.value,
       groupBuffer: values.aGroup.ref.value,
       colorData: values.tOverpaint.ref.value,
-      colorType: values.dOverpaintType.ref.value,
+      colorType: values.overpaintType.ref.value,
       boundingSphere: values.boundingSphere.ref.value,
       invariantBoundingSphere: values.invariantBoundingSphere.ref.value,
       itemSize: 4,
     },
     options,
-    webgl,
+    graphics,
     colorTexture,
   );
   if (smoothingData.kind === 'volume') {
-    ValueCell.updateIfChanged(values.dOverpaintType, smoothingData.type);
+    setOverpaintType(values, smoothingData.type);
     ValueCell.update(values.tOverpaintGrid, smoothingData.texture);
     ValueCell.update(values.uOverpaintTexDim, smoothingData.gridTexDim);
     ValueCell.update(values.uOverpaintGridDim, smoothingData.gridDim);
     ValueCell.update(values.uOverpaintGridTransform, smoothingData.gridTransform);
   } else if (smoothingData.kind === 'vertex') {
-    ValueCell.updateIfChanged(values.dOverpaintType, smoothingData.type);
+    setOverpaintType(values, smoothingData.type);
     ValueCell.update(values.tOverpaint, smoothingData.texture);
     ValueCell.update(values.uOverpaintTexDim, smoothingData.texDim);
   }
@@ -388,10 +560,10 @@ function isSupportedTransparencyType(x: string): x is 'groupInstance' {
 export function applyMeshTransparencySmoothing(
   values: MeshValues,
   options: ColorSmoothingOptions,
-  webgl?: WebGLContext,
+  graphics?: GraphicsContext,
   colorTexture?: Texture,
 ) {
-  if (!isSupportedTransparencyType(values.dTransparencyType.ref.value)) return;
+  if (!isSupportedTransparencyType(values.transparencyType.ref.value)) return;
 
   const smoothingData = calcMeshColorSmoothing(
     {
@@ -403,23 +575,23 @@ export function applyMeshTransparencySmoothing(
       positionBuffer: values.aPosition.ref.value,
       groupBuffer: values.aGroup.ref.value,
       colorData: values.tTransparency.ref.value,
-      colorType: values.dTransparencyType.ref.value,
+      colorType: values.transparencyType.ref.value,
       boundingSphere: values.boundingSphere.ref.value,
       invariantBoundingSphere: values.invariantBoundingSphere.ref.value,
       itemSize: 1,
     },
     options,
-    webgl,
+    graphics,
     colorTexture,
   );
   if (smoothingData.kind === 'volume') {
-    ValueCell.updateIfChanged(values.dTransparencyType, smoothingData.type);
+    setTransparencyType(values, smoothingData.type);
     ValueCell.update(values.tTransparencyGrid, smoothingData.texture);
     ValueCell.update(values.uTransparencyTexDim, smoothingData.gridTexDim);
     ValueCell.update(values.uTransparencyGridDim, smoothingData.gridDim);
     ValueCell.update(values.uTransparencyGridTransform, smoothingData.gridTransform);
   } else if (smoothingData.kind === 'vertex') {
-    ValueCell.updateIfChanged(values.dTransparencyType, smoothingData.type);
+    setTransparencyType(values, smoothingData.type);
     ValueCell.update(values.tTransparency, smoothingData.texture);
     ValueCell.update(values.uTransparencyTexDim, smoothingData.texDim);
   }
@@ -432,10 +604,10 @@ function isSupportedEmissiveType(x: string): x is 'groupInstance' {
 export function applyMeshEmissiveSmoothing(
   values: MeshValues,
   options: ColorSmoothingOptions,
-  webgl?: WebGLContext,
+  graphics?: GraphicsContext,
   colorTexture?: Texture,
 ) {
-  if (!isSupportedEmissiveType(values.dEmissiveType.ref.value)) return;
+  if (!isSupportedEmissiveType(values.emissiveType.ref.value)) return;
 
   const smoothingData = calcMeshColorSmoothing(
     {
@@ -447,23 +619,23 @@ export function applyMeshEmissiveSmoothing(
       positionBuffer: values.aPosition.ref.value,
       groupBuffer: values.aGroup.ref.value,
       colorData: values.tEmissive.ref.value,
-      colorType: values.dEmissiveType.ref.value,
+      colorType: values.emissiveType.ref.value,
       boundingSphere: values.boundingSphere.ref.value,
       invariantBoundingSphere: values.invariantBoundingSphere.ref.value,
       itemSize: 1,
     },
     options,
-    webgl,
+    graphics,
     colorTexture,
   );
   if (smoothingData.kind === 'volume') {
-    ValueCell.updateIfChanged(values.dEmissiveType, smoothingData.type);
+    setEmissiveType(values, smoothingData.type);
     ValueCell.update(values.tEmissiveGrid, smoothingData.texture);
     ValueCell.update(values.uEmissiveTexDim, smoothingData.gridTexDim);
     ValueCell.update(values.uEmissiveGridDim, smoothingData.gridDim);
     ValueCell.update(values.uEmissiveGridTransform, smoothingData.gridTransform);
   } else if (smoothingData.kind === 'vertex') {
-    ValueCell.updateIfChanged(values.dEmissiveType, smoothingData.type);
+    setEmissiveType(values, smoothingData.type);
     ValueCell.update(values.tEmissive, smoothingData.texture);
     ValueCell.update(values.uEmissiveTexDim, smoothingData.texDim);
   }
@@ -476,10 +648,10 @@ function isSupportedSubstanceType(x: string): x is 'groupInstance' {
 export function applyMeshSubstanceSmoothing(
   values: MeshValues,
   options: ColorSmoothingOptions,
-  webgl?: WebGLContext,
+  graphics?: GraphicsContext,
   colorTexture?: Texture,
 ) {
-  if (!isSupportedSubstanceType(values.dSubstanceType.ref.value)) return;
+  if (!isSupportedSubstanceType(values.substanceType.ref.value)) return;
 
   const smoothingData = calcMeshColorSmoothing(
     {
@@ -491,23 +663,23 @@ export function applyMeshSubstanceSmoothing(
       positionBuffer: values.aPosition.ref.value,
       groupBuffer: values.aGroup.ref.value,
       colorData: values.tSubstance.ref.value,
-      colorType: values.dSubstanceType.ref.value,
+      colorType: values.substanceType.ref.value,
       boundingSphere: values.boundingSphere.ref.value,
       invariantBoundingSphere: values.invariantBoundingSphere.ref.value,
       itemSize: 4,
     },
     options,
-    webgl,
+    graphics,
     colorTexture,
   );
   if (smoothingData.kind === 'volume') {
-    ValueCell.updateIfChanged(values.dSubstanceType, smoothingData.type);
+    setSubstanceType(values, smoothingData.type);
     ValueCell.update(values.tSubstanceGrid, smoothingData.texture);
     ValueCell.update(values.uSubstanceTexDim, smoothingData.gridTexDim);
     ValueCell.update(values.uSubstanceGridDim, smoothingData.gridDim);
     ValueCell.update(values.uSubstanceGridTransform, smoothingData.gridTransform);
   } else if (smoothingData.kind === 'vertex') {
-    ValueCell.updateIfChanged(values.dSubstanceType, smoothingData.type);
+    setSubstanceType(values, smoothingData.type);
     ValueCell.update(values.tSubstance, smoothingData.texture);
     ValueCell.update(values.uSubstanceTexDim, smoothingData.texDim);
   }

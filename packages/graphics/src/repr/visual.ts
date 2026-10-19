@@ -2,6 +2,7 @@
  * Copyright (c) 2018-2026 mol* contributors, licensed under MIT, See LICENSE file for more info.
  *
  * @author Alexander Rose <alexander.rose@weirdbyte.de>
+ * @author David Sehnal <david.sehnal@gmail.com>
  */
 
 import type { RuntimeContext } from '@molstar/core/task';
@@ -18,7 +19,7 @@ import {
   type MarkerInfo,
 } from '@molstar/core/util/marker-action';
 import type { ParamDefinition as PD } from '@molstar/core/util/param-definition';
-import type { WebGLContext } from '@molstar/graphics/gl/webgl/context';
+import type { GraphicsContext } from '@molstar/graphics/gl/context';
 import type { Theme } from '@molstar/graphics/theme/theme';
 import { Mat4 } from '@molstar/core/math/linear-algebra';
 import { updateTransformData } from '@molstar/graphics/geo/geometry/transform-data';
@@ -38,8 +39,10 @@ import {
 import type { Clipping } from '@molstar/graphics/theme/clipping';
 import { createClipping, applyClippingGroups, clearClipping } from '@molstar/graphics/geo/geometry/clipping-data';
 import { getMarkersAverage } from '@molstar/graphics/geo/geometry/marker-data';
-import type { Texture } from '@molstar/graphics/gl/webgl/texture';
-import type { Geometry } from '@molstar/graphics/geo/geometry/geometry';
+import type { Texture } from '@molstar/graphics/gl/texture';
+import type { Geometry, GeometryUtils } from '@molstar/graphics/geo/geometry/geometry';
+import { GeometryRequest } from '@molstar/graphics/geo/geometry/request';
+import { isPromiseLike } from '@molstar/core/util/type-helpers';
 import { getColorSmoothingProps, hasColorSmoothingProp } from '@molstar/graphics/geo/geometry/base';
 import {
   applyMeshEmissiveSmoothing,
@@ -56,6 +59,8 @@ import {
 import type { Substance } from '@molstar/graphics/theme/substance';
 import { applySubstanceMaterial, clearSubstance, createSubstance } from '@molstar/graphics/geo/geometry/substance-data';
 import type { LocationCallback } from './util.js';
+import type { SignatureContext } from './signatures.js';
+import type { ObjectSignature } from '@molstar/graphics/gl/precompile';
 import type { Emissive } from '@molstar/graphics/theme/emissive';
 import {
   applyEmissiveValue,
@@ -73,7 +78,7 @@ import {
 
 export interface VisualContext {
   readonly runtime: RuntimeContext;
-  readonly webgl?: WebGLContext;
+  readonly graphics?: GraphicsContext;
 }
 
 export { Visual };
@@ -91,12 +96,16 @@ interface Visual<D, P extends PD.Params> {
   setPickable: (pickable: boolean) => void;
   setColorOnly: (colorOnly: boolean) => void;
   setTransform: (matrix?: Mat4, instanceMatrices?: Float32Array | null) => void;
-  setOverpaint: (overpaint: Overpaint, webgl?: WebGLContext) => void;
-  setTransparency: (transparency: Transparency, webgl?: WebGLContext) => void;
-  setEmissive: (emissive: Emissive, webgl?: WebGLContext) => void;
-  setSubstance: (substance: Substance, webgl?: WebGLContext) => void;
+  /**
+   * The layer setters smooth the layer where the visual's props ask for it, unless `smooth` is false (members of a
+   * merged render object: the merged object has one layer type for all members, and smoothing changes it)
+   */
+  setOverpaint: (overpaint: Overpaint, graphics?: GraphicsContext, smooth?: boolean) => void;
+  setTransparency: (transparency: Transparency, graphics?: GraphicsContext, smooth?: boolean) => void;
+  setEmissive: (emissive: Emissive, graphics?: GraphicsContext, smooth?: boolean) => void;
+  setSubstance: (substance: Substance, graphics?: GraphicsContext, smooth?: boolean) => void;
   setClipping: (clipping: Clipping) => void;
-  setWiggle: (wiggle: Wiggle, webgl?: WebGLContext) => void;
+  setWiggle: (wiggle: Wiggle, graphics?: GraphicsContext) => void;
   setThemeStrength: (strength: {
     overpaint: number;
     transparency: number;
@@ -105,9 +114,34 @@ interface Visual<D, P extends PD.Params> {
     wiggle: number;
   }) => void;
   destroy: () => void;
-  mustRecreate?: (data: D, props: PD.Values<P>, webgl?: WebGLContext) => boolean;
+  mustRecreate?: (data: D, props: PD.Values<P>, graphics?: GraphicsContext) => boolean;
+  /**
+   * The signatures of the objects the visual may create with `props` in `ctx`, without data (see
+   * `getGeometrySignatures`)
+   */
+  getSignatures?(props: PD.Values<P>, ctx: SignatureContext): ObjectSignature[];
 }
 namespace Visual {
+  /**
+   * Runs `update` with `geometry` (created, possibly asynchronously, or kept) once it is prepared for `theme`
+   * (`GeometryUtils.prepare`, e.g. GPU data read back for the position iterator); synchronous where creating and
+   * preparing are
+   */
+  export function withPreparedGeometry<G extends Geometry>(
+    geometry: G | Promise<G>,
+    utils: GeometryUtils<G>,
+    theme: Theme,
+    graphics: GraphicsContext | undefined,
+    update: (geometry: G) => void,
+  ): Promise<void> | void {
+    const prepared = (g: G): Promise<void> | void => {
+      const preparing = utils.prepare?.(g, GeometryRequest.fromTheme(theme), graphics);
+      if (preparing) return preparing.then(() => update(g));
+      update(g);
+    };
+    return isPromiseLike(geometry) ? geometry.then(prepared) : prepared(geometry);
+  }
+
   export type LociApply = (loci: Loci, apply: (interval: Interval) => boolean, isMarking: boolean) => boolean;
 
   export function setVisibility(renderObject: GraphicsRenderObject | undefined, visible: boolean) {
@@ -144,28 +178,13 @@ namespace Visual {
       markerStatus,
       uGroupCount,
       instanceCount,
-      instanceGranularity: instanceGranularity,
+      uInstanceGranularity: instanceGranularity,
     } = renderObject.values;
     const count = instanceGranularity.ref.value
       ? instanceCount.ref.value
       : uGroupCount.ref.value * instanceCount.ref.value;
     const { array } = tMarker.ref.value;
     const currentStatus = markerStatus.ref.value as MarkerInfo['status'];
-
-    if (!isEveryLoci(loci)) {
-      // assume that all interval are non-overlapping
-      let intervalSize = 0;
-      lociApply(
-        loci,
-        (interval) => {
-          intervalSize += Interval.size(interval);
-          return true;
-        },
-        true,
-      );
-      if (intervalSize === 0) return false;
-      if (intervalSize === count) loci = EveryLoci;
-    }
 
     let changed = false;
     let average = -1;
@@ -181,8 +200,29 @@ namespace Visual {
       average = info.average;
       status = info.status;
     } else {
-      changed = lociApply(loci, (interval) => applyMarkerAction(array, interval, action), true);
-      if (changed) {
+      // one pass that applies and sums the covered size, intervals assumed non-overlapping (perf-audit 07 P5)
+      let size = 0;
+      lociApply(
+        loci,
+        (interval) => {
+          size += Interval.size(interval);
+          if (applyMarkerAction(array, interval, action)) changed = true;
+          return true;
+        },
+        true,
+      );
+      if (size === 0) return false;
+      if (size === count) {
+        // all covered: the outcome is that of `EveryLoci`
+        loci = EveryLoci;
+        const info = getMarkerInfo(action, currentStatus);
+        if (info.status !== -1) {
+          changed = currentStatus !== info.status;
+          if (changed) setMarkerValue(array, info.status, count);
+        }
+        average = info.average;
+        status = info.status;
+      } else if (changed) {
         average = getPartialMarkerAverage(action, currentStatus);
         if (
           previous &&
@@ -214,6 +254,58 @@ namespace Visual {
     return changed;
   }
 
+  type KnownClear = { readonly count: number; readonly type: string; readonly version: number };
+  type LayerName = 'overpaint' | 'transparency' | 'emissive' | 'substance';
+
+  /**
+   * Layers of a render object that the last layer change left all clear (it reached none of their groups), with the
+   * texture cell version and size they were cleared at: the next change that reaches none of them either needs no
+   * clearing and no texture upload, so a layer change costs the visuals it reaches (perf-audit 07 P1)
+   */
+  const KnownClearLayers = new WeakMap<GraphicsRenderObject, { [K in LayerName]?: KnownClear }>();
+
+  function isKnownClear(
+    renderObject: GraphicsRenderObject,
+    name: LayerName,
+    texture: ValueCell<unknown>,
+    count: number,
+    type: string,
+  ) {
+    const known = KnownClearLayers.get(renderObject)?.[name];
+    return !!known && known.count === count && known.type === type && known.version === texture.ref.version;
+  }
+
+  function setKnownClear(
+    renderObject: GraphicsRenderObject,
+    name: LayerName,
+    texture: ValueCell<unknown>,
+    count: number,
+    type: string,
+    isClear: boolean,
+  ) {
+    let layers = KnownClearLayers.get(renderObject);
+    if (!isClear) {
+      if (layers) layers[name] = undefined;
+      return;
+    }
+    if (!layers) {
+      layers = {};
+      KnownClearLayers.set(renderObject, layers);
+    }
+    layers[name] = { count, type, version: texture.ref.version };
+  }
+
+  /** whether any of `layers` reaches a group, applying nothing */
+  function reachesAny(layers: ReadonlyArray<{ readonly loci: Loci }>, lociApply: LociApply) {
+    let reached = false;
+    const probe = () => {
+      reached = true;
+      return true;
+    };
+    for (let i = 0, il = layers.length; i < il && !reached; ++i) lociApply(layers[i].loci, probe, false);
+    return reached;
+  }
+
   type SurfaceMeta = {
     resolution?: number;
     overpaintTexture?: Texture;
@@ -225,7 +317,7 @@ namespace Visual {
   type SmoothingContext = {
     geometry: Geometry;
     props: PD.Values<any>;
-    webgl?: WebGLContext;
+    graphics?: GraphicsContext;
   };
 
   export function setOverpaint(
@@ -239,27 +331,38 @@ namespace Visual {
 
     const {
       tOverpaint,
-      dOverpaintType,
       dOverpaint,
       uGroupCount,
       instanceCount,
-      instanceGranularity: instanceGranularity,
+      uInstanceGranularity: instanceGranularity,
     } = renderObject.values;
     const count = instanceGranularity.ref.value
       ? instanceCount.ref.value
       : uGroupCount.ref.value * instanceCount.ref.value;
 
-    // ensure texture has right size and type
     const type = instanceGranularity.ref.value ? 'instance' : 'groupInstance';
+    if (
+      clear &&
+      overpaint.layers.length > 0 &&
+      dOverpaint.ref.value &&
+      isKnownClear(renderObject, 'overpaint', tOverpaint, count, type) &&
+      !reachesAny(overpaint.layers, lociApply)
+    ) {
+      return; // stays all clear
+    }
+
+    // ensure texture has right size and type
     createOverpaint(overpaint.layers.length ? count : 0, type, renderObject.values);
     const { array } = tOverpaint.ref.value;
 
     // clear all if requested
     if (clear) clearOverpaint(array, 0, count);
 
+    let touched = false;
     for (let i = 0, il = overpaint.layers.length; i < il; ++i) {
       const { loci, color, clear } = overpaint.layers[i];
       const apply = (interval: Interval) => {
+        touched = true;
         const start = Interval.start(interval);
         const end = Interval.end(interval);
         return clear ? clearOverpaint(array, start, end) : applyOverpaintColor(array, start, end, color);
@@ -267,26 +370,28 @@ namespace Visual {
       lociApply(loci, apply, false);
     }
     ValueCell.update(tOverpaint, tOverpaint.ref.value);
-    ValueCell.updateIfChanged(dOverpaintType, type);
     ValueCell.updateIfChanged(dOverpaint, overpaint.layers.length > 0);
+
+    setKnownClear(renderObject, 'overpaint', tOverpaint, count, type, clear && !touched && overpaint.layers.length > 0);
 
     if (overpaint.layers.length === 0) return;
     if (type === 'instance') return;
+    if (clear && !touched) return; // all clear: nothing to smooth (perf-audit 07 P1)
 
     if (smoothing && hasColorSmoothingProp(smoothing.props)) {
-      const { geometry, props, webgl } = smoothing;
+      const { geometry, props, graphics } = smoothing;
       if (geometry.kind === 'mesh') {
         const { resolution, overpaintTexture } = geometry.meta as SurfaceMeta;
         const csp = getColorSmoothingProps(props.smoothColors, true, resolution);
         if (csp) {
-          applyMeshOverpaintSmoothing(renderObject.values as any, csp, webgl, overpaintTexture);
+          applyMeshOverpaintSmoothing(renderObject.values as any, csp, graphics, overpaintTexture);
           (geometry.meta as SurfaceMeta).overpaintTexture = renderObject.values.tOverpaintGrid.ref.value;
         }
-      } else if (webgl && geometry.kind === 'texture-mesh') {
+      } else if (graphics && geometry.kind === 'texture-mesh') {
         const { resolution, overpaintTexture } = geometry.meta as SurfaceMeta;
         const csp = getColorSmoothingProps(props.smoothColors, true, resolution);
         if (csp) {
-          applyTextureMeshOverpaintSmoothing(renderObject.values as any, csp, webgl, overpaintTexture);
+          applyTextureMeshOverpaintSmoothing(renderObject.values as any, csp, graphics, overpaintTexture);
           (geometry.meta as SurfaceMeta).overpaintTexture = renderObject.values.tOverpaintGrid.ref.value;
         }
       }
@@ -304,29 +409,40 @@ namespace Visual {
 
     const {
       tTransparency,
-      dTransparencyType,
       transparencyAverage,
       transparencyMin,
       dTransparency,
       uGroupCount,
       instanceCount,
-      instanceGranularity: instanceGranularity,
+      uInstanceGranularity: instanceGranularity,
     } = renderObject.values;
     const count = instanceGranularity.ref.value
       ? instanceCount.ref.value
       : uGroupCount.ref.value * instanceCount.ref.value;
 
-    // ensure texture has right size and type
     const type = instanceGranularity.ref.value ? 'instance' : 'groupInstance';
+    if (
+      clear &&
+      transparency.layers.length > 0 &&
+      dTransparency.ref.value &&
+      isKnownClear(renderObject, 'transparency', tTransparency, count, type) &&
+      !reachesAny(transparency.layers, lociApply)
+    ) {
+      return; // stays all clear
+    }
+
+    // ensure texture has right size and type
     createTransparency(transparency.layers.length ? count : 0, type, renderObject.values);
     const { array } = tTransparency.ref.value;
 
     // clear if requested
     if (clear) clearTransparency(array, 0, count);
 
+    let touched = false;
     for (let i = 0, il = transparency.layers.length; i < il; ++i) {
       const { loci, value } = transparency.layers[i];
       const apply = (interval: Interval) => {
+        touched = true;
         const start = Interval.start(interval);
         const end = Interval.end(interval);
         return applyTransparencyValue(array, start, end, value);
@@ -336,26 +452,35 @@ namespace Visual {
     ValueCell.update(tTransparency, tTransparency.ref.value);
     ValueCell.updateIfChanged(transparencyAverage, getTransparencyAverage(array, count));
     ValueCell.updateIfChanged(transparencyMin, getTransparencyMin(array, count));
-    ValueCell.updateIfChanged(dTransparencyType, type);
     ValueCell.updateIfChanged(dTransparency, transparency.layers.length > 0);
+
+    setKnownClear(
+      renderObject,
+      'transparency',
+      tTransparency,
+      count,
+      type,
+      clear && !touched && transparency.layers.length > 0,
+    );
 
     if (transparency.layers.length === 0) return;
     if (type === 'instance') return;
+    if (clear && !touched) return; // all clear: nothing to smooth (perf-audit 07 P1)
 
     if (smoothing && hasColorSmoothingProp(smoothing.props)) {
-      const { geometry, props, webgl } = smoothing;
+      const { geometry, props, graphics } = smoothing;
       if (geometry.kind === 'mesh') {
         const { resolution, transparencyTexture } = geometry.meta as SurfaceMeta;
         const csp = getColorSmoothingProps(props.smoothColors, true, resolution);
         if (csp) {
-          applyMeshTransparencySmoothing(renderObject.values as any, csp, webgl, transparencyTexture);
+          applyMeshTransparencySmoothing(renderObject.values as any, csp, graphics, transparencyTexture);
           (geometry.meta as SurfaceMeta).transparencyTexture = renderObject.values.tTransparencyGrid.ref.value;
         }
-      } else if (webgl && geometry.kind === 'texture-mesh') {
+      } else if (graphics && geometry.kind === 'texture-mesh') {
         const { resolution, transparencyTexture } = geometry.meta as SurfaceMeta;
         const csp = getColorSmoothingProps(props.smoothColors, true, resolution);
         if (csp) {
-          applyTextureMeshTransparencySmoothing(renderObject.values as any, csp, webgl, transparencyTexture);
+          applyTextureMeshTransparencySmoothing(renderObject.values as any, csp, graphics, transparencyTexture);
           (geometry.meta as SurfaceMeta).transparencyTexture = renderObject.values.tTransparencyGrid.ref.value;
         }
       }
@@ -373,28 +498,39 @@ namespace Visual {
 
     const {
       tEmissive,
-      dEmissiveType,
       emissiveAverage,
       dEmissive,
       uGroupCount,
       instanceCount,
-      instanceGranularity: instanceGranularity,
+      uInstanceGranularity: instanceGranularity,
     } = renderObject.values;
     const count = instanceGranularity.ref.value
       ? instanceCount.ref.value
       : uGroupCount.ref.value * instanceCount.ref.value;
 
-    // ensure texture has right size and type
     const type = instanceGranularity.ref.value ? 'instance' : 'groupInstance';
+    if (
+      clear &&
+      emissive.layers.length > 0 &&
+      dEmissive.ref.value &&
+      isKnownClear(renderObject, 'emissive', tEmissive, count, type) &&
+      !reachesAny(emissive.layers, lociApply)
+    ) {
+      return; // stays all clear
+    }
+
+    // ensure texture has right size and type
     createEmissive(emissive.layers.length ? count : 0, type, renderObject.values);
     const { array } = tEmissive.ref.value;
 
     // clear if requested
     if (clear) clearEmissive(array, 0, count);
 
+    let touched = false;
     for (let i = 0, il = emissive.layers.length; i < il; ++i) {
       const { loci, value } = emissive.layers[i];
       const apply = (interval: Interval) => {
+        touched = true;
         const start = Interval.start(interval);
         const end = Interval.end(interval);
         return applyEmissiveValue(array, start, end, value);
@@ -403,26 +539,28 @@ namespace Visual {
     }
     ValueCell.update(tEmissive, tEmissive.ref.value);
     ValueCell.updateIfChanged(emissiveAverage, getEmissiveAverage(array, count));
-    ValueCell.updateIfChanged(dEmissiveType, type);
     ValueCell.updateIfChanged(dEmissive, emissive.layers.length > 0);
+
+    setKnownClear(renderObject, 'emissive', tEmissive, count, type, clear && !touched && emissive.layers.length > 0);
 
     if (emissive.layers.length === 0) return;
     if (type === 'instance') return;
+    if (clear && !touched) return; // all clear: nothing to smooth (perf-audit 07 P1)
 
     if (smoothing && hasColorSmoothingProp(smoothing.props)) {
-      const { geometry, props, webgl } = smoothing;
+      const { geometry, props, graphics } = smoothing;
       if (geometry.kind === 'mesh') {
         const { resolution, emissiveTexture } = geometry.meta as SurfaceMeta;
         const csp = getColorSmoothingProps(props.smoothColors, true, resolution);
         if (csp) {
-          applyMeshEmissiveSmoothing(renderObject.values as any, csp, webgl, emissiveTexture);
+          applyMeshEmissiveSmoothing(renderObject.values as any, csp, graphics, emissiveTexture);
           (geometry.meta as SurfaceMeta).emissiveTexture = renderObject.values.tEmissiveGrid.ref.value;
         }
-      } else if (webgl && geometry.kind === 'texture-mesh') {
+      } else if (graphics && geometry.kind === 'texture-mesh') {
         const { resolution, emissiveTexture } = geometry.meta as SurfaceMeta;
         const csp = getColorSmoothingProps(props.smoothColors, true, resolution);
         if (csp) {
-          applyTextureMeshEmissiveSmoothing(renderObject.values as any, csp, webgl, emissiveTexture);
+          applyTextureMeshEmissiveSmoothing(renderObject.values as any, csp, graphics, emissiveTexture);
           (geometry.meta as SurfaceMeta).emissiveTexture = renderObject.values.tEmissiveGrid.ref.value;
         }
       }
@@ -440,27 +578,38 @@ namespace Visual {
 
     const {
       tSubstance,
-      dSubstanceType,
       dSubstance,
       uGroupCount,
       instanceCount,
-      instanceGranularity: instanceGranularity,
+      uInstanceGranularity: instanceGranularity,
     } = renderObject.values;
     const count = instanceGranularity.ref.value
       ? instanceCount.ref.value
       : uGroupCount.ref.value * instanceCount.ref.value;
 
-    // ensure texture has right size and type
     const type = instanceGranularity.ref.value ? 'instance' : 'groupInstance';
+    if (
+      clear &&
+      substance.layers.length > 0 &&
+      dSubstance.ref.value &&
+      isKnownClear(renderObject, 'substance', tSubstance, count, type) &&
+      !reachesAny(substance.layers, lociApply)
+    ) {
+      return; // stays all clear
+    }
+
+    // ensure texture has right size and type
     createSubstance(substance.layers.length ? count : 0, type, renderObject.values);
     const { array } = tSubstance.ref.value;
 
     // clear all if requested
     if (clear) clearSubstance(array, 0, count);
 
+    let touched = false;
     for (let i = 0, il = substance.layers.length; i < il; ++i) {
       const { loci, material, clear } = substance.layers[i];
       const apply = (interval: Interval) => {
+        touched = true;
         const start = Interval.start(interval);
         const end = Interval.end(interval);
         return clear ? clearSubstance(array, start, end) : applySubstanceMaterial(array, start, end, material);
@@ -468,26 +617,28 @@ namespace Visual {
       lociApply(loci, apply, false);
     }
     ValueCell.update(tSubstance, tSubstance.ref.value);
-    ValueCell.updateIfChanged(dSubstanceType, type);
     ValueCell.updateIfChanged(dSubstance, substance.layers.length > 0);
+
+    setKnownClear(renderObject, 'substance', tSubstance, count, type, clear && !touched && substance.layers.length > 0);
 
     if (substance.layers.length === 0) return;
     if (type === 'instance') return;
+    if (clear && !touched) return; // all clear: nothing to smooth (perf-audit 07 P1)
 
     if (smoothing && hasColorSmoothingProp(smoothing.props)) {
-      const { geometry, props, webgl } = smoothing;
+      const { geometry, props, graphics } = smoothing;
       if (geometry.kind === 'mesh') {
         const { resolution, substanceTexture } = geometry.meta as SurfaceMeta;
         const csp = getColorSmoothingProps(props.smoothColors, true, resolution);
         if (csp) {
-          applyMeshSubstanceSmoothing(renderObject.values as any, csp, webgl, substanceTexture);
+          applyMeshSubstanceSmoothing(renderObject.values as any, csp, graphics, substanceTexture);
           (geometry.meta as SurfaceMeta).substanceTexture = renderObject.values.tSubstanceGrid.ref.value;
         }
-      } else if (webgl && geometry.kind === 'texture-mesh') {
+      } else if (graphics && geometry.kind === 'texture-mesh') {
         const { resolution, substanceTexture } = geometry.meta as SurfaceMeta;
         const csp = getColorSmoothingProps(props.smoothColors, true, resolution);
         if (csp) {
-          applyTextureMeshSubstanceSmoothing(renderObject.values as any, csp, webgl, substanceTexture);
+          applyTextureMeshSubstanceSmoothing(renderObject.values as any, csp, graphics, substanceTexture);
           (geometry.meta as SurfaceMeta).substanceTexture = renderObject.values.tSubstanceGrid.ref.value;
         }
       }
@@ -504,11 +655,10 @@ namespace Visual {
 
     const {
       tClipping,
-      dClippingType,
       dClipping,
       uGroupCount,
       instanceCount,
-      instanceGranularity: instanceGranularity,
+      uInstanceGranularity: instanceGranularity,
     } = renderObject.values;
     const count = instanceGranularity.ref.value
       ? instanceCount.ref.value
@@ -533,7 +683,6 @@ namespace Visual {
       lociApply(loci, apply, false);
     }
     ValueCell.update(tClipping, tClipping.ref.value);
-    ValueCell.updateIfChanged(dClippingType, type);
     ValueCell.updateIfChanged(dClipping, clipping.layers.length > 0);
   }
 
@@ -547,12 +696,11 @@ namespace Visual {
 
     const {
       tWiggle,
-      dWiggleType,
       wiggleAverage,
       dWiggle,
       uGroupCount,
       instanceCount,
-      instanceGranularity: instanceGranularity,
+      uInstanceGranularity: instanceGranularity,
     } = renderObject.values;
     const count = instanceGranularity.ref.value
       ? instanceCount.ref.value
@@ -577,7 +725,6 @@ namespace Visual {
     }
     ValueCell.update(tWiggle, tWiggle.ref.value);
     ValueCell.updateIfChanged(wiggleAverage, getWiggleAverage(array, count));
-    ValueCell.updateIfChanged(dWiggleType, type);
     ValueCell.updateIfChanged(dWiggle, wiggle.layers.length > 0);
   }
 

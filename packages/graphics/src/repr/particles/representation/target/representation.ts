@@ -17,6 +17,7 @@ import {
   type ParticleTarget,
   getParticleTargetGroups,
 } from '@molstar/model/model/particles/particle-list';
+import type { GraphicsContext } from '@molstar/graphics/gl/context';
 import { Theme } from '@molstar/graphics/theme/theme';
 import { type GraphicsRenderObject, getNextMaterialId } from '@molstar/graphics/gl/render-object';
 import { Subject } from 'rxjs';
@@ -52,7 +53,7 @@ export function ParticleTargetRepresentation(
   ctx: RepresentationContext,
   getParams: RepresentationParamsGetter<ParticleList, ParticleTargetRepresentationParams>,
 ): ParticleTargetRepresentation {
-  const { webgl } = ctx;
+  let { graphics } = ctx;
   const updated = new Subject<number>();
   const geometryState = new Representation.GeometryState();
   const renderObjects: GraphicsRenderObject[] = [];
@@ -72,6 +73,8 @@ export function ParticleTargetRepresentation(
 
   let mergedByType = new Map<string, MergedEntry<TargetVisual>>();
 
+  /** updates one after another, see `Representation.createUpdateQueue` */
+  const serialize = Representation.createUpdateQueue();
   function createOrUpdate(props: Partial<ParticleTargetRepresentationProps> = {}, input?: ParticleList) {
     if (input) {
       _particles = input;
@@ -82,7 +85,7 @@ export function ParticleTargetRepresentation(
     // since each target has its own data and its own geometry params.
     Object.assign(_props, props);
 
-    return Task.create('ParticleTargetRepresentation', async (runtime) => {
+    const task = Task.create('ParticleTargetRepresentation', async (runtime) => {
       if (!_particles) return;
 
       const particles = _particles;
@@ -114,11 +117,11 @@ export function ParticleTargetRepresentation(
 
         let visual = targetVisuals.get(targetId);
         if (!visual) {
-          visual = createTargetVisual(targetId, materialId, webgl);
+          visual = createTargetVisual(targetId, materialId, graphics);
           targetVisuals.set(targetId, visual);
         }
 
-        await visual.createOrUpdate({ webgl, runtime }, _theme, targetProps(target), particles, indices, target);
+        await visual.createOrUpdate({ graphics, runtime }, _theme, targetProps(target), particles, indices, target);
 
         if (visual.renderObject) {
           // Render objects can be created here, so they need the current state applied.
@@ -140,6 +143,7 @@ export function ParticleTargetRepresentation(
       geometryState.snapshot();
       updated.next(version++);
     });
+    return serialize(task);
   }
 
   function updateRenderObjectList(entries: { visual: TargetVisual; renderObject: GraphicsRenderObject }[]) {
@@ -266,6 +270,9 @@ export function ParticleTargetRepresentation(
     getAllLoci,
     eachLocation,
     mark,
+    setGraphics: (value: GraphicsContext) => {
+      graphics = value;
+    },
     destroy,
   };
 }

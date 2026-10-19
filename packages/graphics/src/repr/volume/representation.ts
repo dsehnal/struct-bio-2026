@@ -22,8 +22,9 @@ import {
 import { BaseGeometry } from '@molstar/graphics/geo/geometry/base';
 import { Subject } from 'rxjs';
 import { type RuntimeContext, Task } from '@molstar/core/task';
-import type { WebGLContext } from '@molstar/graphics/gl/webgl/context';
+import type { GraphicsContext } from '@molstar/graphics/gl/context';
 import type { VolumeVisual } from './visual.js';
+import { getFactorySignatures, getQualitySignatures, type SignatureContext } from '../signatures.js';
 
 export interface VolumeRepresentation<P extends VolumeParams> extends Representation<Volume, P> {}
 
@@ -55,13 +56,13 @@ export function VolumeRepresentation<P extends VolumeParams>(
     volume: Volume,
     key: number,
     props: PD.Values<P>,
-    webgl?: WebGLContext,
+    graphics?: GraphicsContext,
   ) => VolumeVisual<P>,
   getLoci: (volume: Volume, props: PD.Values<P>) => Loci,
   getKeys: (props: PD.Values<P>, volume: Volume) => ArrayLike<number> = () => [-1],
 ): VolumeRepresentation<P> {
   let version = 0;
-  const { webgl } = ctx;
+  let { graphics } = ctx;
   const updated = new Subject<number>();
   const geometryState = new Representation.GeometryState();
   const materialId = getNextMaterialId();
@@ -78,16 +79,18 @@ export function VolumeRepresentation<P extends VolumeParams>(
   async function visual(runtime: RuntimeContext, key: number) {
     let visual = visuals.get(key);
     if (!visual) {
-      visual = visualCtor(materialId, _volume, key, _props, webgl);
+      visual = visualCtor(materialId, _volume, key, _props, graphics);
       visuals.set(key, visual);
-    } else if (visual.mustRecreate?.({ volume: _volume, key }, _props, webgl)) {
+    } else if (visual.mustRecreate?.({ volume: _volume, key }, _props, graphics)) {
       visual.destroy();
-      visual = visualCtor(materialId, _volume, key, _props, webgl);
+      visual = visualCtor(materialId, _volume, key, _props, graphics);
       visuals.set(key, visual);
     }
-    return visual.createOrUpdate({ webgl, runtime }, _theme, _props, { volume: _volume, key });
+    return visual.createOrUpdate({ graphics, runtime }, _theme, _props, { volume: _volume, key });
   }
 
+  /** updates one after another, see `Representation.createUpdateQueue` */
+  const serialize = Representation.createUpdateQueue();
   function createOrUpdate(props: Partial<PD.Values<P>> = {}, volume?: Volume) {
     if (volume && volume !== _volume) {
       _params = getParams(ctx, volume);
@@ -98,7 +101,7 @@ export function VolumeRepresentation<P extends VolumeParams>(
     Object.assign(_props, props, qualityProps);
     _keys = getKeys(_props, _volume);
 
-    return Task.create('Creating or updating VolumeRepresentation', async (runtime) => {
+    const task = Task.create('Creating or updating VolumeRepresentation', async (runtime) => {
       const toDelete = new Set(visuals.keys());
       for (let i = 0, il = _keys.length; i < il; ++i) {
         const key = _keys[i];
@@ -122,6 +125,7 @@ export function VolumeRepresentation<P extends VolumeParams>(
       // increment version
       updated.next(version++);
     });
+    return serialize(task);
   }
 
   function mark(loci: Loci, action: MarkerAction) {
@@ -243,6 +247,19 @@ export function VolumeRepresentation<P extends VolumeParams>(
       });
     },
     mark,
+    setGraphics: (value: GraphicsContext) => {
+      graphics = value;
+    },
+    getSignatures: (props: PD.Values<P>, ctx: SignatureContext) =>
+      getQualitySignatures(props, (props) =>
+        getFactorySignatures(
+          visualCtor,
+          // without a volume: factories that read it name their visuals
+          () => visualCtor(materialId, undefined as unknown as Volume, -1, props, ctx.graphics),
+          props,
+          ctx,
+        ),
+      ),
     destroy,
   };
 }

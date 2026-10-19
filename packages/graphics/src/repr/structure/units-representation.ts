@@ -19,7 +19,7 @@ import { getNextMaterialId, type GraphicsRenderObject } from '@molstar/graphics/
 import { Theme } from '@molstar/graphics/theme/theme';
 import { Task } from '@molstar/core/task';
 import type { PickingId } from '@molstar/graphics/geo/geometry/picking';
-import { Loci, EmptyLoci, isEmptyLoci, isEveryLoci, isDataLoci, EveryLoci } from '@molstar/model/model/loci';
+import { Loci, EmptyLoci, isEveryLoci, isDataLoci, EveryLoci } from '@molstar/model/model/loci';
 import { MarkerAction, MarkerActions, applyMarkerAction } from '@molstar/core/util/marker-action';
 import { Overpaint } from '@molstar/graphics/theme/overpaint';
 import { Transparency } from '@molstar/graphics/theme/transparency';
@@ -27,8 +27,9 @@ import { Mat4, EPSILON } from '@molstar/core/math/linear-algebra';
 import { Interval } from '@molstar/core/data/int';
 import type { StructureParams } from './params.js';
 import { Clipping } from '@molstar/graphics/theme/clipping';
-import type { WebGLContext } from '@molstar/graphics/gl/webgl/context';
+import type { GraphicsContext } from '@molstar/graphics/gl/context';
 import type { StructureGroup } from './visual/util/common.js';
+import { isWholeStructureLoci } from './visual/util/loci-index.js';
 import { Substance } from '@molstar/graphics/theme/substance';
 import type { LocationCallback } from '../util.js';
 import { Emissive } from '@molstar/graphics/theme/emissive';
@@ -37,6 +38,8 @@ import { HashMap } from '@molstar/core/util/map';
 import { hash2 } from '@molstar/core/data/util';
 import type { RenderMergedValue } from '@molstar/graphics/geo/geometry/base';
 import { mergeRenderObjectsByType, pickMergedLoci, type MergedEntry } from '../merged.js';
+import { getFactorySignatures, type SignatureContext } from '../signatures.js';
+import { isMergeableType } from '@molstar/graphics/gl/renderable/merged';
 
 function createVisualsMap<P extends StructureParams>() {
   return new HashMap<Unit.SymmetryGroup, { group: Unit.SymmetryGroup; visual: UnitsVisual<P> }>(
@@ -51,10 +54,15 @@ export function UnitsRepresentation<P extends StructureParams>(
   label: string,
   ctx: RepresentationContext,
   getParams: RepresentationParamsGetter<Structure, P>,
-  visualCtor: (materialId: number, structure: Structure, props: PD.Values<P>, webgl?: WebGLContext) => UnitsVisual<P>,
+  visualCtor: (
+    materialId: number,
+    structure: Structure,
+    props: PD.Values<P>,
+    graphics?: GraphicsContext,
+  ) => UnitsVisual<P>,
 ): StructureRepresentation<P> {
   let version = 0;
-  const { webgl } = ctx;
+  let { graphics } = ctx;
   const updated = new Subject<number>();
   const materialId = getNextMaterialId();
   const renderObjects: GraphicsRenderObject[] = [];
@@ -63,6 +71,29 @@ export function UnitsRepresentation<P extends StructureParams>(
   let visuals = createVisualsMap<P>();
 
   let mergedByType = new Map<string, MergedEntry<UnitsVisual<P>>>();
+  /** visuals whose render object is a member of a merged one: their layers are not smoothed (perf-audit 07 P1, N2) */
+  const mergedVisuals = new Set<UnitsVisual<P>>();
+  /** whether the layers of a visual were last set with smoothing, to set them again when its merging changes */
+  const layersSmoothed = new WeakMap<UnitsVisual<P>, boolean>();
+  /** visuals by the id of their render object, to resolve a pick without asking every visual */
+  const visualsByObjectId = new Map<number, UnitsVisual<P>>();
+  /**
+   * The entries of `visuals` by the ids of their units, to mark only the visuals a small loci has (perf-audit 07 P3);
+   * reset whenever an entry is added, an entry's visual replaced in place stays found
+   */
+  let visualsByUnitId: Map<number, { visual: UnitsVisual<P> }> | undefined;
+  let visualCount = 0;
+
+  function getVisualsByUnitId() {
+    if (visualsByUnitId) return visualsByUnitId;
+    visualsByUnitId = new Map();
+    visualCount = 0;
+    visuals.forEach((entry) => {
+      ++visualCount;
+      for (const u of entry.group.units) visualsByUnitId!.set(u.id, entry);
+    });
+    return visualsByUnitId;
+  }
 
   let _structure: Structure;
   let _groups: ReadonlyArray<Unit.SymmetryGroup>;
@@ -70,6 +101,8 @@ export function UnitsRepresentation<P extends StructureParams>(
   let _props: PD.Values<P>;
   let _theme = Theme.createEmpty();
 
+  /** updates one after another, see `Representation.createUpdateQueue` */
+  const serialize = Representation.createUpdateQueue();
   function createOrUpdate(props: Partial<PD.Values<P>> = {}, structure?: Structure) {
     if (structure && structure !== _structure) {
       _params = getParams(ctx, structure);
@@ -77,7 +110,7 @@ export function UnitsRepresentation<P extends StructureParams>(
     }
     _props = Object.assign({}, _props, props);
 
-    return Task.create('Creating or updating UnitsRepresentation', async (runtime) => {
+    const task = Task.create('Creating or updating UnitsRepresentation', async (runtime) => {
       if (!_structure && !structure) {
         throw new Error('missing structure');
       } else if (structure && !_structure) {
@@ -86,11 +119,12 @@ export function UnitsRepresentation<P extends StructureParams>(
         _groups = StructureSymmetry.computeChildAwareTransformGroups(structure);
         for (let i = 0; i < _groups.length; i++) {
           const group = _groups[i];
-          const visual = visualCtor(materialId, structure, _props, webgl);
-          const promise = visual.createOrUpdate({ webgl, runtime }, _theme, _props, { group, structure });
+          const visual = visualCtor(materialId, structure, _props, graphics);
+          const promise = visual.createOrUpdate({ graphics, runtime }, _theme, _props, { group, structure });
           if (promise) await promise;
           setVisualState(visual, group, _state); // current state for new visual
           visuals.set(group, { visual, group });
+          visualsByUnitId = undefined;
           if (runtime.shouldUpdate)
             await runtime.update({ message: 'Creating or updating UnitsVisual', current: i, max: _groups.length });
         }
@@ -105,6 +139,7 @@ export function UnitsRepresentation<P extends StructureParams>(
         // const newGroups: Unit.SymmetryGroup[] = []
         const oldVisuals = visuals;
         visuals = createVisualsMap<P>();
+        visualsByUnitId = undefined;
         for (let i = 0; i < _groups.length; i++) {
           const group = _groups[i];
           const visualGroup = oldVisuals.get(group);
@@ -113,17 +148,18 @@ export function UnitsRepresentation<P extends StructureParams>(
             // console.log('old', visualGroup.group)
             // console.log('new', group)
             let { visual } = visualGroup;
-            if (visual.mustRecreate?.({ group, structure }, _props, webgl)) {
+            if (visual.mustRecreate?.({ group, structure }, _props, graphics)) {
               visual.destroy();
-              visual = visualCtor(materialId, structure, _props, webgl);
-              const promise = visual.createOrUpdate({ webgl, runtime }, _theme, _props, { group, structure });
+              visual = visualCtor(materialId, structure, _props, graphics);
+              const promise = visual.createOrUpdate({ graphics, runtime }, _theme, _props, { group, structure });
               if (promise) await promise;
               setVisualState(visual, group, _state); // current state for new visual
             } else {
-              const promise = visual.createOrUpdate({ webgl, runtime }, _theme, _props, { group, structure });
+              const promise = visual.createOrUpdate({ graphics, runtime }, _theme, _props, { group, structure });
               if (promise) await promise;
             }
             visuals.set(group, { visual, group });
+            visualsByUnitId = undefined;
             oldVisuals.delete(group);
 
             // Remove highlight
@@ -135,11 +171,12 @@ export function UnitsRepresentation<P extends StructureParams>(
           } else {
             // console.log(label, 'did not find visualGroup to reuse, creating new');
             // newGroups.push(group)
-            const visual = visualCtor(materialId, structure, _props, webgl);
-            const promise = visual.createOrUpdate({ webgl, runtime }, _theme, _props, { group, structure });
+            const visual = visualCtor(materialId, structure, _props, graphics);
+            const promise = visual.createOrUpdate({ graphics, runtime }, _theme, _props, { group, structure });
             if (promise) await promise;
             setVisualState(visual, group, _state); // current state for new visual
             visuals.set(group, { visual, group });
+            visualsByUnitId = undefined;
           }
           if (runtime.shouldUpdate)
             await runtime.update({ message: 'Creating or updating UnitsVisual', current: i, max: _groups.length });
@@ -161,15 +198,15 @@ export function UnitsRepresentation<P extends StructureParams>(
           const visualGroup = visuals.get(group);
           if (visualGroup) {
             let { visual } = visualGroup;
-            if (visual.mustRecreate?.({ group, structure }, _props, ctx.webgl)) {
+            if (visual.mustRecreate?.({ group, structure }, _props, graphics)) {
               visual.destroy();
-              visual = visualCtor(materialId, structure, _props, ctx.webgl);
+              visual = visualCtor(materialId, structure, _props, graphics);
               visualGroup.visual = visual;
-              const promise = visual.createOrUpdate({ webgl, runtime }, _theme, _props, { group, structure });
+              const promise = visual.createOrUpdate({ graphics, runtime }, _theme, _props, { group, structure });
               if (promise) await promise;
               setVisualState(visual, group, _state); // current state for new visual
             } else {
-              const promise = visual.createOrUpdate({ webgl, runtime }, _theme, _props, { group, structure });
+              const promise = visual.createOrUpdate({ graphics, runtime }, _theme, _props, { group, structure });
               if (promise) await promise;
             }
             visualGroup.group = group;
@@ -186,15 +223,18 @@ export function UnitsRepresentation<P extends StructureParams>(
         visuals.forEach((vg) => visualsList.push(vg));
         for (let i = 0, il = visualsList.length; i < il; ++i) {
           let { visual, group } = visualsList[i];
-          if (visual.mustRecreate?.({ group, structure: _structure }, _props, ctx.webgl)) {
+          if (visual.mustRecreate?.({ group, structure: _structure }, _props, graphics)) {
             visual.destroy();
-            visual = visualCtor(materialId, _structure, _props, webgl);
+            visual = visualCtor(materialId, _structure, _props, graphics);
             visualsList[i].visual = visual;
-            const promise = visual.createOrUpdate({ webgl, runtime }, _theme, _props, { group, structure: _structure });
+            const promise = visual.createOrUpdate({ graphics, runtime }, _theme, _props, {
+              group,
+              structure: _structure,
+            });
             if (promise) await promise;
             setVisualState(visual, group, _state); // current state for new visual
           } else {
-            const promise = visual.createOrUpdate({ webgl, runtime }, _theme, _props);
+            const promise = visual.createOrUpdate({ graphics, runtime }, _theme, _props);
             if (promise) await promise;
           }
           if (runtime.shouldUpdate)
@@ -217,12 +257,31 @@ export function UnitsRepresentation<P extends StructureParams>(
       // increment version
       updated.next(version++);
     });
+    return serialize(task);
   }
 
   function updateRenderObjectList(entries: { visual: UnitsVisual<P>; renderObject: GraphicsRenderObject }[]) {
     // from BaseGeometry.Params, part of every units visual's props
     const renderMerged = (_props as { renderMerged?: RenderMergedValue }).renderMerged ?? false;
     mergedByType = mergeRenderObjectsByType(entries, renderMerged, mergedByType, renderObjects);
+    mergedVisuals.clear();
+    mergedByType.forEach(({ visuals }) => {
+      for (const v of visuals) mergedVisuals.add(v);
+    });
+    visualsByObjectId.clear();
+    const { overpaint, transparency, emissive, substance } = _state;
+    const hasLayers =
+      overpaint.layers.length > 0 ||
+      transparency.layers.length > 0 ||
+      emissive.layers.length > 0 ||
+      substance.layers.length > 0;
+    for (const { visual, renderObject } of entries) {
+      visualsByObjectId.set(renderObject.id, visual);
+      // merged or unmerged now: layers set before the merging was decided (new visuals) or under the previous one
+      if (hasLayers && layersSmoothed.has(visual) && layersSmoothed.get(visual) !== !mergedVisuals.has(visual)) {
+        setLayers(visual, _state);
+      }
+    }
   }
 
   function getMergedLoci(pickingId: PickingId): Loci | undefined {
@@ -235,12 +294,8 @@ export function UnitsRepresentation<P extends StructureParams>(
     const mergedLoci = getMergedLoci(pickingId);
     if (mergedLoci !== undefined) return mergedLoci;
 
-    let loci: Loci = EmptyLoci;
-    visuals.forEach(({ visual }) => {
-      const _loci = visual.getLoci(pickingId);
-      if (!isEmptyLoci(_loci)) loci = _loci;
-    });
-    return loci;
+    const visual = visualsByObjectId.get(pickingId.objectId);
+    return visual ? visual.getLoci(pickingId) : EmptyLoci;
   }
 
   function eachLocation(cb: LocationCallback) {
@@ -260,7 +315,7 @@ export function UnitsRepresentation<P extends StructureParams>(
       if (!Structure.areRootsEquivalent(loci.structure, _structure)) return false;
       // Remap `loci` from equivalent structure to the current `_structure`
       loci = Loci.remap(loci, _structure);
-      if (Structure.isLoci(loci) || (StructureElement.Loci.is(loci) && StructureElement.Loci.isWholeStructure(loci))) {
+      if (Structure.isLoci(loci) || (StructureElement.Loci.is(loci) && isWholeStructureLoci(loci))) {
         // Change to `EveryLoci` to allow for downstream optimizations
         loci = EveryLoci;
       }
@@ -270,10 +325,55 @@ export function UnitsRepresentation<P extends StructureParams>(
     if (Loci.isEmpty(loci)) return false;
 
     let changed = false;
-    visuals.forEach(({ visual }) => {
-      changed = visual.mark(loci, action) || changed;
-    });
+    const marked = getMarkedVisuals(loci);
+    if (marked) {
+      for (const visual of marked) changed = visual.mark(loci, action) || changed;
+    } else {
+      visuals.forEach(({ visual }) => {
+        changed = visual.mark(loci, action) || changed;
+      });
+    }
     return changed;
+  }
+
+  /**
+   * The visuals of the units in `loci` when it has fewer units than there are visuals, `undefined` for all: the others
+   * have none of it (their `lociApply` keys by unit), and a hover then costs the same with 10 or 10,000 visuals
+   */
+  function getMarkedVisuals(loci: Loci): Set<UnitsVisual<P>> | undefined {
+    const byUnitId = getVisualsByUnitId();
+    if (StructureElement.Loci.is(loci)) {
+      if (loci.elements.length >= visualCount) return;
+      const marked = new Set<UnitsVisual<P>>();
+      for (const e of loci.elements) {
+        const entry = byUnitId.get(e.unit.id);
+        if (entry) marked.add(entry.visual);
+      }
+      return marked;
+    }
+    if (Bond.isLoci(loci)) {
+      if (loci.bonds.length >= visualCount) return;
+      const marked = new Set<UnitsVisual<P>>();
+      for (const b of loci.bonds) {
+        const a = byUnitId.get(b.aUnit.id);
+        if (a) marked.add(a.visual);
+        const c = byUnitId.get(b.bUnit.id);
+        if (c) marked.add(c.visual);
+      }
+      return marked;
+    }
+  }
+
+  /** the layers that can be smoothed: not on members of a merged object, which keeps one layer type for all */
+  function setLayers(visual: UnitsVisual<P>, state: Partial<StructureRepresentationState>) {
+    const { overpaint, transparency, emissive, substance } = state;
+    if (!overpaint && !transparency && !emissive && !substance) return;
+    const smooth = !mergedVisuals.has(visual);
+    if (overpaint !== undefined) visual.setOverpaint(overpaint, graphics, smooth);
+    if (transparency !== undefined) visual.setTransparency(transparency, graphics, smooth);
+    if (emissive !== undefined) visual.setEmissive(emissive, graphics, smooth);
+    if (substance !== undefined) visual.setSubstance(substance, graphics, smooth);
+    layersSmoothed.set(visual, smooth);
   }
 
   function setVisualState(
@@ -281,30 +381,14 @@ export function UnitsRepresentation<P extends StructureParams>(
     group: Unit.SymmetryGroup,
     state: Partial<StructureRepresentationState>,
   ) {
-    const {
-      visible,
-      alphaFactor,
-      pickable,
-      overpaint,
-      transparency,
-      emissive,
-      substance,
-      clipping,
-      wiggle,
-      themeStrength,
-      transform,
-      unitTransforms,
-    } = state;
+    const { visible, alphaFactor, pickable, clipping, wiggle, themeStrength, transform, unitTransforms } = state;
 
     if (visible !== undefined) visual.setVisibility(visible);
     if (alphaFactor !== undefined) visual.setAlphaFactor(alphaFactor);
     if (pickable !== undefined) visual.setPickable(pickable);
-    if (overpaint !== undefined) visual.setOverpaint(overpaint, webgl);
-    if (transparency !== undefined) visual.setTransparency(transparency, webgl);
-    if (emissive !== undefined) visual.setEmissive(emissive, webgl);
-    if (substance !== undefined) visual.setSubstance(substance, webgl);
+    setLayers(visual, state);
     if (clipping !== undefined) visual.setClipping(clipping);
-    if (wiggle !== undefined) visual.setWiggle(wiggle, webgl);
+    if (wiggle !== undefined) visual.setWiggle(wiggle, graphics);
     if (themeStrength !== undefined) visual.setThemeStrength(themeStrength);
     if (transform !== undefined) {
       if (transform !== _state.transform || !Mat4.areEqual(transform, _state.transform, EPSILON)) {
@@ -385,6 +469,9 @@ export function UnitsRepresentation<P extends StructureParams>(
     visuals.forEach(({ visual }) => visual.destroy());
     visuals.clear();
     mergedByType.clear();
+    mergedVisuals.clear();
+    visualsByObjectId.clear();
+    visualsByUnitId = undefined;
   }
 
   return {
@@ -420,6 +507,24 @@ export function UnitsRepresentation<P extends StructureParams>(
     getAllLoci,
     eachLocation,
     mark,
+    setGraphics: (value: GraphicsContext) => {
+      graphics = value;
+    },
+    getSignatures: (props: PD.Values<P>, ctx: SignatureContext) => {
+      const signatures = getFactorySignatures(
+        visualCtor,
+        // without a structure: factories that read it name their visuals
+        () => visualCtor(materialId, undefined as unknown as Structure, props, ctx.graphics),
+        props,
+        ctx,
+      );
+      // render objects of the same type are merged by `renderMerged` (groups of one stay unmerged); 'auto' merges
+      // above `AutoRenderMergedThreshold` units, taken as unmerged: such objects compile while they build
+      const renderMerged = (props as { renderMerged?: RenderMergedValue }).renderMerged ?? false;
+      if (renderMerged !== true) return signatures;
+      const merged = signatures.filter((s) => isMergeableType(s.type)).map((s) => ({ ...s, merged: true }));
+      return [...signatures, ...merged];
+    },
     destroy,
   };
 }

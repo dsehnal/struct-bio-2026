@@ -17,6 +17,9 @@ here.
   centre as documented, and an `atom-radius` (PyMOL's `gap`) is applied on that path too
 - Fix the PyMOL, VMD and Jmol transpilers on a group that starts with a group, e.g.
   `byres ((chain A) within 4 of resn STI)`: PyMOL overflowed the stack, VMD and Jmol reported a parse error
+- MVS: an animated color with no start value (no `start`, and no value at the target, e.g. a key its color map does not
+  have) leaves the property as it is again, instead of failing the load with "Missing start value for color
+  interpolation" (a regression of split coloring)
 - Fix the help panel's click-toggle binding (`clickToggle`), the Kinemage extension's registration of controls on
   nonexistent registries, and the Zenodo import extension's display name
 - Fix `murmurHash3_128`, which was not MurmurHash3_x86_128 (one lane rotated by 13 instead of 18), and hash strings as
@@ -56,6 +59,13 @@ here.
 - MessagePack: extension types, JSON's rules for non-finite numbers (nil), large integers (float 64) and `undefined`
   object values (left out, so BinaryCIF files no longer carry a nil `mask` key), and checks of the lengths in untrusted
   input
+- Fix state flags (e.g. visibility) set while a state builder is outstanding being lost from the state tree, and so from
+  saved sessions, undo and `setSnapshot`; a builder can be edited again after `getTree()`
+- Fix models 2..N of multi-model mmCIF/PDB files having no assemblies, spacegroup or `_molstar_bond_site` bonds, and
+  attaching a dynamic custom model property to one model disposing another model's assets
+- Fix accessible surface area values on assemblies, symmetry mates and multi-model structures
+- Fix the vertex groups of volume isosurfaces with floodfill `inside`: the cell ids were read through the filled values,
+  so ids below the iso value inside the surface became twice the iso value (wrong cell picked and colored)
 
 ## [v5.13.1] - 2026-10-08
 

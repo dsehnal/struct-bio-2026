@@ -734,6 +734,9 @@ importers:
       '@molstar/geo-export-extension':
         specifier: workspace:*
         version: link:../../extensions/geo-export
+      '@molstar/graphics':
+        specifier: workspace:*
+        version: link:../../packages/graphics
       '@molstar/kinemage-extension':
         specifier: workspace:*
         version: link:../../extensions/kinemage
@@ -2841,6 +2844,9 @@ importers:
       '@types/pngjs':
         specifier: 'catalog:'
         version: 6.0.5
+      rxjs:
+        specifier: 'catalog:'
+        version: 7.8.2
       tslib:
         specifier: 'catalog:'
         version: 2.8.1
@@ -3638,12 +3644,18 @@ importers:
 
   tests:
     dependencies:
+      '@molstar/alpha-orbitals-extension':
+        specifier: workspace:*
+        version: link:../extensions/alpha-orbitals
       '@molstar/anvil-extension':
         specifier: workspace:*
         version: link:../extensions/anvil
       '@molstar/core':
         specifier: workspace:*
         version: link:../packages/core
+      '@molstar/geo-export-extension':
+        specifier: workspace:*
+        version: link:../extensions/geo-export
       '@molstar/graphics':
         specifier: workspace:*
         version: link:../packages/graphics
