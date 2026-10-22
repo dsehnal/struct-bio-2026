@@ -21,9 +21,15 @@ export const Links = {
   molstarPaper: 'https://doi.org/10.1093/nar/gkab314',
   prismPreview: 'https://molstar.org/prism-preview/',
   uiStorybook: 'https://molstar.org/ui-storybook/',
+  /** Where this deck and its playground are hosted, and their code. */
+  slides: 'https://dsehnal.github.io/slides/struct-bio-2026/',
+  code: 'https://github.com/dsehnal/struct-bio-2026',
 } as const;
 
-/** The playground's absolute address, from the page's own (the QR code and the short text need one that works anywhere). */
+/**
+ * The playground's public address, for the QR codes and the printed links: always the hosted one, so the audience gets
+ * a link that works even when the deck runs from the presenter's laptop. (The "try it" chips stay relative.)
+ */
 export function playgroundUrl(): string {
-  return new URL(modeHref('playground'), location.href.split('#')[0]).href;
+  return new URL(modeHref('playground'), Links.slides).href;
 }

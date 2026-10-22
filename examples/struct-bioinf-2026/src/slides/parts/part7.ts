@@ -83,7 +83,7 @@ export function part7(): string {
     slide({
       part: 7,
       notes: notes(
-        'The links, in one place, and they are in the chat. The Mol* paper is the one to cite for the viewer; MolViewStories has its own citation.',
+        'The links, in one place, and they are in the chat. The slides and the playground stay online at dsehnal.github.io/slides/struct-bio-2026, and their code is at github.com/dsehnal/struct-bio-2026. The Mol* paper is the one to cite for the viewer; MolViewStories has its own citation.',
         'How to get in touch: GitHub issues and discussions for Mol*. Thank you, and over to your questions.',
         'Say thanks to the organisers and to Anyfold, with whom this work is developed.',
       ),
@@ -95,7 +95,9 @@ export function part7(): string {
           <li><span class="what">Python molviewspec</span>${link(Links.pythonPackage)}</li>
           <li><span class="what">Colab notebook</span>${link(Links.colab, 'colab.research.google.com/drive/1O2TldXlS01s-YgkD9gy87vWsfCBTYuz9')}</li>
           <li><span class="what">MolViewStories</span>${link(Links.viewStories)}</li>
+          <li><span class="what">These slides</span>${link(Links.slides, 'dsehnal.github.io/slides/struct-bio-2026')}</li>
           <li><span class="what">The playground</span>${link(url)}</li>
+          <li><span class="what">Their code</span>${link(Links.code, 'github.com/dsehnal/struct-bio-2026')}</li>
           <li><span class="what">Get in touch</span>${link(Links.github)}</li>
           <li><span class="what">Cite Mol*</span>${link(Links.molstarPaper, 'Sehnal et al., Nucleic Acids Res. 2021, doi:10.1093/nar/gkab314')}</li>
           <li><span class="what">Cite MolViewStories</span>${link(Links.viewStoriesPaper, 'Slanináková et al., Protein Science 2026, doi:10.1002/pro.70540')}</li>

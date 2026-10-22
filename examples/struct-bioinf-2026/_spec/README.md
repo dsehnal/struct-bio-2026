@@ -43,8 +43,10 @@ with two modes:
    chip that opens the playground.
 8. **Built with Vite** (like `examples/minimal-prism-viewer`), so Monaco's workers load with `?worker`. It is kept out
    of `pnpm build:apps` (`"molstar": {"builder": "vite"}`).
-9. **Hosted as a static build on GitHub Pages**, published by hand from `vite build`. No server; all data comes from
-   public services (PDBe, AFDB, the PDBe volume server).
+9. **Hosted as a static build on GitHub Pages** at `dsehnal.github.io/slides/struct-bio-2026`, the code at
+   `github.com/dsehnal/struct-bio-2026`, published by hand from `vite build`. No server; all data comes from public
+   services (PDBe, AFDB, the PDBe volume server). The QR codes and printed playground links always name the hosted
+   address (`links.ts`), so they work when the deck runs locally; the "try it" chips stay relative.
 10. **Guided playground.** The playground starts from one-click example cards, with suggested edits next to the code
     (outline.md §7). It is a place to try small changes, not an IDE.
 11. **Live slides hold one scene, which may hold several viewers.** A scene function gets its slide, mounts what it
