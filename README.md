@@ -1,3 +1,47 @@
+# Molecular visualisation for structural biology: slides and playground
+
+This branch holds the talk **"Molecular visualisation for structural biology"** (David Sehnal) at the EMBL-EBI
+[Structural bioinformatics](https://www.ebi.ac.uk/training/events/structural-bioinformatics-2026/) course, 23 October
+2026, and the Mol\* code it runs on. It is a fork of [molstar/molstar](https://github.com/molstar/molstar) at its v6
+development line; everything below the line is Mol\*'s own readme.
+
+- **Slides**: https://dsehnal.github.io/slides/struct-bioinf-2026/ (interactive: the molecules on the slides are live
+  Mol\* viewers)
+- **Playground**: https://dsehnal.github.io/slides/struct-bioinf-2026/?mode=playground (edit and run the examples in the
+  browser; nothing to install)
+- **Source**: [`examples/struct-bioinf-2026`](examples/struct-bioinf-2026), with the talk's outline and the checked
+  facts behind each example in its [`_spec/`](examples/struct-bioinf-2026/_spec/README.md)
+
+The talk shows the new Mol\* viewer (Prism), MolViewSpec descriptions of 3D scenes, sequences (Seq\* and SeqViewSpec),
+volumes from the PDBe volume server, superposition and stories, on three biological examples: p53 and its cancer
+hotspots, imatinib in the ABL kinase, and the SARS-CoV-2 spike.
+
+## Run the slides locally
+
+You need [Node.js](https://nodejs.org) 22.13 or later and [pnpm](https://pnpm.io) (the version in `package.json`;
+`mise install` sets up both). The data comes from public services (PDBe, AlphaFold DB, the PDBe volume server), so you
+also need a network connection.
+
+```sh
+git clone -b ebi-struct-workshop-26 https://github.com/dsehnal/struct-bio-2026.git
+cd struct-bio-2026
+pnpm install
+pnpm -C examples/struct-bioinf-2026 dev
+```
+
+Then open the address it prints (http://localhost:5173 by default): the slides are at `/`, the playground at
+`/?mode=playground`. In the slides, use ← and →, or the slide number in the bottom right corner to jump to a slide.
+
+To build a static copy instead:
+
+```sh
+pnpm -C examples/struct-bioinf-2026 build        # build/, with relative paths: serve it from any folder
+pnpm -C examples/struct-bioinf-2026 build:pages  # build/, for https://dsehnal.github.io/slides/struct-bioinf-2026/
+pnpm -C examples/struct-bioinf-2026 preview      # serve build/ locally
+```
+
+---
+
 [![License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](./LICENSE)
 [![npm version](https://badge.fury.io/js/molstar.svg)](https://www.npmjs.com/package/molstar)
 [![Build](https://github.com/molstar/molstar/actions/workflows/node.yml/badge.svg)](https://github.com/molstar/molstar/actions/workflows/node.yml)

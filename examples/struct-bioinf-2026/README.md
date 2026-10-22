@@ -7,6 +7,7 @@ viewer. The talk and the decisions are in [`_spec/`](_spec/README.md) ([outline]
 ```sh
 pnpm -C examples/struct-bioinf-2026 dev        # http://localhost:5173, from the workspace sources
 pnpm -C examples/struct-bioinf-2026 build      # vite build → build/ (static, relative paths)
+pnpm -C examples/struct-bioinf-2026 build:pages # the same for dsehnal.github.io/slides/struct-bioinf-2026/
 pnpm -C examples/struct-bioinf-2026 preview    # serves build/
 pnpm -C examples/struct-bioinf-2026 typecheck
 ```
