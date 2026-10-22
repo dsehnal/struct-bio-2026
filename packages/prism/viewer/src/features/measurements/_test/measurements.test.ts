@@ -39,7 +39,30 @@ async function setup() {
 const Å = 'Å';
 const A = (n: number) => `A:${n}@CA`;
 
+/** The scene's measurement rows, label and description. */
+const measurementRows = (v: PrismViewer) => {
+  const out: string[] = [];
+  const walk = (list: readonly any[]) => {
+    for (const n of list) {
+      if (n.kind === 'measurement') out.push(`${n.label.value} ${n.description.value ?? ''}`);
+      walk(n.children.value);
+    }
+  };
+  walk(v.views.scene.roots.value);
+  return out;
+};
+
 describe('measure', () => {
+  it("the scene's row follows a measurement's new params, and their Undo", async () => {
+    const v = await setup();
+    expectOk(await v.api.measure!.distance({ a: A(10), b: A(20) }));
+    await until(() => measurementRows(v).some((r) => r.includes(Å)));
+    expectOk(await v.api.measure!.options({ distanceUnitLabel: 'nm' }));
+    await until(() => measurementRows(v).some((r) => r.includes(' nm')));
+    expectOk(await v.api.history.undo());
+    await until(() => measurementRows(v).some((r) => r.includes(Å)));
+  });
+
   it('measures a distance between two targets, as a step Undo removes', async () => {
     const v = await setup();
     const before = steps(v);
@@ -271,7 +294,7 @@ describe('measure', () => {
   });
 });
 
-describe('the Measure section model', () => {
+describe('the Measure and Label section model', () => {
   it('measures from the picks and follows the measurements made', async () => {
     const v = await setup();
     const model = v.api.measure!.model(v.api);
@@ -374,7 +397,7 @@ describe('the Measure section model', () => {
 });
 
 describe('the feature', () => {
-  it('brings commands for its operations and one that opens the Measure section', async () => {
+  it('brings commands for its operations and one that opens the Measure and Label section', async () => {
     const v = await setup();
     const ids = ['distance', 'angle', 'dihedral', 'label', 'orientation', 'plane', 'remove', 'options', 'open'].map(
       (n) => `measure.${n}`,
@@ -397,11 +420,11 @@ describe('the feature', () => {
     expect(v.managers.commands.get('measure.open')!.when?.(context)).toBe(true);
   });
 
-  it('puts the Measure section in the Selection tab', async () => {
+  it('puts the Measure and Label section in the Selection tab', async () => {
     const v = await setup();
     const ui = await MeasurementsFeature.ui!({ api: v.api, sources: undefined as never, managers: v.managers });
     expect(ui.sections?.map((s) => [s.id, s.slot, s.title, s.icon, s.order])).toEqual([
-      ['measurements.section.measure', 'selection', 'Measure', 'ruler', 2],
+      ['measurements.section.measure', 'selection', 'Measure and Label', 'ruler', 2],
     ]);
   });
 });

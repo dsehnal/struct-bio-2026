@@ -21,6 +21,9 @@
       "path": "../packages/model"
     },
     {
+      "path": "../packages/plugin/core"
+    },
+    {
       "path": "../extensions/anvil"
     },
     {
@@ -28,6 +31,12 @@
     },
     {
       "path": "../extensions/geo-export"
+    },
+    {
+      "path": "../packages/mvs/runtime"
+    },
+    {
+      "path": "../packages/mvs/builder"
     }
   ]
 }

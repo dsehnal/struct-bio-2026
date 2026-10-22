@@ -162,7 +162,7 @@ originals, preserving source paths, package/type resolution, and project referen
 These configs are removed on success or failure. Separate `*.full.tsbuildinfo` caches keep the normal incremental caches
 intact and are not published. CI runs this check after the library build, and the publish gate also requires it.
 
-Before publishing, run `pnpm check:publish`. This required release gate lints, tests, builds
+Before publishing, run `pnpm check:publish`. This required release gate lints, tests (the quick and medium lanes, AGENTS.md, Tests), builds
 libraries/apps/distributions, runs the full declaration check, verifies workspace and version consistency, packs all
 public packages, and tests packed Node, types, source-condition, and CLI consumers. It does not publish or install
 native GL. Browser smokes remain local checks as described above. Publishing automation is still deferred; wire this
@@ -177,7 +177,7 @@ remain declared explicitly. Normal installation and `pnpm test` do not install t
 
 ```sh
 pnpm native:install                    # gl only, for native tests/capture
-pnpm test:native                       # requires the installed backend
+pnpm test:native                       # the PR lanes (quick, medium) with the installed backend; -- medium: the GL suite
 pnpm native:install -- --canvas        # gl + canvas, for the rendering CLI
 pnpm native:install -- --webgpu        # gl + webgpu, for the headless WebGPU tests
 pnpm native:run -- node cli/mvs-render/lib/mvs-render.js --help
@@ -273,6 +273,13 @@ change when Biome is upgraded.
 Package exports use wildcard mappings for regular modules, with explicit root and directory aliases, TS/TSX exceptions,
 Sass/CSS patterns, and blocked test paths. The workspace refresh script preserves this compact form. Workspace and
 tarball checks expand the patterns and validate every concrete conditional target.
+
+A package whose `./*` maps `molstar-src` to `./src/*.ts` publishes every `.tsx` under `src/` through a `.ts` source
+that is not there. Each `.tsx` (a Prism view, `prism-panel.tsx`) needs its own entry,
+`"./view": { "molstar-src": "./src/view.tsx", "types": "./lib/view.d.ts", "import": "./lib/view.js" }`, or
+`"./view": null` when only its package imports it. `check.mjs` names the entry to add, and so does
+`scripts/workspace/_test/exports.test.mjs` in `pnpm test`, which needs no build (`check:workspace` without
+`--source-only` reads `lib/`).
 
 CIF field-name filters have one source of truth in root `data/cif-field-names/`. Workspace CLI runs read those files
 directly. Library asset staging copies them into ignored `cli/cifschema/lib/data/` for installed consumers, and tarball

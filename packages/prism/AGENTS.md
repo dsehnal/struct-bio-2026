@@ -69,6 +69,11 @@ it is done).
   or screen reader) and its scope is paused, so its bindings hold no subscriptions until it shows again (`activity()`,
   `Scope.setActive`; the runtime does it once, views do nothing). A view that subscribes, observes or loops by itself
   pauses that with `onActive(active => …)`; content that is hidden by removing it needs none of this.
+- **Extensions' Prism code follows the same rules** (David, 2026-10-21): an extension's views and operations are held to
+  the checks Prism's own are: no rxjs in views, scoped attachments, owned subscriptions, no MutationObserver
+  (`ui/src/_test/extension-views.ts` lists them), the plugin only through operations
+  (`viewer/src/_test/boundary.test.ts`), and a command for every operation
+  (`apps/prism-viewer/src/_test/full-spec.test.ts`, over the app's composition).
 
 ## Commands
 
@@ -79,14 +84,24 @@ spacing scale), `typecheck:storybook` for stories and tests.
 
 ### Tests
 
-| command                                                       | what it catches                                                                                                                                                                                                                                                                                                                          | when                                                                       |
-| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `pnpm test:unit packages/prism/<pkg>`                         | the fast tier, jsdom, deterministic; with it the work-conformance checks: no rxjs in views (`views-without-rxjs.test.ts`), no raw attachments (`scoped-attach.test.ts`), the waste budget (`waste.test.tsx`), hidden UI writes nothing (`hidden-quiet.test.tsx`), a pick renders the rows it moves between (`scene-tree-keyed.test.tsx`) | every edit loop; CI                                                        |
-| `pnpm -C packages/prism/<ui\|viewer> test:perf`               | the quick allocation tier: bytes a step of each `*.quick.ts` case, read exactly (`v8.GCProfiler`), against `src/_test/perf-baseline.json` (`--update` for an intended move); the base primitives read 0                                                                                                                                  | when you touch a primitive or a hot path, in the edit loop; at checkpoints |
-| `pnpm -C packages/prism/<ui\|viewer> test:heap`               | the heap guards (`*.heap.ts`, `*.heap.tsx`): growth over n and 4n steps (`heapScaling`; `retainedScaling` after collections for steps that allocate by design), each with a positive control; the leak guard (views mounted and disposed: heap and listeners)                                                                            | at checkpoints and before a release                                        |
-| `pnpm -C packages/prism/<ui\|viewer\|assistant> test:scaling` | the bulk paths' scaling guards (`*.scaling.ts`, `*.scaling.tsx`; the harness `sequences/core/_test/model/scaling.ts`, shared with `packages/ai`): each at n and 4n, the fastest time and the allocation (`GCProfiler`) under 8× (a quadratic reads about 16×); a deliberately quadratic control caught                                   | when you touch a bulk path; at checkpoints                                 |
+The repository's lanes hold Prism's unit tests (quick, medium, heavy: the root
+[AGENTS.md](../../AGENTS.md#tests-three-lanes), Tests); the perf, heap and scaling tiers below are Prism's own, opt-in.
+
+| command                                                       | what it catches                                                                                                                                                                                                                                                                                                                           | when                                                                       |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `pnpm test:unit packages/prism/<pkg>`                         | the quick lane, jsdom, deterministic; with it the work-conformance checks: no rxjs in views (`views-without-rxjs.test.ts`), no raw attachments (`scoped-attach.test.ts`), the waste budget (`waste.test.tsx`), hidden UI writes nothing (`hidden-quiet.test.tsx`), a pick renders the rows it moves between (`scene-tree-keyed.test.tsx`) | every edit loop; CI                                                        |
+| `pnpm test:medium packages/prism/<pkg>`                       | the medium lane: the axe sweeps past their representatives (`accessibility.test.tsx`), the hidden-UI setups past the first, the app's subscriptions at 24 and 48 structures (`subscriptions-session.test.tsx`)                                                                                                                            | when you change what they cover; CI                                        |
+| `pnpm -C packages/prism/<ui\|viewer> test:perf`               | the quick allocation tier: bytes a step of each `*.quick.ts` case, read exactly (`v8.GCProfiler`), against `src/_test/perf-baseline.json` (`--update` for an intended move); the base primitives read 0                                                                                                                                   | when you touch a primitive or a hot path, in the edit loop; at checkpoints |
+| `pnpm -C packages/prism/<ui\|viewer> test:heap`               | the heap guards (`*.heap.ts`, `*.heap.tsx`): growth over n and 4n steps (`heapScaling`; `retainedScaling` after collections for steps that allocate by design), each with a positive control; the leak guard (views mounted and disposed: heap and listeners)                                                                             | at checkpoints and before a release                                        |
+| `pnpm -C packages/prism/<ui\|viewer\|assistant> test:scaling` | the bulk paths' scaling guards (`*.scaling.ts`, `*.scaling.tsx`; the harness `sequences/core/_test/model/scaling.ts`, shared with `packages/ai`): each at n and 4n, the fastest time and the allocation (`GCProfiler`) under 8× (a quadratic reads about 16×); a deliberately quadratic control caught                                    | when you touch a bulk path; at checkpoints                                 |
+
+**Run what you touched.** In the edit loop, run the folders you changed
+(`pnpm test:unit packages/prism/viewer/src/features/particles`, a test file), not the whole Prism suite, and the guards
+only where their row says. The whole suite is for checkpoints. Its timing-sensitive checks (the waste audit, a drag's
+lost releases) can fail when every file runs in parallel on a loaded machine: rerun the failing file alone, and only a
+failure there is yours. Never raise a budget to quiet a run that passes alone.
 
 The guards run on Seq\*'s harness (`packages/sequences/vitest.shared.ts`, `core/_test/model`; prism-ui's
-`src/_test/perf.ts`); a `*.heap.ts` has its quick twin `*.quick.ts`, the two sharing their cases (`*-cases.ts`). CI and
-`pnpm test` run the fast tier only; `test:perf`, `test:heap` and `test:scaling` are opt-in, never in CI (as in Seq\*,
-packages/sequences/AGENTS.md).
+`src/_test/perf.ts`); a `*.heap.ts` has its quick twin `*.quick.ts`, the two sharing their cases (`*-cases.ts`). CI runs
+the quick and medium lanes, `pnpm test` the quick one; `test:perf`, `test:heap` and `test:scaling` are opt-in, never in
+CI (as in Seq\*, packages/sequences/AGENTS.md).

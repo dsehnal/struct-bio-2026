@@ -96,12 +96,15 @@ export class LoadApi extends ApiArea {
           'Its loaders feature (load.svs) is not in the viewer.',
         );
       }
-      const before = structureRefs(ctx);
+      const before = structureTransforms(ctx);
       const opened: string[] = [];
       const warnings: string[] = [];
       if (data.length) {
         // A lazy extension that reads one of these formats loads first (viewer-spec.md §3).
-        await ctx.extensions.ensureFor({ fileExtensions: data.map((f) => extensionOf(f.name)) });
+        await ctx.extensions.ensureFor({
+          fileExtensions: data.map((f) => extensionOf(f.name)),
+          files: data.map((f) => ({ name: f.name, content: async () => new Uint8Array(await f.arrayBuffer()) })),
+        });
         // One data transaction for all of them: the viewer's sources (the scene, the structures' lists, the commands)
         // sync once at its end, not once a file over every structure loaded so far (files × structures).
         await ctx.plugin.dataTransaction(async () => {
@@ -127,7 +130,8 @@ export class LoadApi extends ApiArea {
         const r = await ctx.api.run('load.svs', { file: doc });
         if (!r.ok) return r;
       }
-      const added = structureRefs(ctx).filter((r) => !before.includes(r));
+      // (new, or replaced under the same ref: a second MVS view reuses the first one's refs)
+      const added = [...structureTransforms(ctx)].filter(([ref, t]) => before.get(ref) !== t).map(([ref]) => ref);
       const structures = added.length ? ` (${added.length} structure${added.length === 1 ? '' : 's'})` : '';
       const shown = documents.map((f) => f.name).join(', ');
       const did = !names
@@ -157,19 +161,33 @@ export function actionName(action: { definition: { display: { name: string } } }
  * Opens one file with `OpenFiles` and judges it by what it made: the plugin logs a file it cannot parse and keeps going,
  * leaving the raw data it read (a `ReadFile` node with nothing under it, or a failed node under it). Those are deleted,
  * so a failed file leaves no node behind; a zip's entries are judged one by one (`partly` when only some opened).
+ *
+ * What a file made is the root's children that are new or whose transform was replaced: a view that replaces the scene
+ * (MVS) gives its nodes deterministic refs, so a second view reuses the first one's. A file that changed nothing failed
+ * when the plugin warned about it (no reader for its format), and otherwise loaded what is already shown (the same view
+ * opened again).
  */
 async function openFile(ctx: ApiContext, file: File, visuals: boolean): Promise<'opened' | 'partly' | 'failed'> {
   const state = ctx.plugin.state.data;
   const rootChildren = () => state.tree.children.get(StateTransform.RootRef).toArray();
-  const before = new Set(rootChildren());
-  await ctx.plugin.runTask(
-    state.applyAction(OpenFiles, {
-      files: [Asset.File(file)],
-      format: { name: 'auto', params: {} },
-      visuals,
-    }),
-  );
-  const made = rootChildren().filter((r) => !before.has(r));
+  const before = new Map(rootChildren().map((ref) => [ref, state.tree.transforms.get(ref)]));
+  let troubles = 0;
+  const log = ctx.plugin.events.log.subscribe((e) => {
+    if (e.type === 'error' || e.type === 'warning') troubles++;
+  });
+  try {
+    await ctx.plugin.runTask(
+      state.applyAction(OpenFiles, {
+        files: [Asset.File(file)],
+        format: { name: 'auto', params: {} },
+        visuals,
+      }),
+    );
+  } finally {
+    log.unsubscribe();
+  }
+  const made = rootChildren().filter((r) => before.get(r) !== state.tree.transforms.get(r));
+  if (!made.length) return troubles ? 'failed' : 'opened';
   const failed = made.filter((ref) => {
     if (state.cells.get(ref)?.transform.transformer !== ReadFile) return false;
     const subtree = state.select(StateSelection.Generators.byRef(ref).subtree());
@@ -184,8 +202,10 @@ async function openFile(ctx: ApiContext, file: File, visuals: boolean): Promise<
   return failed.length ? 'partly' : 'opened';
 }
 
-function structureRefs(ctx: ApiContext): string[] {
-  return ctx.plugin.managers.structure.hierarchy.current.structures.map((s) => s.cell.transform.ref);
+function structureTransforms(ctx: ApiContext): Map<string, StateTransform> {
+  return new Map(
+    ctx.plugin.managers.structure.hierarchy.current.structures.map((s) => [s.cell.transform.ref, s.cell.transform]),
+  );
 }
 
 export { extensionOf };

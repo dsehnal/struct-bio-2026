@@ -6,6 +6,7 @@
  * @author David Sehnal <david.sehnal@gmail.com>
  */
 
+import { derive } from '@molstar/prism-ui/reactive/state';
 import type { AnnotationsApi } from './api/annotations.js';
 import { createQueryLanguages } from './targets/languages.js';
 import type { ThreadRows } from '@molstar/ai';
@@ -141,7 +142,14 @@ export interface PrismViewer {
   readonly camera: ViewerCamera;
   readonly state: {
     readonly ready: ReadonlyState<boolean>;
+    /** The plugin has been working for a while (its `isBusy`, debounced: a status that does not flicker). */
     readonly busy: ReadonlyState<boolean>;
+    /**
+     * Something is in progress now: an operation (from its start, a lazy extension's load and a file's download
+     * included), an extension loading, or the plugin updating its state. Not debounced: what the empty canvas waits on
+     * before it shows the splash, so a slow load never shows it.
+     */
+    readonly working: ReadonlyState<boolean>;
     /** Nothing loaded. */
     readonly empty: ReadonlyState<boolean>;
   };
@@ -252,7 +260,9 @@ export async function createViewerCore(o: ViewerCoreOptions): Promise<ViewerCore
     // This viewer's own query languages: the page-wide defaults, then the spec's (targets.md §1; README decision 29).
     const languages = createQueryLanguages(spec.languages ?? []);
     const targetFormat = createTargetFormat(plugin, languages);
-    const history = new HistoryManager<ViewerCheckpoint>(createCheckpointPort(plugin));
+    const history = new HistoryManager<ViewerCheckpoint>(createCheckpointPort(plugin), {
+      checkpoints: options.ui.undoSteps,
+    });
     const notifications = new NotificationsManager();
     const { viewState, navigation } = layoutManagers(spec, options);
     const transactions = createUiTransactionCoordinator();
@@ -400,6 +410,8 @@ export async function createViewerCore(o: ViewerCoreOptions): Promise<ViewerCore
     const restore = spec.persist?.restore
       ? createLightRestore(viewScope, plugin, history, spec.persist.restore, {
           notify: (message) => notifications.post(message, 'info'),
+          // late-bound: the port is wired once the extensions are added (below)
+          ensureFor: (need) => extensionPort.ensureFor(need),
         })
       : undefined;
     // Features behind an option (viewer-spec.md §3.1: remote states) are left out unless it is on.
@@ -454,7 +466,9 @@ export async function createViewerCore(o: ViewerCoreOptions): Promise<ViewerCore
         if (!result.ok) {
           if (result.code === 'aborted' || result.code === 'confirm') return;
           if (r.origin.kind === 'person' || r.origin.kind === 'url' || r.origin.kind === 'link') {
-            notifications.post(result.hint ? `${result.message} ${result.hint}` : result.message, 'warning');
+            notifications.post(result.hint ? `${result.message} ${result.hint}` : result.message, 'warning', {
+              detail: durationOf(r.ms),
+            });
           }
           error.next({ message: result.message, source: 'api' });
         } else if (
@@ -466,7 +480,8 @@ export async function createViewerCore(o: ViewerCoreOptions): Promise<ViewerCore
         ) {
           // A quiet one (a story's step: the card shows it) is said to screen readers only.
           if (def.quiet) notifications.announce(result.did);
-          else notifications.post(result.did, 'info');
+          // How long it took: in the Log only, never on the canvas (journal.md §3).
+          else notifications.post(result.did, 'info', { detail: durationOf(r.ms) });
         } else if (r.origin.kind === 'person' && def && !def.read && /^(select|focus|measure)\./.test(r.operation)) {
           // A selection, a focus or a measurement by target is how a person without sight picks (accessibility.md): its
           // result is said (the live region), with no message on show.
@@ -474,9 +489,21 @@ export async function createViewerCore(o: ViewerCoreOptions): Promise<ViewerCore
         }
       }),
       plugin.events.log.subscribe((e) => {
-        if (e.type !== 'error') return;
-        notifications.post(String(e.message), 'error');
-        error.next({ message: String(e.message), source: 'plugin' });
+        if (e.type === 'error') {
+          notifications.post(String(e.message), 'error');
+          error.next({ message: String(e.message), source: 'plugin' });
+          return;
+        }
+        // The state's own lines, one per transform it created or updated, with its time (v5's log): the Log's
+        // Transforms, the latest kept. Never on the canvas.
+        const transform = TransformLine.exec(String(e.message));
+        if (transform) {
+          // `12ms`, `1.204s` (core's `formatTimespan`) as the runs' are said: `12 ms`, `1.204 s`.
+          const detail = transform[2].replace(/^([\d.]+)(ms|s)$/, '$1 $2');
+          notifications.log(transform[1], 'info', 'Transforms', { detail, keep: TransformsKept });
+        } else if (e.type === 'warning') {
+          notifications.log(String(e.message), 'warning', 'Plugin');
+        }
       }),
       sources.tasks.subscribe((tasks) =>
         notifications.setTasks(
@@ -516,7 +543,15 @@ export async function createViewerCore(o: ViewerCoreOptions): Promise<ViewerCore
       // Read-only (api.md §6): the marks' writers are the API's (`highlight.mark`).
       sources: publicSources(sources),
       camera: viewerCamera.camera,
-      state: { ready: ready.asReadonly, busy: sources.busy, empty },
+      state: {
+        ready: ready.asReadonly,
+        busy: sources.busy,
+        working: derive(
+          [sources.updating, host.runner.running, managers.notifications.tasks],
+          (updating, running, tasks) => updating || running.length > 0 || tasks.length > 0,
+        ),
+        empty,
+      },
       events: { hover: sources.pointer.hover, click: sources.pointer.click, error: error.asObservable() },
       extensions,
       record,
@@ -558,6 +593,18 @@ export async function createViewerCore(o: ViewerCoreOptions): Promise<ViewerCore
 }
 
 /** The layout's and navigation's starting state from the spec (viewer-spec.md §2.5, §2.2). */
+/** A state transform's log line (`Created Model in 12ms.`): what it did, and how long it took. */
+const TransformLine = /^((?:Created|Updated) .+) in (\S+)\.$/;
+
+/** The latest transforms the Log keeps (David, 2026-10-20). */
+const TransformsKept = 100;
+
+/** A run's duration as the Log says it: "120 ms", "2.4 s". */
+function durationOf(ms: number | undefined): string | undefined {
+  if (ms === undefined) return undefined;
+  return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(ms < 10_000 ? 1 : 0)} s`;
+}
+
 function layoutManagers(spec: PrismViewerSpec, options: PrismViewerOptionValues) {
   const layout = spec.ui?.layout ?? {};
   const docks: Partial<Record<DockId, Partial<DockLayout>>> = {};

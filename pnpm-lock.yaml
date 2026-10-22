@@ -3665,6 +3665,15 @@ importers:
       '@molstar/model':
         specifier: workspace:*
         version: link:../packages/model
+      '@molstar/mvs':
+        specifier: workspace:*
+        version: link:../packages/mvs/runtime
+      '@molstar/mvs-builder':
+        specifier: workspace:*
+        version: link:../packages/mvs/builder
+      '@molstar/plugin':
+        specifier: workspace:*
+        version: link:../packages/plugin/core
       rxjs:
         specifier: 'catalog:'
         version: 7.8.2

@@ -17,6 +17,38 @@ here.
   centre as documented, and an `atom-radius` (PyMOL's `gap`) is applied on that path too
 - Fix the PyMOL, VMD and Jmol transpilers on a group that starts with a group, e.g.
   `byres ((chain A) within 4 of resn STI)`: PyMOL overflowed the stack, VMD and Jmol reported a parse error
+- State snapshot transitions: a frame shows for its own duration; each frame showed during the slot of the one before
+  it, so the second frame never showed and a held frame showed the next one (also when scrubbing)
+- State snapshot animations: each transition frame is applied once; it was applied again on every animation tick, and
+  during the first frame the camera transition restarted on every tick
+- State snapshot animations: playing or scrubbing frames does not log their update timing
+- Trajectories: a new frame updates the model in place and keeps the custom properties that frames of the same topology
+  share; every frame recreated the model and disposed their assets
+- State snapshot transitions: a transition ends on its last frame also when that frame is shorter than an animation tick
+- Interactions: a salt bridge (ionic contact) hides the H-bonds between the same atoms instead of being hidden by them,
+  as documented and as in NGL and PLIP (ionic is off by default)
+- Interactions: the overlap refiners also filter inter-unit contacts (H-bonds within a salt bridge, ionic contacts
+  within a metal coordination, hydrophobic and cation-pi contacts within pi-stacking); the inter-unit check never
+  matched
+- Interactions: H-bond geometry follows a donor hydrogen bonded across units, as with per-atom symmetry in
+  small-molecule crystals (`closestHydrogen` returns its unit; `closestHydrogenIndex` read its index as an atom of the
+  donor's unit and now stays within the donor's unit); an H-bond whose donor has explicit hydrogens but none toward the
+  acceptor is rejected rather than measured from the heavy atom. The representation draws the dash from that hydrogen
+- Interactions representation: with `includeParent`, intra-unit contacts are shown or hidden by their own atoms
+  (`parentDisplay` read unrelated atoms)
+- MVS: fix a `clip` plane with its normal pointing straight down (e.g. `[0, -1, 0]`), which clipped the upper half
+  instead of the lower one
+- Fix the bounds of a representation moved by its state's transform (`Representation.setState({ transform })`): they
+  ignored the transform, so the camera's near and far planes and culling used the old place
+- Fix state builders that remove a node writing into the state's tree before they commit: a node added under, updated or
+  depended on by a node whose ref hashes like the removed one's (common for generated refs) appeared in the current
+  tree, and the next update could fail with "Cannot read properties of undefined (reading 'ref')". Also keep the nodes
+  added to the root in the same builder after the root was cleared
+- Kinemage: a `@group` ends the previous group's `@subgroup` (its lists were put in that subgroup and hidden with its
+  group), and only the animate groups after the first start hidden, not every group after it
+- Fix highlighting and selecting cross-link restraints (`CrossLinkRestraint.isLoci` tested the tag of interactions)
+- Fix `Bond.remapLoci`, which kept the old structure on the remapped bond locations, and `Bond.areLocationsEqual`, which
+  compared structures by label
 - MVS: an animated color with no start value (no `start`, and no value at the target, e.g. a key its color map does not
   have) leaves the property as it is again, instead of failing the load with "Missing start value for color
   interpolation" (a regression of split coloring)
@@ -66,6 +98,11 @@ here.
 - Fix accessible surface area values on assemblies, symmetry mates and multi-model structures
 - Fix the vertex groups of volume isosurfaces with floodfill `inside`: the cell ids were read through the filled values,
   so ids below the iso value inside the surface became twice the iso value (wrong cell picked and colored)
+- Fix order-of-rendering issue with Kinemage reader to render objects described later in the file on top of earlier ones
+- Removing Kinemage GUI buttons for masters that have no object linked to them
+- Fixed Kinemage handling of files with multiple same-named subgroups so it behaves like KiNG
+- Sets the viewer background to black when loading a Kinemage, to match the default color scheme
+- Handle Kinemage triangle normals separately from ribbon normals so that each renders as expected
 
 ## [v5.13.1] - 2026-10-08
 

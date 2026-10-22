@@ -28,6 +28,15 @@ their own packages (`@molstar/<name>-extension/prism-viewer`).
 | `canvas.lighting` | Change the lighting | needs canvas | occlusion, shadow, outline, fog, illumination |
 | `canvas.settings` | Change canvas settings | needs canvas; ui-only | section, values |
 | `canvas.xr` | Enter or leave XR | view; needs canvas | on |
+| `clipping.add` | Cut… |  | shape, target, node, everything, keepWhole, types, invert |
+| `clipping.apply` | Cut representations or not |  | cut, tag, representation, representations, on |
+| `clipping.clear` | Remove every cut | destructive |  |
+| `clipping.keep` | Keep atoms whole |  | cut, tag, target |
+| `clipping.list` | List the cuts | read |  |
+| `clipping.release` | Cut atoms kept whole again |  | cut, tag |
+| `clipping.remove` | Remove a cut | destructive | cut, tag |
+| `clipping.show` | Draw a cut in the scene, or not |  | cut, tag, on, options |
+| `clipping.update` | Change a cut |  | cut, tag, shape, position, normal, rotation, scale, invert |
 | `component.add` | Add a component |  | target, label, representation, structure, language |
 | `component.list` | List the components | read | structure |
 | `component.modify` | Change what a component holds |  | component, target, mode, structure, language |
@@ -75,9 +84,17 @@ their own packages (`@molstar/<name>-extension/prism-viewer`).
 | `measure.plane` | Show the best-fit plane |  | target, structure, language |
 | `measure.remove` | Remove a measurement | destructive | measurement |
 | `measure.visibility` | Show or hide a measurement |  | visible, measurement |
+| `particles.color` | Color particles by… |  | theme, params, particles, representation, node |
+| `particles.focus` | Focus the particles | view | particles |
+| `particles.frame` | Show a particle frame | view | index, by, particles |
 | `particles.list` | Describe the particles | read |  |
+| `particles.play` | Play the particle frames | view; needs canvas | mode, seconds, particles |
 | `particles.remove` | Remove particles | destructive | particles, representation, node |
 | `particles.representation` | Show particles as… |  | type, params, particles |
+| `particles.source` | Set how particles are read | agent-only | params, particles |
+| `particles.stop` | Stop playing the particle frames | view |  |
+| `particles.targets` | Set what the particles stand for | network (addresses) | file, source, target, particles |
+| `particles.unit-cell` | Show the particle unit cell |  | visible, color, opacity, particles |
 | `particles.update` | Update a particle representation | ui-only | node, params |
 | `particles.visibility` | Show or hide particles |  | visible, particles, representation, node |
 | `representation.clipping` | Exclude from clipping |  | target, groups, structure, language |
@@ -121,14 +138,14 @@ their own packages (`@molstar/<name>-extension/prism-viewer`).
 | `settings.get` | Read the settings | read | group |
 | `settings.set` | Change settings | agent-only | group, values |
 | `snapshot.add` | Add a snapshot | no undo | name, description, key, showFor, options |
-| `snapshot.apply` | Apply a snapshot |  | entry |
+| `snapshot.apply` | Apply a snapshot | no undo | entry |
 | `snapshot.clear` | Remove all snapshots | no undo; destructive; agent-only |  |
 | `snapshot.link` | Follow a link in a description | view; ui-only | href, event |
 | `snapshot.list` | List the snapshots | read |  |
 | `snapshot.move` | Move a snapshot | no undo; agent-only | entry, position |
-| `snapshot.next` | Next snapshot |  |  |
+| `snapshot.next` | Next snapshot | no undo |  |
 | `snapshot.play` | Play the snapshots | view | delay |
-| `snapshot.previous` | Previous snapshot |  |  |
+| `snapshot.previous` | Previous snapshot | no undo |  |
 | `snapshot.remove` | Remove a snapshot | no undo; destructive; agent-only | entry |
 | `snapshot.replace` | Replace a snapshot with the current view | no undo; agent-only | entry, showFor, options |
 | `snapshot.seek` | Show a frame of the snapshot's transition | view; agent-only | time |

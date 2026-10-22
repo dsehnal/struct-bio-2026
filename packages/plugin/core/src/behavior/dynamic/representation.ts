@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018-2025 mol* contributors, licensed under MIT, See LICENSE file for more info.
+ * Copyright (c) 2018-2026 mol* contributors, licensed under MIT, See LICENSE file for more info.
  *
  * @author David Sehnal <david.sehnal@gmail.com>
  * @author Alexander Rose <alexander.rose@weirdbyte.de>
@@ -146,6 +146,9 @@ export const SelectLoci = PluginBehavior.create({
             this.lociMarkProvider({ loci: Structure.Loci(so.data) }, MarkerAction.Deselect);
           }
           const loci = this.ctx.managers.structure.selection.getLoci(so.data);
+          // an empty selection marks nothing, but the canvas would ask every representation (O(representations) for
+          // each one created)
+          if (Loci.isEmpty(loci)) return;
           this.lociMarkProvider({ loci }, MarkerAction.Select);
         }
       }
@@ -209,10 +212,15 @@ export const SelectLoci = PluginBehavior.create({
           const structure: Structure = obj.data;
           const oldStructure: Structure | undefined =
             action === 'recreate' ? oldObj?.data : action === 'in-place' ? oldData : undefined;
+          // Nothing selected on a structure of the same hierarchy (a trajectory frame, usually): nothing to mark again,
+          // whatever the visuals reset. With a selection the marks are applied again: an operator change resets a
+          // units visual's markers, and bonds or contacts computed per frame change the groups the marks are on.
+          // (And as before: the same data, e.g. a property change of the structure, keeps the marks.)
           if (
             oldStructure &&
-            Structure.areEquivalent(structure, oldStructure) &&
-            Structure.areHierarchiesEqual(structure, oldStructure)
+            Structure.areHierarchiesEqual(structure, oldStructure) &&
+            (Structure.areEquivalent(structure, oldStructure) ||
+              Loci.isEmpty(this.ctx.managers.structure.selection.getLoci(structure)))
           )
             return;
 
