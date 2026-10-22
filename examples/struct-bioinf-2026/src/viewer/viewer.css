@@ -22,7 +22,7 @@
 
 /* Only the fade in is animated: the box starts invisible at once. */
 .embedded-viewer:not(.is-loading) {
-  transition: opacity 600ms ease;
+  transition: opacity 250ms ease;
 }
 
 /* Until its first scene has drawn (src/viewer/index.ts): invisible, but laid out, so the plugin sizes its canvas. */

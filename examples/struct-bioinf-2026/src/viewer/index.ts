@@ -68,7 +68,7 @@ export async function createEmbeddedViewer(
 }
 
 /** After the first load: time for its first frames before the box fades in. */
-const RevealAfterLoadMs = 250;
+const RevealAfterLoadMs = 100;
 /** A box whose first load has not ended by then is shown anyway. */
 const RevealFallbackMs = 15_000;
 

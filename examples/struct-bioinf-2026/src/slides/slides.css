@@ -1490,7 +1490,7 @@ body {
 
 .reveal .code-live:has(.embedded-viewer:not(.is-loading)) .code-box {
   opacity: 1;
-  transition: opacity 600ms ease;
+  transition: opacity 250ms ease;
 }
 
 /* The speaker view's previews have no viewers: their code is always shown. */
