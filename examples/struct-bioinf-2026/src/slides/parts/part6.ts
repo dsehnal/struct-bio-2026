@@ -55,7 +55,7 @@ export function part6(): string {
             <p class="cite">Slanináková et al., <em>Protein Science</em> 2026, <a href="${Links.viewStoriesPaper}" target="_blank" rel="noopener">doi:10.1002/pro.70540</a></p>
           </div>
           <div class="shot">
-            <img src="img/mol-view-stories.png" alt="The MolViewStories landing page" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
+            <img src="${import.meta.env.BASE_URL}img/mol-view-stories.png" alt="The MolViewStories landing page" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
             <div class="shot-placeholder" hidden>Screenshot of the MolViewStories landing page<br />molstar.org/mol-view-stories<br />(public/img/mol-view-stories.png)</div>
           </div>
         </div>`,

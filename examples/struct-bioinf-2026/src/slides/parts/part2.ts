@@ -42,7 +42,7 @@ export function part2(): string {
             <p class="url">${escapeHtml(playgroundUrl())}</p>
           </div>
           <div class="shot">
-            <img src="img/playground.jpg" alt="The playground: example cards, suggested edits, the code and the viewer with p53 hotspots on DNA" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
+            <img src="${import.meta.env.BASE_URL}img/playground.jpg" alt="The playground: example cards, suggested edits, the code and the viewer with p53 hotspots on DNA" onerror="this.hidden=true;this.nextElementSibling.hidden=false" />
             <div class="shot-placeholder" hidden>Screenshot of the playground<br />(public/img/playground.jpg)</div>
           </div>
         </div>`,

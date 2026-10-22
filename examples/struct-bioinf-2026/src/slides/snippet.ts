@@ -144,7 +144,7 @@ export const snippetScene: LiveScene = async (el) => {
       : [dataPane.querySelector<HTMLElement>('[data-file-name]')?.textContent ?? ''];
     void Promise.all(
       names.map(async (name) => {
-        const response = await fetch(new URL(`data/${name}`, location.href.split('#')[0]));
+        const response = await fetch(new URL(`${import.meta.env.BASE_URL}data/${name}`, location.href.split('#')[0]));
         if (!response.ok) throw new Error(`${name}: ${response.status}`);
         texts.set(name, await response.text());
       }),

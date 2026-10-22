@@ -30,9 +30,12 @@ function problem(message: string, line = 0): { ok: false; error: SnippetError } 
   return { ok: false, error: line > 0 ? { message, line } : { message } };
 }
 
-/** The page's address, which `asset(name)` in a snippet resolves against (not in a worker or a test without one). */
+/**
+ * The app's folder, which `asset(name)` in a snippet resolves against: the build's base on the page's address, so it does
+ * not depend on the address having its trailing slash (not in a worker or a test without a page).
+ */
 function pageAddress(): string | undefined {
-  return typeof location === 'undefined' ? undefined : location.href;
+  return typeof location === 'undefined' ? undefined : new URL(import.meta.env.BASE_URL, location.href).href;
 }
 
 /**

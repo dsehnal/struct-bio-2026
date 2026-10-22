@@ -15,7 +15,12 @@ export function modeFromSearch(search: string): Mode {
   return new URLSearchParams(search).get('mode') === 'playground' ? 'playground' : 'slides';
 }
 
-/** A relative link to a mode of this page (works under any sub-path, as the build's `base` is relative). */
+/**
+ * A link to a mode of this page, from the build's base (`import.meta.env.BASE_URL`): absolute in the GitHub Pages build
+ * (`build:pages`), so it holds whatever the page's own address is (with or without its trailing slash); relative (`./`)
+ * in the plain build, for any folder.
+ */
 export function modeHref(mode: Mode): string {
-  return mode === 'slides' ? './' : `./?mode=${mode}`;
+  const base = import.meta.env.BASE_URL;
+  return mode === 'slides' ? base : `${base}?mode=${mode}`;
 }
