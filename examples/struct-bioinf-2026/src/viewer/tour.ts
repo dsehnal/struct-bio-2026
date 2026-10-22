@@ -6,16 +6,21 @@
  * @author David Sehnal <david.sehnal@gmail.com>
  */
 
+import { StructureMoveFeature } from '@molstar/prism-viewer/features/structure-move';
 import { LazyVideoExport } from '@molstar/video-export-extension/prism-viewer-stub';
 import { createEmbeddedViewerWith, type EmbeddedViewer, embeddedViewerSpec } from './index.js';
 
-// The viewer of the Prism tour (outline.md §1): the full layout, with the animation (MP4, WebM) export the app has. The
+// The viewer of the Prism tour (outline.md §1): the full layout, with moving structures (opt-in, as in the app) and the
+// animation (MP4, WebM) export the app has. The
 // extension is its lazy stub (`prism-viewer-stub`: plain data), so the encoder and the views load when the Export card asks
 // for the Animation section, and only on this slide: the playground's viewer does not list it.
 
 export async function createTourViewer(container: HTMLElement): Promise<EmbeddedViewer> {
   const base = embeddedViewerSpec('full');
-  return createEmbeddedViewerWith(container, { ...base, extensions: [...(base.extensions ?? []), LazyVideoExport] });
+  return createEmbeddedViewerWith(container, {
+    ...base,
+    extensions: [...(base.extensions ?? []), StructureMoveFeature, LazyVideoExport],
+  });
 }
 
 /** The section of the Export card that the video export adds (`VideoSection` of the extension's stub). */

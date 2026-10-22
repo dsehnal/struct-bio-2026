@@ -1643,6 +1643,9 @@ importers:
 
   examples/struct-bioinf-2026:
     dependencies:
+      '@molstar/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@molstar/mvs-builder':
         specifier: workspace:*
         version: link:../../packages/mvs/builder

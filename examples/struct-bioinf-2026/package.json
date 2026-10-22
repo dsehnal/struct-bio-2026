@@ -16,6 +16,7 @@
     "generate:runner": "node scripts/generate-runner.mjs"
   },
   "dependencies": {
+    "@molstar/core": "workspace:*",
     "@molstar/mvs-builder": "workspace:*",
     "@molstar/plugin-ui": "workspace:*",
     "@molstar/prism-ui": "workspace:*",
