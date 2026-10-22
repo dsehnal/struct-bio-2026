@@ -17,7 +17,7 @@ import { createTourViewer, VideoSection } from '../viewer/tour.js';
 import { escapeHtml, notes, slide } from './html.js';
 import type { LiveScene } from './live.js';
 
-// The Prism tour (outline.md §1): the full viewer with 1IEP and its density (volume streaming, around the ligand) beside a list
+// The Prism tour (outline.md §1): the full viewer with 1IEP (and its density in the Volumes step only) beside a list
 // of what is better in Prism. A reveal fragment per item after the first (→ and ←): each step puts the viewer in the state
 // that shows the item, through the public API (`viewer.api`, the command manager), then the list highlights it. A step is a
 // pose, set whole from a clean base, so stepping back and forth lands in the same place. If a step cannot be driven the
@@ -25,7 +25,7 @@ import type { LiveScene } from './live.js';
 
 type Api = EmbeddedViewer['viewer']['api'];
 
-/** The ligand's density: 2Fo-Fc at this level (σ) in the tour's first poses, and in the volume step moved up and back. */
+/** The ligand's density: 2Fo-Fc at this level (σ) when the Volumes step shows it, then moved up and back. */
 const IsoStart = 1.5;
 const IsoHigh = 3;
 
@@ -78,7 +78,22 @@ export const tourScene: LiveScene = async (el, deck) => {
     if (expand && !node.isExpanded.value) node.toggleExpanded();
   };
 
-  /** The clean state every pose starts from: nothing selected or styled, no panel, the density at its start. */
+  /**
+   * The density is the Volumes step's alone: its streaming node is in the tree only then (hidden, it would still count in
+   * the scene's bounds). On: streaming, its box around the focus (the gatekeeper), and the focus set again, as the box is
+   * computed when the focus changes. Off: the node removed.
+   */
+  const density = async (on: boolean) => {
+    if (!on) return call('density off', () => api.volume.streaming({ on: false }));
+    await call('density on', () => api.volume.streaming({ on: true }));
+    await call('density view', () =>
+      api.volume.streamingView({ view: 'selection-box', radius: 10, channels: { '2fo-fc': { isoValue: IsoStart } } }),
+    );
+    await call('focus clear', () => api.focus.clear({}));
+    await call('focus', () => api.focus.set({ target: 'A:315' }));
+  };
+
+  /** The clean state every pose starts from: nothing selected or styled, no panel, no density (only Volumes shows it). */
   async function base() {
     closeCommandMenu(container as HTMLElement);
     viewer.managers.commands.cancel();
@@ -86,10 +101,8 @@ export const tourScene: LiveScene = async (el, deck) => {
     await call('select.clear', () => api.select.clear());
     await call('reset layers', () => api.representation.reset({ layer: 'all' }));
     await call('lighting', () => api.canvas.lighting({ occlusion: { name: 'off' }, outline: { name: 'off' } }));
-    // the density as the tour set it up (the Move step turns it off)
-    await call('iso', () =>
-      api.volume.streamingView({ view: 'selection-box', radius: 10, channels: { '2fo-fc': { isoValue: IsoStart } } }),
-    );
+    // the structure alone: the density belongs to the Volumes step
+    await density(false);
     await call('clear cuts', () => api.clipping.clear({}));
     await call('reset transform', () => api.structure.transformReset({}));
     // The right dock and any card only: `view.close` closes every dock, the sequence band's (the top one) too.
@@ -104,7 +117,20 @@ export const tourScene: LiveScene = async (el, deck) => {
       await call('open Structure', () => api.view.open({ tab: 'structure' }));
       pickRow('Contents', true);
     },
-    // 2. Better selection: build it (the ligand), grow it (5 Å), change it (add the gatekeeper).
+    // 2. Volumes: the iso value moves up and back, in σ.
+    async (alive) => {
+      // the density around the focus (the gatekeeper, beside imatinib), at its start level
+      await density(true);
+      await call('camera', () => api.camera.frame({ target: 'ligand' }));
+      await call('open Structure', () => api.view.open({ tab: 'structure' }));
+      pickRow('Volume streaming');
+      for (const level of [2, IsoHigh, 2, IsoStart]) {
+        await sleep(900);
+        if (!alive()) return;
+        await call('iso', () => api.volume.streamingView({ channels: { '2fo-fc': { isoValue: level } } }));
+      }
+    },
+    // 3. Better selection: build it (the ligand), grow it (5 Å), change it (add the gatekeeper).
     async (alive) => {
       await call('camera', () => api.camera.frame({ target: 'ligand' }));
       await call('open Selection', () => api.view.open({ tab: 'selection' }));
@@ -116,7 +142,7 @@ export const tourScene: LiveScene = async (el, deck) => {
       if (!alive()) return;
       await call('add T315', () => api.select.set({ target: 'A:315', mode: 'add' }));
     },
-    // 3. Selection visuals: the selection's style section, with a color and a glow on it.
+    // 4. Selection visuals: the selection's style section, with a color and a glow on it.
     async () => {
       await call('camera', () => api.camera.frame({ target: 'ligand' }));
       await call('select pocket', () => api.select.set({ target: 'ligand' }));
@@ -125,7 +151,7 @@ export const tourScene: LiveScene = async (el, deck) => {
       await call('color', () => api.representation.color({ target: 'selection', color: '#e76f51' }));
       await call('glow', () => api.representation.emissive({ target: 'selection', strength: 0.4 }));
     },
-    // 4. Clipping: a plane through the pocket cuts away what is in front of imatinib (its cartoon, the density), the
+    // 5. Clipping: a plane through the pocket cuts away what is in front of imatinib (its cartoon), the
     // Selection tab at its Clipping section.
     async () => {
       await call('camera', () => api.camera.frame({ target: 'ligand' }));
@@ -133,22 +159,9 @@ export const tourScene: LiveScene = async (el, deck) => {
       await call('cut', () => api.clipping.add({ shape: 'plane', everything: true }));
       await call('open Clipping', () => api.view.open({ tab: 'selection', section: ClippingSectionId }));
     },
-    // 5. Volumes: the iso value moves up and back, in σ.
-    async (alive) => {
-      await call('camera', () => api.camera.frame({ target: 'ligand' }));
-      await call('open Structure', () => api.view.open({ tab: 'structure' }));
-      pickRow('Volume streaming');
-      for (const level of [2, IsoHigh, 2, IsoStart]) {
-        await sleep(900);
-        if (!alive()) return;
-        await call('iso', () => api.volume.streamingView({ channels: { '2fo-fc': { isoValue: level } } }));
-      }
-    },
     // 6. Moving structures: the Move section shows handles on the structure in 3D (drag to move or turn it); here it
     // turns by a few degrees, as a drag would.
     async (alive) => {
-      // without the density: the streamed box does not follow a moved structure yet
-      await call('density off', () => api.volume.streamingView({ view: 'off' }));
       await call('camera', () => api.camera.reset({}));
       await call('open Move', () => api.view.open({ tab: 'selection', section: MoveSectionId }));
       await sleep(900);
@@ -220,16 +233,14 @@ export const tourScene: LiveScene = async (el, deck) => {
   shown = steps.filter((f) => f.classList.contains('visible')).length;
   paint();
 
-  // The scene: 1IEP and its density, then the first pose.
+  // The scene: 1IEP (its density is the Volumes step's), then the first pose.
   void (async () => {
     embedded.setStatus('Loading 1IEP…');
     try {
       await embedded.loadEntry('pdb', '1iep');
       if (disposed) return;
-      await call('streaming', () => api.volume.streaming({ on: true }));
-      // The density around the gatekeeper, a residue next to the ligand: a focus on a protein residue keeps the sequence band
-      // (a focus on the ligand would take it from the protein).
-      await call('streaming view', () => api.volume.streamingView({ view: 'selection-box', radius: 10 }));
+      // A focus on a protein residue next to the ligand keeps the sequence band on the protein (a focus on the ligand would
+      // take it away); the Volumes step's density is around it.
       await call('focus', () => api.focus.set({ target: 'A:315' }));
       await call('reset camera', () => api.camera.reset({ animate: false }));
       embedded.setStatus(undefined);
@@ -274,10 +285,10 @@ function blurInside(container: HTMLElement) {
 
 const Items: readonly { title: string; text: string }[] = [
   { title: 'The structure tree', text: 'The scene, in plain words.' },
+  { title: 'Volumes', text: 'Density and its iso value.' },
   { title: 'Better selection', text: 'Build, grow and change it.' },
   { title: 'Selection visuals', text: 'How a selection is shown.' },
   { title: 'Clipping', text: 'Cut away what is in the way.' },
-  { title: 'Volumes', text: 'Density and its iso value.' },
   { title: 'Moving structures', text: 'Handles in 3D. New.' },
   { title: 'Images and animations', text: 'Lighting, outlines, MP4 or WebM.' },
   { title: 'Sequence viewer (Seq*)', text: 'Linked to 3D, both ways.' },
@@ -292,13 +303,13 @@ export function tourSlide(part: number): string {
     notes: notes(
       'What is better in Prism: nine things, one per step. Press the right arrow: each step puts the viewer in the state that shows the item, and the list highlights it. The viewer is 1IEP, c-Abl kinase with imatinib, with its 2Fo-Fc density streamed around the pocket. Every step goes through the same named operations as a click, so you can also do each one by hand, and ← goes back to the step before.',
       '- <strong>1. The structure tree</strong>: the Structure tab says what is in the scene in plain words. The Contents row is expanded and picked, as if you had clicked it: the structure has four entities, and they have their real names from the file (the ABL kinase polymer, a chloride ion, imatinib with its long chemical name, water). Click any row to see its inspector.',
-      '- <strong>2. Better selection</strong>: the Selection tab. The ligand is selected (built), then grown by 5 Å, then the gatekeeper T315 is added (changed). The summary at the top says what is selected, in words, and the selection is shown in 3D and in the sequence. By hand: the Selection field takes <code>ligand</code>, <code>A:315</code>, a PyMOL selection; the buttons grow it, expand it to residues or chains, invert it.',
-      '- <strong>3. Selection visuals</strong>: how a selection is shown, and how to change that. The "Color, transparency, glow" section of the Selection tab is open, and the pocket has a colour and a glow on it; the list under it shows the applied layers, each removable, with Clear all. The colours of the selection and the highlight are in Settings, Appearance.',
-      '- <strong>4. Clipping</strong>: a plane through the pocket cuts away what is in front of imatinib, the cartoon and the density, and the Selection tab shows the cut in its Clipping section: what it cuts through (cartoon, ball-and-stick, interactions), add more cuts, keep the selection whole. By hand: Clipping, then Add.',
-      '- <strong>5. Volumes</strong>: the Volume streaming row is picked, and its inspector shows the 2Fo-Fc and Fo-Fc channels with the histogram and the iso value. The iso value moves from 1.5 to 3 σ and back, and the density follows. By hand: drag the iso handle on the histogram. The density comes from the volume server around what the view looks at.',
-      '- <strong>6. Moving structures</strong> (new): the Move section of the Selection tab shows handles on the structure in 3D; drag them to move or turn it, for example to place two structures side by side. Here it turns by 25 degrees, as a drag would. The density is off for this step: its streamed box does not follow a moved structure yet.',
+      '- <strong>2. Volumes</strong>: the Volume streaming row is picked, and its inspector shows the 2Fo-Fc and Fo-Fc channels with the histogram and the iso value. The iso value moves from 1.5 to 3 σ and back, and the density follows. By hand: drag the iso handle on the histogram. The density comes from the volume server around what the view looks at.',
+      '- <strong>3. Better selection</strong>: the Selection tab. The ligand is selected (built), then grown by 5 Å, then the gatekeeper T315 is added (changed). The summary at the top says what is selected, in words, and the selection is shown in 3D and in the sequence. By hand: the Selection field takes <code>ligand</code>, <code>A:315</code>, a PyMOL selection; the buttons grow it, expand it to residues or chains, invert it.',
+      '- <strong>4. Selection visuals</strong>: how a selection is shown, and how to change that. The "Color, transparency, glow" section of the Selection tab is open, and the pocket has a colour and a glow on it; the list under it shows the applied layers, each removable, with Clear all. The colours of the selection and the highlight are in Settings, Appearance.',
+      '- <strong>5. Clipping</strong>: a plane through the pocket cuts away what is in front of imatinib, and the Selection tab shows the cut in its Clipping section: what it cuts through (cartoon, ball-and-stick, interactions), add more cuts, keep the selection whole. By hand: Clipping, then Add.',
+      '- <strong>6. Moving structures</strong> (new): the Move section of the Selection tab shows handles on the structure in 3D; drag them to move or turn it, for example to place two structures side by side. Here it turns by 25 degrees, as a drag would.',
       '- <strong>7. Images and animations</strong>: the Export card. Lighting is on (occlusion and an outline) for a nicer picture. First the Image part: a preview with a crop, the resolution, PNG, Copy or Download. Then the Animation part of the same card: the animation (camera spin, rock, snapshots), its length and frame rate, and the <strong>format: MP4 or WebM</strong>, with a quality choice. The animation export is a lazy extension: its code loads when this part is first opened.',
-      "- <strong>6. The sequence viewer (Seq*)</strong>: the band at the top. Six residues around the DFG motif are selected, and they light up in the sequence as well as in 3D. By hand: hover a residue in the band and it lights in 3D, click or drag to select, and the reverse. Tracks, colours and the rail are in the Sequence button's menu.",
+      "- <strong>8. The sequence viewer (Seq*)</strong>: the band at the top. Six residues around the DFG motif are selected, and they light up in the sequence as well as in 3D. By hand: hover a residue in the band and it lights in 3D, click or drag to select, and the reverse. Tracks, colours and the rail are in the Sequence button's menu.",
       '- <strong>9. The command menu</strong> (Ctrl or ⌘ + K): the first screen is open, with Browse (Preset, Styles, Select…), then Data (Open files…), and the rest. Type what you want and it filters. A next click: open Select, type <code>ligand</code> and press Enter.',
       'Press → once more to leave the tour. The earlier steps are not undone by leaving: the next slide has its own viewer.',
     ),
