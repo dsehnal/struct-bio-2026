@@ -17,6 +17,9 @@ here.
   centre as documented, and an `atom-radius` (PyMOL's `gap`) is applied on that path too
 - Fix the PyMOL, VMD and Jmol transpilers on a group that starts with a group, e.g.
   `byres ((chain A) within 4 of resn STI)`: PyMOL overflowed the stack, VMD and Jmol reported a parse error
+- Volume streaming: a state that streams other maps than the one before (a snapshot, an MVS state) recreates the
+  streaming behavior; it updated the old one and failed on the new entry's name (`emDefaultContourLevel` of undefined)
+  (#2023)
 - State snapshot transitions: a frame shows for its own duration; each frame showed during the slot of the one before
   it, so the second frame never showed and a held frame showed the next one (also when scrubbing)
 - State snapshot animations: each transition frame is applied once; it was applied again on every animation tick, and
