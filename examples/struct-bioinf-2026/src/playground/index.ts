@@ -34,7 +34,7 @@ export async function startPlayground(root: HTMLElement): Promise<void> {
     <div class="playground">
       <header class="playground-header">
         <div class="playground-title">
-          <h1>Mol* v6 playground</h1>
+          <h1>Mol* playground</h1>
           <a href="${modeHref('slides')}">Slides</a>
         </div>
         <nav class="cards" aria-label="Examples">
