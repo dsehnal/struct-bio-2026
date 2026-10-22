@@ -358,7 +358,7 @@ describe('structureUnion', async () => {
         "residues": "units=7 elements=11521 sourceUnits=7 rows=57d468e9 ops=ffd43aee groups=7:7c4d33d9 root=true",
         "surroundings": "units=5 elements=395 sourceUnits=0 rows=a287f0a3 ops=e153cf4a groups=5:e4f9d63c root=true",
         "union": "units=7 elements=11521 sourceUnits=7 rows=57d468e9 ops=ffd43aee groups=7:7c4d33d9 root=true",
-        "within": "true units=5 elements=416 sourceUnits=0 rows=db776982 ops=e153cf4a groups=5:e4f9d63c root=true",
+        "within": "true units=5 elements=246 sourceUnits=0 rows=f13793e6 ops=e153cf4a groups=5:e4f9d63c root=true",
       }
     `);
   });
