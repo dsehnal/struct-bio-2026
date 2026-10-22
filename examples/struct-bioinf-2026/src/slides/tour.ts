@@ -152,6 +152,8 @@ export const tourScene: LiveScene = async (el, deck) => {
     // 5. Moving structures: the Move section shows handles on the structure in 3D (drag to move or turn it); here it
     // turns by a few degrees, as a drag would.
     async (alive) => {
+      // the focus cleared: only the structure and its handles
+      await call('focus clear', () => api.focus.clear({}));
       await call('camera', () => api.camera.reset({}));
       await call('open Move', () => api.view.open({ tab: 'selection', section: MoveSectionId }));
       await sleep(900);
