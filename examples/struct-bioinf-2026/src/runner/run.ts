@@ -8,6 +8,7 @@
 
 import type { MVSData } from '@molstar/mvs-builder';
 import type { SeqViewSpecDoc } from '@molstar/seq-core/format';
+import type { HostCalls } from './host.js';
 import { locateError, snippetProgram } from './program.js';
 import { type Runner, type RunOptions, SandboxRunner } from './sandbox.js';
 import { transpile } from './transpile.js';
@@ -79,6 +80,11 @@ export async function runSvsSnippetWith(
   return { ok: true, svs: validated.svs };
 }
 
+/** What the page answers to a snippet: its tm-align module (Mol*'s model and io) is loaded when a snippet asks. */
+const pageHost: HostCalls = {
+  tmAlign: async (input) => (await import('./tm-align.js')).pageTmAlign(input),
+};
+
 let sandbox: SandboxRunner | undefined;
 const shared = () => {
   sandbox ??= new SandboxRunner();
@@ -90,10 +96,10 @@ const shared = () => {
  * or an error with the line in the snippet where it happened. The iframe is shared and starts on the first run.
  */
 export function runSnippet(code: string): Promise<SnippetResult> {
-  return runSnippetWith(shared(), code);
+  return runSnippetWith(shared(), code, { host: pageHost });
 }
 
 /** The same for SeqViewSpec builder code (`seq`): the validated document. */
 export function runSvsSnippet(code: string): Promise<SvsSnippetResult> {
-  return runSvsSnippetWith(shared(), code);
+  return runSvsSnippetWith(shared(), code, { host: pageHost });
 }

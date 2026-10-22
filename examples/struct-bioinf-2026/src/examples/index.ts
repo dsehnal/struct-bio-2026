@@ -10,13 +10,20 @@ import { BasicsExample } from './basics.js';
 import { ImatinibExample } from './imatinib.js';
 import { P53Example } from './p53.js';
 import { SpikeExample } from './spike.js';
+import { SuperpositionExample } from './superposition.js';
 import type { Example, Snippet, SuggestedEdit } from './types.js';
 
 // The examples both modes read (_spec/README.md decision 2), in the order of the playground's cards.
 
 export type { Example, Snippet, SnippetKind, SuggestedEdit } from './types.js';
 
-export const Examples: readonly Example[] = [BasicsExample, P53Example, ImatinibExample, SpikeExample];
+export const Examples: readonly Example[] = [
+  BasicsExample,
+  P53Example,
+  ImatinibExample,
+  SpikeExample,
+  SuperpositionExample,
+];
 
 /** The snippets of every example, flat. */
 export const Snippets: readonly Snippet[] = Examples.flatMap((e) => e.snippets);

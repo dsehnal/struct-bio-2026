@@ -14,6 +14,12 @@
       "path": "../../packages/core"
     },
     {
+      "path": "../../packages/io"
+    },
+    {
+      "path": "../../packages/model"
+    },
+    {
       "path": "../../apps/viewer"
     },
     {

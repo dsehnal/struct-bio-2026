@@ -53,3 +53,13 @@ them with `label_asym_id`.
   - ACE2: Q24, T27, F28, D30, K31, H34, E35, E37, D38, Y41, Q42, L79, M82, Y83, N330, K353, G354, D355, R357, R393.
 - **Optional story text**: N501, K417 and Q493 are positions changed in variants of concern (N501Y, K417N, Q493R in
   Omicron).
+
+## D. Two ABL states (superposition)
+
+- **2GQG** (ABL kinase domain + dasatinib, X-ray, active, DFG-in): chains A and B; dasatinib is `1N1`, auth chain A
+  residue 501. Same numbering as 1IEP (Y253, T315, D381–F382–G383).
+- **TM-align**, 2GQG chain A onto 1IEP chain A (Cα; checked 2026-10-22): TM-score 0.918, 273–274 aligned residues, RMSD
+  about 5 Å over all of them (the activation loop and P-loop move). On the C-lobe core (residues 320–380 and 403–498,
+  157 Cα) the two then agree to 0.55 Å.
+- After the transform: F382's ring moves 8.8 Å (DFG flip), T315 stays (0.5 Å), the two drugs' centroids are 8.8 Å apart,
+  Y253 (P-loop) moves 5.3 Å. T315I resists both imatinib and dasatinib.

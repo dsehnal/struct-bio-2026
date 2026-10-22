@@ -1432,6 +1432,8 @@ export function nullable<V>(type: iots.Type<V>): iots.Type<V | null>;
  *
  * (it looks stupid to repeat the list of values but it will result in nicer type bundle (for MolViewStories))
  */
+/** Custom field types whose values are primitives (strings, numbers, booleans): their values hold nothing nested. */
+export const PrimitiveFieldTypes: WeakSet<iots.Mixed>;
 export function literal<V extends string | number | boolean>(...values: V[]): iots.Type<V, V, unknown>;
 interface FieldBase<V extends AllowedValueTypes = any, R extends boolean = boolean> {
     /** Definition of allowed types for the field */
@@ -1465,6 +1467,13 @@ export type ValueFor<F extends Field | iots.Any> = F extends Field<infer V> ? V 
 /** Return \`undefined\` if \`value\` has correct type for \`field\`, regardsless of if required or optional.
  * Return description of validation issues, if \`value\` has wrong type. */
 export function fieldValidationIssues<F extends Field>(field: F, value: any): string[] | undefined;
+/**
+ * \`type.decode(value)\` would succeed, decided without io-ts's validation contexts and results (\`true\` only when
+ * certain; \`false\` sends the value to \`decode\`, which also reports the errors). Large documents carry color maps and
+ * coordinate lists of thousands of entries, where \`decode\` allocates per entry. Custom types are decided by \`decode\`,
+ * once per primitive value (a document repeats a few colors many times).
+ */
+export function isCertainlyValid(type: iots.Mixed, value: unknown): boolean;
 export {};
 }
 declare module '@molstar/mvs-builder/tree/generic/params-schema' {
@@ -4836,6 +4845,29 @@ declare function molql(text: string, language?: 'pymol' | 'vmd' | 'jmol' | 'mol-
  * The text is read at once, so a mistake in it is reported at this line.
  */
 declare function pymol(text: string): { molql: unknown };
+/** A structure file, and the chain of it that is meant. */
+interface TmAlignFile {
+  /** Where to download it from (http or https). */
+  url: string;
+  format: 'bcif' | 'mmcif';
+  /** The chain id of the file (auth_asym_id). Default: the first polymer chain. */
+  chain?: string;
+}
+interface TmAlignResult {
+  /** 4x4, column major: the mobile chain onto the reference. Give it to a transform: .transform({ matrix: fit.matrix }). */
+  matrix: number[];
+  /** Normalised by the reference chain: 1 is identical, above 0.5 the same fold. */
+  tmScore: number;
+  /** Over the aligned residues, in Angstrom. */
+  rmsd: number;
+  alignedLength: number;
+}
+/**
+ * Superposes a chain of one structure file onto a chain of another with TM-align (it needs no sequence match), and
+ * resolves to the matrix that moves the mobile structure onto the reference. The page downloads the files and does the
+ * work, which may take a few seconds (up to a minute is allowed); put await in front of it.
+ */
+declare function tmAlign(input: { reference: TmAlignFile; mobile: TmAlignFile }): Promise<TmAlignResult>;
 /** Mol*'s MolScript builder, for selections that text cannot say: \`{ molql: MolScriptBuilder.struct... }\`. */
 declare const MolScriptBuilder: typeof import('@molstar/mvs-builder/molql').MolScriptBuilder;
 /**

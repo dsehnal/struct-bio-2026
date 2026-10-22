@@ -69,5 +69,20 @@ export function part5(): string {
         'Try it: change the iso level (σ), or move the box to another residue.',
       ),
     }),
+
+    snippetSlide({
+      part: 5,
+      snippetId: 'abl-superposition',
+      title: 'Two drugs, two states: superposition',
+      lead: 'ABL with imatinib (DFG-out) and dasatinib (DFG-in), superposed by TM-align as the snippet runs.',
+      notes: notes(
+        'The same kinase, two drugs, two states. 1IEP is ABL with imatinib: the kinase is inactive, its DFG motif "out". 2GQG is ABL with dasatinib: active, DFG "in". Same numbering, so the residues match one to one.',
+        "To compare them they must sit in one frame. The snippet asks Mol* to compute it: <code>tmAlign</code> runs TM-align on the two chains when the snippet runs, and the result, a 4×4 matrix, goes into the second structure's <strong>transform</strong>. Nothing is precomputed. TM-score 0.92: the same fold. The part that does not change, the C-lobe, then agrees to 0.55 Å.",
+        '- <strong>F382</strong>, the DFG phenylalanine, flips by about 9 Å between the two states (brown: out, navy: in).',
+        "- The two drugs' centres sit about 9 Å apart: imatinib reaches into the pocket that only opens when DFG is out. That is why imatinib needs the inactive kinase, and dasatinib does not.",
+        '- T315, the gatekeeper, stays in place (0.5 Å): both drugs touch it, which is why T315I resists both.',
+        'Try it: delete the transform and the two structures part, each in its own crystal frame.',
+      ),
+    }),
   ].join('');
 }

@@ -19,6 +19,7 @@ const Cards: readonly { id: string; title: string; text: string }[] = [
   { id: 'p53-af-plddt', title: 'A: p53', text: 'Confidence, DNA, hotspots, sequence.' },
   { id: 'imatinib-pocket', title: 'B: imatinib', text: 'A drug and its evidence.' },
   { id: 'spike-story', title: 'C: the spike', text: 'A light story.' },
+  { id: 'abl-superposition', title: 'Superposition', text: 'Two drugs, two states of ABL.' },
 ];
 
 export function part7(): string {

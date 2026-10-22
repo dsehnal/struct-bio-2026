@@ -79,6 +79,29 @@ declare function molql(text: string, language?: 'pymol' | 'vmd' | 'jmol' | 'mol-
  * The text is read at once, so a mistake in it is reported at this line.
  */
 declare function pymol(text: string): { molql: unknown };
+/** A structure file, and the chain of it that is meant. */
+interface TmAlignFile {
+  /** Where to download it from (http or https). */
+  url: string;
+  format: 'bcif' | 'mmcif';
+  /** The chain id of the file (auth_asym_id). Default: the first polymer chain. */
+  chain?: string;
+}
+interface TmAlignResult {
+  /** 4x4, column major: the mobile chain onto the reference. Give it to a transform: .transform({ matrix: fit.matrix }). */
+  matrix: number[];
+  /** Normalised by the reference chain: 1 is identical, above 0.5 the same fold. */
+  tmScore: number;
+  /** Over the aligned residues, in Angstrom. */
+  rmsd: number;
+  alignedLength: number;
+}
+/**
+ * Superposes a chain of one structure file onto a chain of another with TM-align (it needs no sequence match), and
+ * resolves to the matrix that moves the mobile structure onto the reference. The page downloads the files and does the
+ * work, which may take a few seconds (up to a minute is allowed); put await in front of it.
+ */
+declare function tmAlign(input: { reference: TmAlignFile; mobile: TmAlignFile }): Promise<TmAlignResult>;
 /** Mol*'s MolScript builder, for selections that text cannot say: \`{ molql: MolScriptBuilder.struct... }\`. */
 declare const MolScriptBuilder: typeof import('@molstar/mvs-builder/molql').MolScriptBuilder;
 /**

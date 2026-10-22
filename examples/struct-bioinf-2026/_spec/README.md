@@ -29,6 +29,11 @@ with two modes:
      not in the runner yet.
    - `asset(name)` is a global for the files of `public/data`: the sandbox has no address of its own, so the page passes
      its own and `asset` resolves `data/<name>` against it.
+   - `tmAlign({ reference, mobile })` superposes a chain of one structure file on a chain of another (Mol\*'s TM-align)
+     and gives the matrix for a `transform` node, so a snippet needs no precomputed numbers. It runs in the page, not
+     the sandbox, which has no network and no Mol\*: the call goes out by postMessage, the page downloads and aligns
+     (cached by parameters, `runner/tm-align.ts`) and replies. The snippet's 5 s budget stops while the page works; the
+     call has its own limit of 60 s and fails as an error at its line.
 4. **The examples are biological.** There are three, each tied to a session earlier in the week (outline.md): p53 for
    sequence, variants and pLDDT; imatinib/ABL for ligand and density; the spike for cryo-EM and a story.
 5. **No assistant.** The talk does not show Prism's assistant, and neither the slides nor the playground load it.

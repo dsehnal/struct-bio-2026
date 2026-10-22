@@ -7,6 +7,7 @@
  */
 
 import { RUNTIME_JS } from './generated/runtime.js';
+import { HOST_TIMEOUT_MS, type HostCalls, withTimeout } from './host.js';
 import type { SnippetKind } from './runtime/core.js';
 
 // Runs a program in a sandboxed iframe (_spec/README.md decision 3): a null origin (`sandbox="allow-scripts"` without
@@ -26,6 +27,8 @@ export interface RunOptions {
   kind?: SnippetKind;
   /** The page's address, for `asset(name)`. */
   base?: string;
+  /** What the page answers to the snippet (`tmAlign`); a call without one is an error in the snippet. */
+  host?: HostCalls;
 }
 
 export const DEFAULT_TIMEOUT_MS = 5000;
@@ -40,7 +43,13 @@ function srcdoc(): string {
 
 interface Pending {
   resolve: (outcome: RunOutcome) => void;
-  timer: ReturnType<typeof setTimeout>;
+  host: HostCalls | undefined;
+  timer: ReturnType<typeof setTimeout> | undefined;
+  /** The snippet's own time left (ms), and since when it runs; paused (no timer) while the page answers a call. */
+  left: number;
+  since: number;
+  calls: number;
+  timeoutMs: number;
 }
 
 export class SandboxRunner implements Runner {
@@ -51,9 +60,22 @@ export class SandboxRunner implements Runner {
 
   private readonly onMessage = (e: MessageEvent) => {
     if (!this.frame || e.source !== this.frame.contentWindow) return;
-    const data = (e.data ?? {}) as { id?: unknown; ok?: unknown; data?: unknown; error?: unknown; stack?: unknown };
+    const data = (e.data ?? {}) as {
+      id?: unknown;
+      ok?: unknown;
+      data?: unknown;
+      error?: unknown;
+      stack?: unknown;
+      call?: unknown;
+      callId?: unknown;
+      params?: unknown;
+    };
     const pending = typeof data.id === 'number' ? this.pending.get(data.id) : undefined;
     if (!pending || typeof data.id !== 'number') return;
+    if (typeof data.call === 'string' && typeof data.callId === 'number') {
+      void this.answer(data.id, pending, data.call, data.callId, data.params);
+      return;
+    }
     this.pending.delete(data.id);
     clearTimeout(pending.timer);
     pending.resolve(
@@ -66,6 +88,43 @@ export class SandboxRunner implements Runner {
           },
     );
   };
+
+  /** The snippet's time runs only while it runs: stopped while the page answers, started again with the answer. */
+  private arm(id: number, pending: Pending): void {
+    pending.since = Date.now();
+    pending.timer = setTimeout(() => this.expire(id, pending), Math.max(pending.left, 0));
+  }
+
+  private expire(id: number, pending: Pending): void {
+    this.pending.delete(id);
+    this.reset();
+    pending.resolve({ ok: false, error: `The code ran for more than ${pending.timeoutMs / 1000} s and was stopped.` });
+  }
+
+  /** Answers a call of the snippet to the page (`HostCalls`) with its own, longer limit. */
+  private async answer(id: number, pending: Pending, call: string, callId: number, params: unknown): Promise<void> {
+    if (pending.calls++ === 0) {
+      clearTimeout(pending.timer);
+      pending.left -= Date.now() - pending.since;
+    }
+    let reply: { ok: true; result: unknown } | { ok: false; error: string };
+    try {
+      if (call !== 'tmAlign' || !pending.host) throw new Error(`The page cannot answer "${call}" here.`);
+      const host = pending.host;
+      const result = await withTimeout(
+        host.tmAlign(params as Parameters<HostCalls['tmAlign']>[0]),
+        HOST_TIMEOUT_MS,
+        `It took more than ${HOST_TIMEOUT_MS / 1000} s (the download and the alignment) and was stopped.`,
+      );
+      reply = { ok: true, result };
+    } catch (e) {
+      reply = { ok: false, error: e instanceof Error ? e.message : String(e) };
+    }
+    // The run may be over meanwhile (stopped, or the iframe thrown away).
+    if (this.pending.get(id) !== pending) return;
+    if (--pending.calls === 0) this.arm(id, pending);
+    this.frame?.contentWindow?.postMessage({ callId, ...reply }, '*');
+  }
 
   private start(): Promise<void> {
     if (this.ready) return this.ready;
@@ -107,12 +166,17 @@ export class SandboxRunner implements Runner {
     // The timer starts with the run: a runtime that never reports ready (a blocked iframe) is stopped as well.
     return new Promise<RunOutcome>((resolve) => {
       const id = this.next++;
-      const timer = setTimeout(() => {
-        this.pending.delete(id);
-        this.reset();
-        resolve({ ok: false, error: `The code ran for more than ${timeoutMs / 1000} s and was stopped.` });
-      }, timeoutMs);
-      this.pending.set(id, { resolve, timer });
+      const pending: Pending = {
+        resolve,
+        host: options.host,
+        timer: undefined,
+        left: timeoutMs,
+        since: 0,
+        calls: 0,
+        timeoutMs,
+      };
+      this.pending.set(id, pending);
+      this.arm(id, pending);
       this.start().then(() =>
         this.frame?.contentWindow?.postMessage({ id, program, kind: options.kind, base: options.base }, '*'),
       );

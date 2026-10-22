@@ -1646,6 +1646,12 @@ importers:
       '@molstar/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@molstar/io':
+        specifier: workspace:*
+        version: link:../../packages/io
+      '@molstar/model':
+        specifier: workspace:*
+        version: link:../../packages/model
       '@molstar/mvs-builder':
         specifier: workspace:*
         version: link:../../packages/mvs/builder

@@ -6,7 +6,8 @@
  * @author David Sehnal <david.sehnal@gmail.com>
  */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import type { HostCalls, TmAlignResult } from '../host.js';
 import { runSnippetWith, runSvsSnippetWith } from '../run.js';
 import { inProcessRunner, SAMPLE } from './samples.js';
 
@@ -109,6 +110,78 @@ describe('runSnippet (the sandbox runtime in process)', () => {
     const none = await runSnippetWith(inProcessRunner, code, { base: '' });
     expect(none.ok).toBe(false);
     if (!none.ok) expect(none.error).toMatchObject({ line: 1, message: expect.stringMatching(/needs the address/) });
+  });
+});
+
+describe('tmAlign (through a host the test injects)', () => {
+  const MATRIX = [0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 5, 6, 7, 1];
+  const fit: TmAlignResult = { matrix: MATRIX, tmScore: 0.87, rmsd: 1.5, alignedLength: 250 };
+  const hostOf = (tmAlign: HostCalls['tmAlign']): HostCalls => ({ tmAlign });
+  const call = `const fit = await tmAlign({
+  reference: { url: 'https://x.test/a.bcif', format: 'bcif', chain: 'A' },
+  mobile: { url: 'https://x.test/b.bcif', format: 'bcif' },
+});`;
+  const scene = `${call}
+builder.download({ url: 'https://x.test/b.bcif' }).parse({ format: 'bcif' }).modelStructure().transform({ matrix: fit.matrix });`;
+
+  it('asks the page with the two files, and uses the answer in the scene', async () => {
+    const tmAlign = vi.fn(async () => fit);
+    const r = await runSnippetWith(inProcessRunner, scene, { host: hostOf(tmAlign) });
+    expect(r.ok).toBe(true);
+    expect(tmAlign).toHaveBeenCalledWith({
+      reference: { url: 'https://x.test/a.bcif', format: 'bcif', chain: 'A' },
+      mobile: { url: 'https://x.test/b.bcif', format: 'bcif' },
+    });
+    expect(JSON.stringify(r)).toContain(`"matrix":${JSON.stringify(MATRIX)}`);
+  });
+
+  it('gives the snippet all four numbers', async () => {
+    const r = await runSnippetWith(
+      inProcessRunner,
+      `${call}\nbuilder.canvas({ background_color: fit.tmScore > 0.5 && fit.rmsd < 2 && fit.alignedLength === 250 ? 'white' : 'red' });`,
+      {
+        host: hostOf(async () => fit),
+      },
+    );
+    expect(JSON.stringify(r)).toContain('"background_color":"white"');
+  });
+
+  it('reports a failure of the page as an error at the line of the call', async () => {
+    const r = await runSnippetWith(inProcessRunner, `const a = 1;\n${call}`, {
+      host: hostOf(async () => {
+        throw new Error('Could not download https://x.test/a.bcif (HTTP 404).');
+      }),
+    });
+    expect(r).toEqual({
+      ok: false,
+      error: { line: 2, message: 'Error: tmAlign: Could not download https://x.test/a.bcif (HTTP 404).' },
+    });
+  });
+
+  it('refuses a wrong call at its line, without asking the page', async () => {
+    const tmAlign = vi.fn(async () => fit);
+    const host = hostOf(tmAlign);
+    const format = await runSnippetWith(
+      inProcessRunner,
+      `\nawait tmAlign({ reference: { url: 'u', format: 'pdb' as any }, mobile: { url: 'v', format: 'bcif' } });`,
+      { host },
+    );
+    expect(format).toMatchObject({
+      ok: false,
+      error: { line: 2, message: expect.stringMatching(/format of reference must be 'bcif' or 'mmcif'/) },
+    });
+    const url = await runSnippetWith(
+      inProcessRunner,
+      `await tmAlign({ reference: { url: 'u', format: 'bcif' }, mobile: {} as any });`,
+      { host },
+    );
+    expect(url).toMatchObject({ ok: false, error: { line: 1, message: expect.stringMatching(/mobile needs a url/) } });
+    expect(tmAlign).not.toHaveBeenCalled();
+  });
+
+  it('says so when the run has no page', async () => {
+    const r = await runSnippetWith(inProcessRunner, call);
+    expect(r).toMatchObject({ ok: false, error: { line: 1, message: expect.stringMatching(/needs the page/) } });
   });
 });
 

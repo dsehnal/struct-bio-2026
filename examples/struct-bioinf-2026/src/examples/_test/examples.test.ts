@@ -8,12 +8,23 @@
 
 import { describe, expect, it } from 'vitest';
 import { runSnippetWith, runSvsSnippetWith } from '../../runner/run.js';
+import type { HostCalls } from '../../runner/host.js';
 import { inProcessRunner } from '../../runner/_test/samples.js';
 import { typeErrors } from '../../runner/_test/typecheck.js';
 import { editsOf, Examples, exampleOf, getSnippet, Snippets } from '../index.js';
 
 // Every snippet and every suggested edit runs (in process, no iframe and no network), builds data the viewer's own
 // validation accepts, and type-checks against the typings the editor shows.
+
+// The page's tmAlign, without the page (no network): a fixed motion, as the answer has one.
+const host: HostCalls = {
+  tmAlign: async () => ({
+    matrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 2, 3, 1],
+    tmScore: 0.92,
+    rmsd: 2,
+    alignedLength: 270,
+  }),
+};
 
 const everything = [
   ...Snippets.map((s) => ({ name: s.id, kind: s.kind, code: s.code })),
@@ -23,9 +34,9 @@ const everything = [
 ];
 
 describe('the examples', () => {
-  it('have unique snippet ids, the four fixed examples and the ids the slides use', () => {
+  it('have unique snippet ids, the five fixed examples and the ids the slides use', () => {
     expect(new Set(Snippets.map((s) => s.id)).size).toBe(Snippets.length);
-    expect(Examples.map((e) => e.id)).toEqual(['basics', 'p53', 'imatinib', 'spike']);
+    expect(Examples.map((e) => e.id)).toEqual(['basics', 'p53', 'imatinib', 'spike', 'superposition']);
     for (const id of [
       'basics-smallest',
       'basics-selectors',
@@ -38,6 +49,7 @@ describe('the examples', () => {
       'p53-sequence',
       'imatinib-pocket',
       'imatinib-density',
+      'abl-superposition',
       'spike-story',
     ]) {
       expect(getSnippet(id), id).toBeDefined();
@@ -60,7 +72,9 @@ describe('the examples', () => {
   it.each(everything)('$name runs and validates', async ({ kind, code, base }) => {
     if (base !== undefined) expect(code).not.toBe(base);
     const result =
-      kind === 'svs' ? await runSvsSnippetWith(inProcessRunner, code) : await runSnippetWith(inProcessRunner, code);
+      kind === 'svs'
+        ? await runSvsSnippetWith(inProcessRunner, code, { host })
+        : await runSnippetWith(inProcessRunner, code, { host });
     expect(result.ok ? undefined : result.error).toBeUndefined();
   });
 

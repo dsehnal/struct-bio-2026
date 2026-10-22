@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@molstar/core": "workspace:*",
+    "@molstar/io": "workspace:*",
+    "@molstar/model": "workspace:*",
     "@molstar/mvs-builder": "workspace:*",
     "@molstar/plugin-ui": "workspace:*",
     "@molstar/prism-ui": "workspace:*",

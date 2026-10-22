@@ -10,6 +10,7 @@ import { MVSData } from '@molstar/mvs-builder';
 import { compileScript, MolScriptBuilder } from '@molstar/mvs-builder/molql';
 import type { Root } from '@molstar/mvs-builder/tree/mvs/mvs-builder';
 import { createSeqViewSpec } from '@molstar/seq-core/builder';
+import type { HostCalls, TmAlignFile, TmAlignInput, TmAlignResult } from '../host.js';
 
 // What the sandbox runs (bundled into generated/runtime.ts by scripts/generate-runner.mjs); the tests import it directly.
 // It runs a program made by `snippetProgram` (program.ts) with the globals the typings declare, and returns what the
@@ -42,8 +43,60 @@ export function pymol(text: string): { molql: unknown } {
   }
 }
 
+const FORMATS: readonly string[] = ['bcif', 'mmcif'];
+
+function checkFile(role: string, file: unknown): asserts file is TmAlignFile {
+  const f = file as Partial<TmAlignFile> | null;
+  if (typeof f !== 'object' || f === null || typeof f.url !== 'string' || !f.url) {
+    throw new TypeError(`tmAlign: ${role} needs a url, like { url: '...', format: 'bcif' }.`);
+  }
+  if (typeof f.format !== 'string' || !FORMATS.includes(f.format)) {
+    throw new TypeError(`tmAlign: the format of ${role} must be 'bcif' or 'mmcif'.`);
+  }
+  if (f.chain !== undefined && typeof f.chain !== 'string') {
+    throw new TypeError(`tmAlign: the chain of ${role} is a chain id such as 'A'.`);
+  }
+}
+
+/**
+ * `tmAlign({ reference, mobile })`: Mol*'s TM-align of a chain of one structure file onto a chain of another, done by the
+ * page (the sandbox cannot download or compute it, `HostCalls`). A failure is an error at the line of the call: the
+ * stack is taken there, because the answer arrives in a later turn of the event loop.
+ */
+export function tmAlignOf(host: HostCalls | undefined) {
+  return async function tmAlign(input: TmAlignInput): Promise<TmAlignResult> {
+    const site = new Error();
+    const fail = (message: string): never => {
+      const error = new Error(message);
+      error.stack = site.stack;
+      throw error;
+    };
+    try {
+      checkFile('reference', input?.reference);
+      checkFile('mobile', input?.mobile);
+    } catch (e) {
+      return fail(e instanceof Error ? e.message : String(e));
+    }
+    if (!host) return fail('tmAlign needs the page to download and align, and this run has none.');
+    try {
+      return await host.tmAlign({ reference: { ...input.reference }, mobile: { ...input.mobile } });
+    } catch (e) {
+      return fail(`tmAlign: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  };
+}
+
 /** The names of the program's parameters, in order (program.ts declares the same). */
-export const GLOBAL_NAMES = ['builder', 'molql', 'pymol', 'MolScriptBuilder', 'snapshot', 'seq', 'asset'] as const;
+export const GLOBAL_NAMES = [
+  'builder',
+  'molql',
+  'pymol',
+  'MolScriptBuilder',
+  'snapshot',
+  'seq',
+  'asset',
+  'tmAlign',
+] as const;
 
 /** What a snippet builds: an MVS tree (`builder`) or a SeqViewSpec document (`seq`). */
 export type SnippetKind = 'mvs' | 'svs';
@@ -53,6 +106,8 @@ export interface ProgramOptions {
   kind?: SnippetKind;
   /** The page's address, which `asset(name)` resolves the files of its `data/` folder against. */
   base?: string;
+  /** What the page answers (`tmAlign`); a run in a worker or a test may have none. */
+  host?: HostCalls;
 }
 
 /** The address of a data file of the page: `data/<name>` under the page's own. */
@@ -77,7 +132,7 @@ export async function runProgram(program: string, options: ProgramOptions = {}):
   const asset = (name: string) => assetUrl(name, options.base);
   // biome-ignore lint/nursery/noImpliedEval: running the snippet is the sandbox's job (iframe with a null origin, no network).
   const run = new Function(...GLOBAL_NAMES, program) as (...args: unknown[]) => Promise<void>;
-  await run(builder, molql, pymol, MolScriptBuilder, snapshot, seq, asset);
+  await run(builder, molql, pymol, MolScriptBuilder, snapshot, seq, asset, tmAlignOf(options.host));
   const data =
     options.kind === 'svs'
       ? seq.getDocument()

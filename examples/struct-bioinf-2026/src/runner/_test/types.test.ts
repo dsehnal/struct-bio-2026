@@ -56,6 +56,26 @@ describe('the generated typings', () => {
     expect(errors('pymol(3);')).toHaveLength(1);
   });
 
+  it('check tmAlign: awaited, with its fields typed', () => {
+    const code = `
+      const fit = await tmAlign({
+        reference: { url: 'a', format: 'bcif', chain: 'A' },
+        mobile: { url: 'b', format: 'mmcif' },
+      });
+      builder.download({ url: 'b' }).parse({ format: 'mmcif' }).modelStructure().transform({ matrix: fit.matrix });
+      builder.canvas({ background_color: fit.tmScore > 0.5 ? 'white' : 'red' });
+      console.log(fit.rmsd, fit.alignedLength);`;
+    expect(errors(code)).toEqual([]);
+    expect(
+      errors("tmAlign({ reference: { url: 'a', format: 'pdb' }, mobile: { url: 'b', format: 'bcif' } });"),
+    ).toHaveLength(1);
+    expect(
+      errors(
+        "const fit = tmAlign({ reference: { url: 'a', format: 'bcif' }, mobile: { url: 'b', format: 'bcif' } }); fit.matrix;",
+      ),
+    ).toHaveLength(1);
+  });
+
   it('report an unknown name', () => {
     expect(errors('buildr.canvas({});')).toEqual([expect.stringContaining("Cannot find name 'buildr'")]);
   });
