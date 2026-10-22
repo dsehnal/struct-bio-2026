@@ -72,7 +72,8 @@ export const storyScene: LiveScene = async (el, deck) => {
   const deckRoot = el.closest<HTMLElement>('.reveal');
   if (!container || !list || !hint || !deckRoot) throw new Error('The story slide is missing a part.');
 
-  const viewer = await createEmbeddedViewer(container);
+  // The full layout, so the Story panel can be pinned beside the canvas (the compact one only floats it).
+  const viewer = await createEmbeddedViewer(container, { layout: 'full' });
   let disposed = false;
   let entries: readonly { readonly id: string; readonly name: string; readonly description?: string }[] = [];
   const fragments: HTMLElement[] = [];
