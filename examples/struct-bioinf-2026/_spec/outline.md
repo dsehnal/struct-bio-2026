@@ -39,10 +39,8 @@ questions. Each part has one fallback (a recording or a saved scene) in case the
 
 ## 0. Opening (2 min)
 
-- Why visualise: to check a model against its evidence, to see a mechanism, to communicate it. Visualisation is where
-  the week's resources meet (PDBe, EMDB, AFDB, UniProt, ChEMBL).
-- Mol\* in one slide: PDBe, RCSB, AlphaFold DB, EMDB, UniProt and others embed it, and the participants used it on
-  Tuesday. Version 6 is a rebuild of what surrounds the renderer.
+- Why visualise: to check a model against its evidence, to see a mechanism, to communicate it. The talk shows data and
+  results, it does not compute them; the data comes from PDBe, EMDB, AFDB, UniProt, ChEMBL and other resources.
 - The plan of the hour and the playground link (QR code + short URL), shown now and again in part 7.
 
 ## 1. The new viewer: Prism (7 min, live)
@@ -193,7 +191,7 @@ with its part's tag.
 
 | Part | Slides                                                                                                                                                                                                                                                                                                                                                                        |
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0    | title, "Using Mol\* to visualise your data" (with Prism's quantum splash) · why visualise (this talk shows, it does not compute) · Mol\* v6 · the plan with the playground QR code                                                                                                                                                                                            |
+| 0    | title, "Using Mol\* to visualise your data" (with Prism's quantum splash) · why visualise (this talk shows, it does not compute) · the plan with the playground QR code                                                                                                                                                                                                       |
 | 1    | classic vs Prism (morph) · "What's better in Prism": the live viewer stepped through seven things (tree, selection, selection visuals, volumes, images and animations, Seq\*, command menu)                                                                                                                                                                                   |
 | 2    | the map of the talk ("Data, descriptions, viewers") · a description is a tree of steps                                                                                                                                                                                                                                                                                        |
 | 3    | opener with the map · `basics-smallest` · `basics-selectors` · how a selection is written (schema, MolQL, PyMOL; the P-loop of 1IEP) · "Example: PyMOL selectors" (`basics-pymol`) · data stays outside the structure · `basics-annotations` · `basics-primitives` · portability · example A · `p53-af-plddt` · numbering · `p53-dna` · `p53-hotspots` · checked, not guessed |

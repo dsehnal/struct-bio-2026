@@ -70,27 +70,6 @@ export function part0(): string {
     slide({
       part: 0,
       notes: notes(
-        'Mol* is the viewer behind many structural resources: PDBe, RCSB, AlphaFold DB, EMDB, UniProt and others embed it, so you have most likely used it already.',
-        'Version 6 is a rebuild of what surrounds the renderer. The renderer is the same, fast and reliable. What changes is everything around it, and I will show four things.',
-        '- <strong>Prism</strong>, a new UI, which you will see in a minute.',
-        '- <strong>MolViewSpec</strong> and <strong>SeqViewSpec</strong>: descriptions of a 3D scene and of a sequence view.',
-        '- <strong>MolQL</strong>: a language to say what you select, so that it means the same everywhere.',
-        '- The <strong>data</strong>: the volume server and annotations.',
-      ),
-      body: `
-        <h2>Mol* v6: a rebuild of what surrounds the renderer</h2>
-        <p class="lead">PDBe, RCSB, AlphaFold DB, EMDB, UniProt and others embed Mol*. You have most likely used it already.</p>
-        ${stage(`<div class="cards four">
-          <div class="card"><h3>Prism</h3><p>A new viewer UI.</p></div>
-          <div class="card"><h3>Descriptions</h3><p>MolViewSpec for 3D, SeqViewSpec for sequences.</p></div>
-          <div class="card"><h3>Selections</h3><p>MolQL: what to select, as a language.</p></div>
-          <div class="card"><h3>Data</h3><p>The volume server and annotation files.</p></div>
-        </div>`)}`,
-    }),
-
-    slide({
-      part: 0,
-      notes: notes(
         'The plan of the hour. About 45 minutes of talk, then questions. The talk is mostly live: the viewers on the slides are real.',
         'Here is the playground link and a QR code. Open it now on your own screen if you want to follow along. Every example slide has a "Try it" button that opens the same snippet in the playground. If you would rather watch, wait for the end: we come back to the playground in part 7 and you will use it during the questions.',
         'The link is also in the chat.',
