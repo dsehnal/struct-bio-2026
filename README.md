@@ -5,9 +5,9 @@ This branch holds the talk **"Molecular visualisation for structural biology"** 
 2026, and the Mol\* code it runs on. It is a fork of [molstar/molstar](https://github.com/molstar/molstar) at its v6
 development line; everything below the line is Mol\*'s own readme.
 
-- **Slides**: https://dsehnal.github.io/slides/struct-bioinf-2026/ (interactive: the molecules on the slides are live
-  Mol\* viewers)
-- **Playground**: https://dsehnal.github.io/slides/struct-bioinf-2026/?mode=playground (edit and run the examples in the
+- **Slides**: https://dsehnal.github.io/slides/struct-bio-2026/ (interactive: the molecules on the slides are live Mol\*
+  viewers)
+- **Playground**: https://dsehnal.github.io/slides/struct-bio-2026/?mode=playground (edit and run the examples in the
   browser; nothing to install)
 - **Source**: [`examples/struct-bioinf-2026`](examples/struct-bioinf-2026), with the talk's outline and the checked
   facts behind each example in its [`_spec/`](examples/struct-bioinf-2026/_spec/README.md)
@@ -36,7 +36,7 @@ To build a static copy instead:
 
 ```sh
 pnpm -C examples/struct-bioinf-2026 build        # build/, with relative paths: serve it from any folder
-pnpm -C examples/struct-bioinf-2026 build:pages  # build/, for https://dsehnal.github.io/slides/struct-bioinf-2026/
+pnpm -C examples/struct-bioinf-2026 build:pages  # build/, for https://dsehnal.github.io/slides/struct-bio-2026/
 pnpm -C examples/struct-bioinf-2026 preview      # serve build/ locally
 ```
 

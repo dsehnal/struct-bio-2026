@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "vite build",
-    "build:pages": "vite build --base=/slides/struct-bioinf-2026/",
+    "build:pages": "vite build --base=/slides/struct-bio-2026/",
     "typecheck": "tsc -b",
     "dev": "vite",
     "preview": "vite preview",

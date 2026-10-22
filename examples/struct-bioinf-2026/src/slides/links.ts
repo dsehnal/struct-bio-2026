@@ -22,7 +22,7 @@ export const Links = {
   prismPreview: 'https://molstar.org/prism-preview/',
   uiStorybook: 'https://molstar.org/ui-storybook/',
   /** Where this deck and its playground are hosted, and their code. */
-  slides: 'https://dsehnal.github.io/slides/struct-bioinf-2026/',
+  slides: 'https://dsehnal.github.io/slides/struct-bio-2026/',
   code: 'https://github.com/dsehnal/struct-bio-2026',
 } as const;
 
