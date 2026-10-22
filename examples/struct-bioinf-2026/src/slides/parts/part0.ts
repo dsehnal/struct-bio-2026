@@ -56,7 +56,7 @@ export function part0(): string {
         'The data comes from these and other resources: PDBe, EMDB, PDBe-KB, AlphaFold DB, UniProt, AlphaFill, Missense3D, ChEMBL. Every one of them ends up as a picture of a structure with something coloured on it.',
       ),
       body: `
-        <h2>Why visualise?</h2>
+        <h2>What this talk is about</h2>
         ${stage(`<p class="callout">This talk is about <strong>visualising</strong> data and results, not computing them. Analyses, predictions, contacts and scores come from other tools. Mol* shows them, and lets you describe and share the view.</p>
         <div class="cards">
           <div class="card"><h3>Check a model</h3><p>Against its evidence: the density, the confidence, the validation.</p></div>
