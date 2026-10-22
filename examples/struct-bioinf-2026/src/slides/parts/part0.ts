@@ -22,7 +22,7 @@ const Plan: readonly { min: string; name: string }[] = [
   { min: '19–25', name: 'Sequences: Seq*, SeqViewSpec' },
   { min: '25–30', name: 'Volumes, example B: imatinib' },
   { min: '30–36', name: 'Stories, example C: the spike' },
-  { min: '36–40', name: 'Your turn: the playground' },
+  { min: '36–40', name: 'The playground' },
   { min: '40–60', name: 'Questions, in the playground' },
 ];
 

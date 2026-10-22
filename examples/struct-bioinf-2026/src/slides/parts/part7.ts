@@ -12,7 +12,7 @@ import { Links, playgroundUrl } from '../links.js';
 import { qrSvg } from '../qr.js';
 import { pythonSlide } from './python.js';
 
-// Part 7, Your turn: the playground (outline.md §7, 4 min, then questions).
+// Part 7, The playground (outline.md §7, 4 min, then questions).
 
 const Cards: readonly { id: string; title: string; text: string }[] = [
   { id: 'basics-smallest', title: 'The smallest scene', text: 'Download, parse, draw.' },
@@ -29,14 +29,14 @@ export function part7(): string {
     slide({
       part: 7,
       notes: notes(
-        'Your turn. The playground is guided, for people who do not write code. Scan the QR code or open the link in the chat.',
+        'Now the playground. It is guided, for people who do not write code. Scan the QR code or open the link in the chat.',
         '- It starts from <strong>one-click examples</strong>: cards for the smallest scene, A (p53), B (imatinib) and C (the spike). Each opens the snippet already run, with the viewer beside it.',
         '- Each example has 2–3 <strong>suggested edits</strong> of rising difficulty, written next to the code, for example "change <code>1tsr</code> to <code>2ocj</code>", "add R213 to the hotspots", "raise the iso level to 2σ". A "show me" button applies the edit, and "reset" goes back.',
         '- Errors are shown in plain words at the line where they happen, and the last working scene stays on screen. You cannot break it.',
         'We now have the questions. Use the playground during them: ask, and I will show it, or try it yourself.',
       ),
       body: `
-        <h2>Your turn: the playground</h2>
+        <h2>Try the playground</h2>
         <div class="two-col wide-right center">
           <div class="stack">
             <div class="qr-box big">${qrSvg(url, 'QR code of the playground address')}</div>

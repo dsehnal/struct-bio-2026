@@ -30,7 +30,7 @@ selections (MolQL, SeqQL) and the data (volume server, annotations).
 | 19–25 | 4. Sequences: Seq\*, SeqViewSpec      | slides with live snippets  |
 | 25–30 | 5. Volumes + example B (imatinib)     | slides with live snippets  |
 | 30–36 | 6. Stories, MolViewStories, example C | story playback, brief UI   |
-| 36–40 | 7. Your turn: the playground          | link, one-click examples   |
+| 36–40 | 7. The playground                     | link, one-click examples   |
 | 40–60 | Questions                             | participants in playground |
 
 The presenter goes fast, so the parts are tight. Each example slide has a "try it" chip that opens the same snippet in
@@ -165,7 +165,7 @@ alternative.
 - Brief live look (≈1 min): open the ABL Kinase example, edit one scene's code, and watch the preview change.
 - Example C is shown as playback, with a link so participants can step through it themselves.
 
-## 7. Your turn: the playground (4 min, then questions)
+## 7. The playground (4 min, then questions)
 
 The playground is guided, for people who do not write code:
 
