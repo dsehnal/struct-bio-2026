@@ -4,6 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Mol*: molecular visualisation for structural biology</title>
+    <script>
+      // Served as a folder, the page needs its trailing slash: without it (".../struct-bio-2026") its relative
+      // addresses (img/, data/, ./?mode=playground) resolve one level up. A path ending in a file name is left alone.
+      (function () {
+        var path = location.pathname;
+        if (!path.endsWith('/') && !/\.[a-z0-9]+$/i.test(path)) {
+          location.replace(path + '/' + location.search + location.hash);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>
