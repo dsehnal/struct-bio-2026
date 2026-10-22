@@ -7,23 +7,21 @@
  */
 
 import { modeHref } from '../../mode.js';
-import { escapeHtml, notes, slide, stage } from '../html.js';
+import { escapeHtml, notes, PartNames, slide, stage } from '../html.js';
 import { playgroundUrl } from '../links.js';
 import { qrSvg } from '../qr.js';
 
 // Part 0, Opening (outline.md §0, 2 min).
 
-/** The hour in one table (outline.md, Timing). */
-const Plan: readonly { min: string; name: string }[] = [
-  { min: '0–2', name: 'Opening' },
-  { min: '2–9', name: 'The new viewer: Prism' },
-  { min: '9–11', name: 'How it fits together' },
-  { min: '11–19', name: 'MolViewSpec, example A: p53' },
-  { min: '19–25', name: 'Sequences: Seq*, SeqViewSpec' },
-  { min: '25–30', name: 'Volumes, example B: imatinib' },
-  { min: '30–36', name: 'Stories, example C: the spike' },
-  { min: '36–40', name: 'The playground' },
-  { min: '40–60', name: 'Questions, in the playground' },
+/** What the slides hold, part by part (outline.md); each row links to its part's first slide (`index.ts`). */
+const Overview: readonly { part: number; text: string }[] = [
+  { part: 1, text: 'Classic Mol* and Prism; what is better in Prism' },
+  { part: 2, text: 'The playground; data, descriptions, viewers' },
+  { part: 3, text: 'Scenes as descriptions; selections; example A: p53' },
+  { part: 4, text: 'SeqViewSpec; the p53 sequence, linked to 3D' },
+  { part: 5, text: 'The volume server; example B: imatinib; superposition' },
+  { part: 6, text: 'MolViewStories; example C: the spike' },
+  { part: 7, text: 'Python; the playground; when can I use it; links' },
 ];
 
 export function part0(): string {
@@ -70,20 +68,20 @@ export function part0(): string {
     slide({
       part: 0,
       notes: notes(
-        'The plan of the hour. About 45 minutes of talk, then questions. The talk is mostly live: the viewers on the slides are real.',
+        'What is in the slides, part by part. Each row is a link to the start of its part, for the questions later. The talk is mostly live: the viewers on the slides are real.',
         'Here is the playground link and a QR code. Open it now on your own screen if you want to follow along. Every example slide has a "Try it" button that opens the same snippet in the playground. If you would rather watch, wait for the end: we come back to the playground in part 7 and you will use it during the questions.',
         'The link is also in the chat.',
         'I will go fast. Do not worry about catching everything: the snippets are all in the playground, with suggested edits.',
       ),
       body: `
-        <h2>The plan of the hour</h2>
+        <h2>Overview</h2>
         <div class="two-col wide-right center">
           <div class="stack">
             <div class="qr-box">${qrSvg(url, 'QR code of the playground address')}</div>
             <p class="url">${escapeHtml(url)}</p>
             <p class="lead">The playground, for you to follow along.</p>
           </div>
-          <table class="timeline">${Plan.map((p) => `<tr><td>${p.min}</td><td>${escapeHtml(p.name)}</td></tr>`).join('')}</table>
+          <table class="timeline overview">${Overview.map((o) => `<tr><td><a href="#" data-goto-part="${o.part}">${escapeHtml(PartNames[o.part])}</a></td><td>${escapeHtml(o.text)}</td></tr>`).join('')}</table>
         </div>`,
     }),
   ].join('');

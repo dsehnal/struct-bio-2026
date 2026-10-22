@@ -38,6 +38,7 @@ export async function startSlides(root: HTMLElement): Promise<void> {
     plugins: [RevealNotes],
   });
   navigationKeys(deck);
+  partLinks(deck, root);
   deckNav(deck, root);
   // The speaker view shows the current and the next slide in frames of the same page (`receiver` in the address): those
   // frames are pictures of the deck, so they get no viewers (the presenter's own window has them).
@@ -65,4 +66,15 @@ function navigationKeys(deck: RevealApi) {
 function isEditable(target: EventTarget | undefined) {
   if (!(target instanceof HTMLElement)) return false;
   return target.isContentEditable || target.matches('input, textarea, select');
+}
+
+/** A link `[data-goto-part="N"]` (the overview) goes to the first slide of part N; the slide numbers are known only here. */
+function partLinks(deck: RevealApi, root: HTMLElement) {
+  root.addEventListener('click', (e) => {
+    const link = (e.target as HTMLElement).closest<HTMLElement>('[data-goto-part]');
+    if (!link) return;
+    e.preventDefault();
+    const index = (deck.getSlides() as HTMLElement[]).findIndex((s) => s.dataset.part === link.dataset.gotoPart);
+    if (index >= 0) deck.slide(index);
+  });
 }

@@ -1544,3 +1544,23 @@ body {
   line-height: 1.35;
   color: var(--slide-ink);
 }
+
+/* The overview (part 0): each part's name links to its first slide. */
+.reveal .timeline.overview td:first-child {
+  width: auto;
+  white-space: nowrap;
+}
+
+.reveal .timeline.overview td:first-child a {
+  color: var(--slide-ink);
+  font-weight: var(--slide-weight-medium);
+}
+
+.reveal .timeline.overview td:first-child a:hover {
+  color: var(--app-brown);
+}
+
+.reveal .timeline.overview td:last-child {
+  color: var(--slide-muted);
+  font-size: var(--fs-small);
+}
